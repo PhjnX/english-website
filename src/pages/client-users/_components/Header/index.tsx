@@ -49,7 +49,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto flex items-center justify-between py-4 px-6">
         {/* Logo */}
         <Link to="/">
-          <img src={logo} alt="Logo" className="h-8" />
+          <img src={logo} alt="Logo" className="h-30" />
         </Link>
 
         {/* Menu giữa */}

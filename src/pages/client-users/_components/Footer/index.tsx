@@ -2,68 +2,72 @@ import React from "react";
 import { Layout } from "antd";
 import {
   FacebookFilled,
-  TwitterSquareFilled,
-  InstagramFilled,
+  TwitterOutlined,
+  LinkedinFilled,
+  MailOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
+import logo from "../../../../assets/images/logo.png";
 
 const { Footer: AntFooter } = Layout;
 
 const Footer: React.FC = () => (
-  <AntFooter className="bg-gray-100">
-    <div className="container mx-auto py-8 px-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Brand Info */}
-      <div>
-        <h3 className="text-lg font-semibold mb-2">EnglishLearn</h3>
-        <p className="text-sm text-gray-600">
-          Learn English effectively with interactive lessons and engaging
-          exercises.
-        </p>
+  <AntFooter className="bg-white border-t border-gray-200">
+    <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 text-sm text-gray-700">
+      {/* Contact Section */}
+      <div className="space-y-4">
+        <div>
+          <img src={logo} alt="Logo" className="h-8" />
+        </div>
+        <div className="flex items-center gap-2">
+          <MailOutlined />
+          <span>hello@skillbridge.com</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <PhoneOutlined />
+          <span>+91 91813 23 2309</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <EnvironmentOutlined />
+          <span>Somewhere in the World</span>
+        </div>
       </div>
-      {/* Quick Links */}
-      <div>
-        <h4 className="font-medium mb-2">Quick Links</h4>
-        <ul className="space-y-1">
-          <li>
-            <a href="/" className="text-gray-700 hover:text-blue-600">
-              Home
-            </a>
-          </li>
-          <li>
-            <a href="/courses" className="text-gray-700 hover:text-blue-600">
-              Courses
-            </a>
-          </li>
-          <li>
-            <a href="/about" className="text-gray-700 hover:text-blue-600">
-              About Us
-            </a>
-          </li>
-          <li>
-            <a href="/contact" className="text-gray-700 hover:text-blue-600">
-              Contact
-            </a>
-          </li>
-        </ul>
+
+      {/* Home Links */}
+      <div className="space-y-2">
+        <h4 className="font-semibold text-black">Home</h4>
+        <p>Our target</p>
+        <p>Benefits</p>
       </div>
-      {/* Social Media */}
-      <div>
-        <h4 className="font-medium mb-2">Follow Us</h4>
-        <div className="flex space-x-4 text-2xl text-blue-600">
+
+      {/* About Links */}
+      <div className="space-y-2">
+        <h4 className="font-semibold text-black">About Us</h4>
+        <p>Company</p>
+        <p>Achievements</p>
+        <p>Our Goals</p>
+      </div>
+
+      {/* Social Section */}
+      <div className="space-y-2">
+        <h4 className="font-semibold text-black">Social Profiles</h4>
+        <div className="flex gap-3 text-xl">
           <a href="https://facebook.com" aria-label="Facebook">
             <FacebookFilled />
           </a>
           <a href="https://twitter.com" aria-label="Twitter">
-            <TwitterSquareFilled />
+            <TwitterOutlined />
           </a>
-          <a href="https://instagram.com" aria-label="Instagram">
-            <InstagramFilled />
+          <a href="https://linkedin.com" aria-label="LinkedIn">
+            <LinkedinFilled />
           </a>
         </div>
       </div>
-      {/* Copyright */}
-      <div className="col-span-full text-center text-sm text-gray-500 mt-6">
-        © {new Date().getFullYear()} EnglishLearn. All rights reserved.
-      </div>
+    </div>
+
+    <div className="text-center text-gray-500 text-xs mt-4 pb-2">
+      © 2025 VLearnReading. All rights reserved.
     </div>
   </AntFooter>
 );
