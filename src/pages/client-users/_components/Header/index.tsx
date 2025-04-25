@@ -23,7 +23,7 @@ const menuItems: MenuItem[] = [
     key: "courses",
     icon: <BookOutlined />,
     label: "Courses",
-    href: "/courses",
+    href: "/courses_test",
   },
   {
     key: "about",

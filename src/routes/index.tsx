@@ -2,6 +2,7 @@
 import React, { JSX, lazy } from "react";
 import { Route } from "react-router-dom";
 import Login from "../pages/client-users/Login";
+import ReadingTestPage from "../pages/client-users/CourseTest";4
 
 type TRoute = {
   path: string;
@@ -19,7 +20,7 @@ const routes: TRoute[] = [
         element: lazy(() => import("../pages/client-users/HomePage")),
       },
       {
-        path: "about", // để nested route, không dùng "/about"
+        path: "about",
         element: lazy(() => import("../pages/client-users/AboutPage")),
       },
     ],
@@ -27,6 +28,10 @@ const routes: TRoute[] = [
   {
     path: "login",
     element: Login,
+  },
+  {
+    path: "courses_test",
+    element: ReadingTestPage,
   },
 ];
 
