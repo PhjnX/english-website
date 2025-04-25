@@ -18,40 +18,43 @@ const Footer: React.FC = () => (
       {/* Contact Section */}
       <div className="space-y-4">
         <div>
-          <img src={logo} alt="Logo" className="h-8" />
+          <img src={logo} alt="Logo" className="h-20" />
         </div>
-        <div className="flex items-center gap-2">
-          <MailOutlined />
-          <span>hello@skillbridge.com</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <PhoneOutlined />
-          <span>+91 91813 23 2309</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <EnvironmentOutlined />
-          <span>Somewhere in the World</span>
+        <div className="ml-12">
+          <div className="flex items-center gap-2 mb-2">
+            <MailOutlined />
+            <span>VLearnReading@gmail.com</span>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <PhoneOutlined />
+            <span>+0123456789</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <EnvironmentOutlined />
+            <span>Somewhere in the World</span>
+          </div>
         </div>
       </div>
 
       {/* Home Links */}
-      <div className="space-y-2">
-        <h4 className="font-semibold text-black">Home</h4>
+      <div className="space-y-2 mt-5 ml-20">
+        <h4 className="text-black text-base !font-bold">Home</h4>
         <p>Our target</p>
         <p>Benefits</p>
+        <p>Our courses</p>
       </div>
 
       {/* About Links */}
-      <div className="space-y-2">
-        <h4 className="font-semibold text-black">About Us</h4>
+      <div className="space-y-2 mt-5">
+        <h4 className="text-black text-base !font-bold">About Us</h4>
         <p>Company</p>
         <p>Achievements</p>
         <p>Our Goals</p>
       </div>
 
       {/* Social Section */}
-      <div className="space-y-2">
-        <h4 className="font-semibold text-black">Social Profiles</h4>
+      <div className="space-y-2 mt-5">
+        <h4 className="text-black text-base !font-bold">Social Profiles</h4>
         <div className="flex gap-3 text-xl">
           <a href="https://facebook.com" aria-label="Facebook">
             <FacebookFilled />

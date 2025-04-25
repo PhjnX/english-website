@@ -9,7 +9,8 @@ import {
 } from "@ant-design/icons";
 import Header from "../_components/Header";
 import bg from "../../../assets/images/background-1.jpg";
-
+import Footer from "../_components/Footer";
+import logo from "../../../assets/images/logo.png";
 const LoginPage: React.FC = () => {
   const onFinish = (values: any) => {
     console.log("Login values:", values);
@@ -68,12 +69,9 @@ const LoginPage: React.FC = () => {
 
           {/* Form Side */}
           <div className="p-10 lg:p-16">
-            <h2 className="text-4xl font-extrabold text-gray-800 mb-4">
-              Welcome Back!
-            </h2>
-            <p className="text-gray-600 mb-8">
-              Sign in to continue to your account
-            </p>
+              <div className="flex items-center justify-center">
+              <img src={logo} alt="Logo" className="h-20" />     
+              </div>
 
             <Form
               name="login"
@@ -131,7 +129,7 @@ const LoginPage: React.FC = () => {
                   htmlType="submit"
                   block
                   size="large"
-                  className="rounded-lg bg-orange-500 hover:bg-orange-600 shadow-md"
+                  className="rounded-lg !bg-red-00 hover:!bg-red-900 shadow-md"
                 >
                   Sign In
                 </Button>
@@ -144,20 +142,13 @@ const LoginPage: React.FC = () => {
               <hr className="flex-grow border-gray-300" />
             </div>
 
-            <Button
-              block
-              icon={<GoogleOutlined />}
-              size="large"
-              className="flex items-center justify-center rounded-lg border border-gray-300 hover:shadow"
-            >
-              Sign in with Google
-            </Button>
+            
 
             <p className="text-center text-gray-700 mt-6">
               Don’t have an account?{" "}
               <Link
                 to="/signup"
-                className="text-orange-500 font-medium hover:underline"
+                className="text-red-600 font-medium hover:underline"
               >
                 Sign Up
               </Link>
@@ -165,6 +156,7 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
       </section>
+      <Footer />
     </>
   );
 };
