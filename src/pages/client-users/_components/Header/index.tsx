@@ -96,7 +96,8 @@ const Header: React.FC = () => {
           ) : (
             <>
               <Link
-                to="/signup"
+                to="/login"
+                state={{ isSignUp: true }}
                 className="text-sm text-gray-800 hover:text-red-600 hover:underline"
               >
                 Sign Up
