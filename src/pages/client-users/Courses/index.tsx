@@ -5,59 +5,60 @@ import pic3 from "../../../assets/images/pic3.jpg";
 import pic4 from "../../../assets/images/pic4.png";
 import pic5 from "../../../assets/images/pic5.jpg";
 import pic6 from "../../../assets/images/pic6.jpg";
+
 const courses = [
   {
-    duration: "4 Weeks",
-    level: "Beginner",
-    author: "By Van Lang Team",
-    title: "Reading Comprehension Basics",
+    duration: "4 Tuần", // Level 1: Band 3.0
+    level: "Level 1",
+    author: "Nhóm Van Lang",
+    title: "Cơ bản đọc hiểu",
     description:
-      "Build a strong foundation in English reading skills, including vocabulary building, skimming, and scanning techniques.",
+      "Xây dựng nền tảng kỹ năng đọc tiếng Anh: từ vựng cơ bản, kỹ thuật quét ý chính (skimming) và tìm chi tiết (scanning).",
     image: pic1,
   },
   {
-    duration: "6 Weeks",
-    level: "Intermediate",
-    author: "By Van Lang Team",
-    title: "Reading for Academic Purposes",
+    duration: "4 Tuần", // Level 2: Band 3.5-4.0
+    level: "Level 2",
+    author: "Nhóm Van Lang",
+    title: "Đọc học thuật cơ bản",
     description:
-      "Master academic reading strategies to understand research papers, textbooks, and scholarly articles.",
+      "Thành thạo các chiến lược đọc học thuật cơ bản để hiểu bài báo nghiên cứu, sách giáo khoa và bài viết chuyên ngành.",
     image: pic2,
   },
   {
-    duration: "8 Weeks",
-    level: "Intermediate",
-    author: "By Van Lang Team",
-    title: "Critical Reading Skills",
+    duration: "6 Tuần", // Level 3: Band 4.0-4.5
+    level: "Level 3",
+    author: "Nhóm Van Lang",
+    title: "Kỹ năng đọc phân tích",
     description:
-      "Improve critical thinking through reading. Learn to analyze arguments, identify bias, and evaluate sources.",
+      "Cải thiện tư duy phản biện qua đọc hiểu: phân tích luận điểm, nhận diện thành kiến và đánh giá nguồn thông tin.",
     image: pic3,
   },
   {
-    duration: "10 Weeks",
-    level: "Beginner",
-    author: "By Van Lang Team",
-    title: "Reading for General English Tests",
+    duration: "6 Tuần", // Level 4: Band 4.5-5.0
+    level: "Level 4",
+    author: "Nhóm Van Lang",
+    title: "Luyện đề mô phỏng",
     description:
-      "Practice with TOEIC, IELTS, and TOEFL-style passages to boost your test-taking strategies and confidence.",
+      "Luyện đọc với các đoạn văn mô phỏng đề thi IELTS Reading để nâng cao chiến lược làm bài và tự tin hơn.",
     image: pic4,
   },
   {
-    duration: "10 Weeks",
-    level: "Intermediate",
-    author: "By Van Lang Team",
-    title: "Vocabulary and Context Clues",
+    duration: "8 Tuần", // Level 5: Band 5.0-5.5
+    level: "Level 5",
+    author: "Nhóm Van Lang",
+    title: "Từ vựng và đoán nghĩa nâng cao",
     description:
-      "Expand your vocabulary and learn to deduce meaning from context — a key skill for advanced reading.",
+      "Mở rộng vốn từ chuyên sâu và học cách suy luận nghĩa từ ngữ cảnh — kỹ năng then chốt cho band 5.5 trở lên.",
     image: pic5,
   },
   {
-    duration: "6 Weeks",
-    level: "Advanced",
-    author: "By Van Lang Teams",
-    title: "Research Article Reading Mastery",
+    duration: "10 Tuần", // Level 6: Band 5.5-6.0+
+    level: "Level 6",
+    author: "Nhóm Van Lang",
+    title: "Thành thạo đọc bài nghiên cứu",
     description:
-      "Dive deep into research paper structures and academic language to become fluent in reading scientific literature.",
+      "Đào sâu vào cấu trúc bài báo khoa học và các văn bản học thuật cấp cao để hướng tới band 6.0+.",
     image: pic6,
   },
 ];
@@ -66,14 +67,13 @@ export default function ReadingCourses() {
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <h2
-        className="text-3xl font-bold text-center mb-2 "
+        className="text-3xl font-bold text-center mb-2"
         style={{ fontFamily: "'Bubblegum Sans', cursive" }}
       >
-        Our Courses
+        Các Khóa Học
       </h2>
       <p className="text-center text-gray-600 mb-10">
-        Enhance your English reading skills for academic and professional
-        success.
+        Nâng cao kỹ năng đọc tiếng Anh theo band IELTS từ 3.0 đến 6.0+
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {courses.map((course, idx) => (
@@ -99,7 +99,7 @@ export default function ReadingCourses() {
                 </p>
               </div>
               <button className="w-full bg-gray-200 text-gray-700 font-medium py-2 rounded hover:bg-gray-300 transition">
-                Get It Now
+                Tham gia ngay
               </button>
             </div>
           </div>
@@ -108,3 +108,4 @@ export default function ReadingCourses() {
     </div>
   );
 }
+  

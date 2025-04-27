@@ -13,27 +13,27 @@ interface TargetItem {
 const targets: TargetItem[] = [
   {
     icon: Icon1,
-    title: "Personalized",
+    title: "Cá nhân hóa",
     description:
-      "Tailored reading paths based on each student's English level and learning goals",
+      "Lộ trình đọc được điều chỉnh theo trình độ và mục tiêu học tập của từng sinh viên",
   },
   {
     icon: Icon2,
-    title: "Focused",
+    title: "Tập trung",
     description:
-      "Practice academic reading skills aligned with standardized test formats and university requirements",
+      "Luyện kỹ năng đọc học thuật phù hợp với định dạng đề thi và yêu cầu của trường đại học",
   },
   {
     icon: Icon3,
-    title: "Accessible",
+    title: "Dễ tiếp cận",
     description:
-      "Simple, responsive interface for all students - available anytime, anywhere",
+      "Giao diện đơn giản, tương thích với mọi thiết bị – học bất cứ lúc nào, bất cứ nơi đâu",
   },
   {
     icon: Icon4,
-    title: "Motivating",
+    title: "Truyền cảm hứng",
     description:
-      "Boosts learing engagement through points rewards, and interactive experiences",
+      "Tăng động lực học thông qua hệ thống điểm thưởng và trải nghiệm tương tác",
   },
 ];
 
@@ -44,7 +44,7 @@ const TargetSection: React.FC = () => {
         className="text-3xl font-bold mb-10"
         style={{ fontFamily: "'Bubblegum Sans', cursive" }}
       >
-        Our Target
+        Mục tiêu
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 max-w-6xl mx-auto mt-14">
@@ -60,8 +60,8 @@ const TargetSection: React.FC = () => {
                 className="max-w-[60%] max-h-[60%] object-contain"
               />
             </div>
-            <h3 className="text-xl font-bold mb-2 font-serif">{item.title}</h3>
-            <p className="text-sm text-gray-600 font-serif">
+            <h3 className="text-xl font-bold mb-2 font-stretch-100%">{item.title}</h3>
+            <p className="text-sm text-gray-600 font-stretch-100%">
               {item.description}
             </p>
           </div>

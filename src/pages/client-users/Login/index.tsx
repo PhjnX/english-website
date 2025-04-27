@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Form, Input, Button, Checkbox, message } from "antd";
-import {
-  EyeInvisibleOutlined,
-  EyeTwoTone,
-} from "@ant-design/icons";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import Header from "../_components/Header";
 import Footer from "../_components/Footer";
 import logo from "../../../assets/images/logo.png";
 import bg from "../../../assets/images/background-1.jpg";
 import LeftSidePanel from "./LeftSidePanel";
+
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loggedInUser, setLoggedInUser] = useState("");
@@ -23,7 +21,7 @@ const LoginPage: React.FC = () => {
   }, [navigate]);
 
   const location = useLocation();
-  // Auto switch to SignUp form if state.isSignUp is true
+  // Tự động chuyển sang form Đăng ký nếu state.isSignUp = true
   useEffect(() => {
     if (location.state?.isSignUp) {
       setIsLogin(false);
@@ -37,17 +35,17 @@ const LoginPage: React.FC = () => {
       if (username === "AnhHuy" && password === "123456") {
         localStorage.setItem("username", username);
         setLoggedInUser(username);
-        message.success("Login successful!");
+        message.success("Đăng nhập thành công!");
         navigate("/");
       } else {
-        message.error("Invalid username or password!");
+        message.error("Tên đăng nhập hoặc mật khẩu không đúng!");
       }
     } else {
       if (password !== confirmPassword) {
-        message.error("Passwords do not match");
+        message.error("Mật khẩu không khớp");
         return;
       }
-      message.success("Sign up successful! You can now log in.");
+      message.success("Đăng ký thành công! Bạn có thể đăng nhập ngay.");
       setIsLogin(true);
     }
   };
@@ -66,10 +64,10 @@ const LoginPage: React.FC = () => {
         </div>
 
         <div className="relative z-10 bg-white rounded-2xl shadow-2xl max-w-4xl w-full grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
-          {/* Side Info */}
+          {/* Bảng thông tin bên trái */}
           <LeftSidePanel />
 
-          {/* Form Side */}
+          {/* Form Đăng nhập/Đăng ký */}
           <div className="p-10 lg:p-16">
             <div className="flex items-center justify-center mb-4">
               <img src={logo} alt="Logo" className="h-20" />
@@ -77,7 +75,7 @@ const LoginPage: React.FC = () => {
 
             {loggedInUser ? (
               <h2 className="text-center text-xl font-semibold text-green-600">
-                Hi! {loggedInUser}
+                Xin chào, {loggedInUser}
               </h2>
             ) : (
               <>
@@ -92,12 +90,12 @@ const LoginPage: React.FC = () => {
                       label="Email"
                       name="email"
                       rules={[
-                        { required: true, message: "Please input your email!" },
-                        { type: "email", message: "Invalid email format" },
+                        { required: true, message: "Vui lòng nhập email!" },
+                        { type: "email", message: "Email không hợp lệ" },
                       ]}
                     >
                       <Input
-                        placeholder="Enter your email"
+                        placeholder="Nhập email của bạn"
                         size="large"
                         className="rounded-lg border-gray-300"
                       />
@@ -105,34 +103,31 @@ const LoginPage: React.FC = () => {
                   )}
 
                   <Form.Item
-                    label="Username"
+                    label="Tên đăng nhập"
                     name="username"
                     rules={[
                       {
                         required: true,
-                        message: "Please input your username!",
+                        message: "Vui lòng nhập tên đăng nhập!",
                       },
                     ]}
                   >
                     <Input
-                      placeholder="Enter your username"
+                      placeholder="Nhập tên đăng nhập"
                       size="large"
                       className="rounded-lg border-gray-300"
                     />
                   </Form.Item>
 
                   <Form.Item
-                    label="Password"
+                    label="Mật khẩu"
                     name="password"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please input your password!",
-                      },
+                      { required: true, message: "Vui lòng nhập mật khẩu!" },
                     ]}
                   >
                     <Input.Password
-                      placeholder="Enter your password"
+                      placeholder="Nhập mật khẩu"
                       size="large"
                       className="rounded-lg border-gray-300"
                       iconRender={(visible) =>
@@ -143,17 +138,17 @@ const LoginPage: React.FC = () => {
 
                   {!isLogin && (
                     <Form.Item
-                      label="Confirm Password"
+                      label="Xác nhận mật khẩu"
                       name="confirmPassword"
                       rules={[
                         {
                           required: true,
-                          message: "Please confirm your password!",
+                          message: "Vui lòng xác nhận mật khẩu!",
                         },
                       ]}
                     >
                       <Input.Password
-                        placeholder="Confirm your password"
+                        placeholder="Xác nhận mật khẩu"
                         size="large"
                         className="rounded-lg border-gray-300"
                       />
@@ -168,11 +163,11 @@ const LoginPage: React.FC = () => {
                         noStyle
                       >
                         <Checkbox className="text-gray-600">
-                          Remember me
+                          Ghi nhớ đăng nhập
                         </Checkbox>
                       </Form.Item>
                       <span className="text-sm text-orange-500 cursor-pointer hover:underline">
-                        Forgot password?
+                        Quên mật khẩu?
                       </span>
                     </div>
                   )}
@@ -185,26 +180,24 @@ const LoginPage: React.FC = () => {
                       size="large"
                       className="rounded-lg !bg-red-800 hover:!bg-red-900 shadow-md"
                     >
-                      {isLogin ? "Sign In" : "Sign Up"}
+                      {isLogin ? "Đăng nhập" : "Đăng ký"}
                     </Button>
                   </Form.Item>
                 </Form>
 
                 <div className="flex items-center my-6">
                   <hr className="flex-grow border-gray-300" />
-                  <span className="mx-2 text-gray-500">OR</span>
+                  <span className="mx-2 text-gray-500">HOẶC</span>
                   <hr className="flex-grow border-gray-300" />
                 </div>
 
                 <p className="text-center text-gray-700 mt-6">
-                  {isLogin
-                    ? "Don’t have an account?"
-                    : "Already have an account?"}{" "}
+                  {isLogin ? "Chưa có tài khoản?" : "Đã có tài khoản?"}{" "}
                   <span
                     className="text-red-600 font-medium hover:underline cursor-pointer"
                     onClick={() => setIsLogin(!isLogin)}
                   >
-                    {isLogin ? "Sign Up" : "Login"}
+                    {isLogin ? "Đăng ký" : "Đăng nhập"}
                   </span>
                 </p>
               </>

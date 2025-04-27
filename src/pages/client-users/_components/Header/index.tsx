@@ -4,37 +4,81 @@ import "../../../../App.css";
 import {
   HomeOutlined,
   BookOutlined,
-  InfoCircleOutlined,
+  FormOutlined,
+  ReadOutlined,
+  FileTextOutlined,
+  ProfileOutlined,
+  QuestionCircleOutlined,
   PhoneOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../../../assets/images/logo.png";
 
-interface MenuItem {
+interface SubMenuItem {
   key: string;
-  icon: React.ReactNode;
-  label: string;
+  label: React.ReactNode;
   href: string;
 }
 
+interface MenuItem {
+  key: string;
+  icon: React.ReactNode;
+  label: React.ReactNode;
+  href?: string;
+  children?: SubMenuItem[];
+}
+
 const menuItems: MenuItem[] = [
-  { key: "home", icon: <HomeOutlined />, label: "Home", href: "/" },
   {
-    key: "courses",
-    icon: <BookOutlined />,
-    label: "Courses",
-    href: "/courses_test",
+    key: "home",
+    icon: <HomeOutlined />,
+    label: <Link to="/">Trang chủ</Link>,
+    href: "/",
   },
   {
-    key: "about",
-    icon: <InfoCircleOutlined />,
-    label: "About",
-    href: "/about",
+    key: "lessons",
+    icon: <BookOutlined />,
+    label: <span>Bài học</span>,
+    children: Array.from({ length: 6 }, (_, i) => ({
+      key: `level${i + 1}`,
+      label: <Link to={`/lessons/${i + 1}`}>{`Level ${i + 1}`}</Link>,
+      href: `/lessons/${i + 1}`,
+    })),
+  },
+  {
+    key: "assessment",
+    icon: <FormOutlined />,
+    label: <Link to="/assessment">Đánh giá đầu vào</Link>,
+    href: "/assessment",
+  },
+  {
+    key: "mock",
+    icon: <ReadOutlined />,
+    label: <Link to="/mock-test">Bài thi thử</Link>,
+    href: "/mock-test",
+  },
+  {
+    key: "resources",
+    icon: <FileTextOutlined />,
+    label: <Link to="/resources">Tài nguyên</Link>,
+    href: "/resources",
+  },
+  {
+    key: "dashboard",
+    icon: <ProfileOutlined />,
+    label: <Link to="/dashboard">Lộ trình của tôi</Link>,
+    href: "/dashboard",
+  },
+  {
+    key: "help",
+    icon: <QuestionCircleOutlined />,
+    label: <Link to="/help">Giúp đỡ</Link>,
+    href: "/help",
   },
   {
     key: "contact",
     icon: <PhoneOutlined />,
-    label: "Contact",
+    label: <Link to="/contact">Liên hệ</Link>,
     href: "/contact",
   },
 ];
@@ -42,9 +86,6 @@ const menuItems: MenuItem[] = [
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const selectedKey =
-    menuItems.find((item) => item.href === location.pathname)?.key || "home";
-
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
@@ -57,6 +98,20 @@ const Header: React.FC = () => {
     setUsername(null);
     navigate("/login");
   };
+
+  // Determine selected key, including submenu cases
+  const findKey = (items: MenuItem[]): string => {
+    for (const item of items) {
+      if (item.href === location.pathname) return item.key;
+      if (item.children) {
+        for (const sub of item.children) {
+          if (sub.href === location.pathname) return sub.key;
+        }
+      }
+    }
+    return "home";
+  };
+  const selectedKey = findKey(menuItems);
 
   return (
     <header className="bg-gray-50 shadow-md">
@@ -75,7 +130,11 @@ const Header: React.FC = () => {
             items={menuItems.map((item) => ({
               key: item.key,
               icon: item.icon,
-              label: <Link to={item.href}>{item.label}</Link>,
+              label: item.label,
+              children: item.children?.map((sub) => ({
+                key: sub.key,
+                label: sub.label,
+              })),
             }))}
           />
         </div>
@@ -100,7 +159,7 @@ const Header: React.FC = () => {
                 state={{ isSignUp: true }}
                 className="text-sm text-gray-800 hover:text-red-600 hover:underline"
               >
-                Sign Up
+                Đăng ký
               </Link>
               <Link to="/login">
                 <Button
@@ -108,7 +167,7 @@ const Header: React.FC = () => {
                   danger
                   className="bg-red-600 border-red-600 hover:bg-red-700 rounded-md px-5 text-white"
                 >
-                  Login
+                  Đăng nhập
                 </Button>
               </Link>
             </>

@@ -3,7 +3,13 @@ import { motion } from "framer-motion";
 import Header from "../_components/Header";
 import Footer from "../_components/Footer";
 import { Button } from "antd";
-import { LeftOutlined, RightOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import {
+  LeftOutlined,
+  RightOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
 
 const readingParts = [
   {
@@ -13,18 +19,30 @@ const readingParts = [
       {
         id: 1,
         question: "What is the main idea of the passage?",
-        options: ["A. Technology trends", "B. Climate change", "C. Education methods", "D. Space exploration"],
+        options: [
+          "A. Technology trends",
+          "B. Climate change",
+          "C. Education methods",
+          "D. Space exploration",
+        ],
         correctAnswer: "C. Education methods",
-        explanation: "Câu trả lời đúng là 'Education methods' vì đoạn văn nói về các phương pháp giáo dục hiện đại. Các lựa chọn khác không liên quan trực tiếp đến nội dung đoạn văn."
+        explanation:
+          "Câu trả lời đúng là 'Education methods' vì đoạn văn nói về các phương pháp giáo dục hiện đại. Các lựa chọn khác không liên quan trực tiếp đến nội dung đoạn văn.",
       },
       {
         id: 2,
         question: "Why is online learning considered effective?",
-        options: ["A. It's cheaper", "B. Students can learn anytime", "C. It is fast", "D. Teachers prefer it"],
+        options: [
+          "A. It's cheaper",
+          "B. Students can learn anytime",
+          "C. It is fast",
+          "D. Teachers prefer it",
+        ],
         correctAnswer: "B. Students can learn anytime",
-        explanation: "Câu trả lời đúng là 'Students can learn anytime' vì đoạn văn nhấn mạnh sự linh hoạt trong việc học mọi lúc mọi nơi. Các lựa chọn khác không được đề cập hoặc không phải là lý do chính."
-      }
-    ]
+        explanation:
+          "Câu trả lời đúng là 'Students can learn anytime' vì đoạn văn nhấn mạnh sự linh hoạt trong việc học mọi lúc mọi nơi. Các lựa chọn khác không được đề cập hoặc không phải là lý do chính.",
+      },
+    ],
   },
   {
     title: "Part 2",
@@ -33,19 +51,31 @@ const readingParts = [
       {
         id: 1,
         question: "What causes global warming?",
-        options: ["A. Natural weather", "B. Human activity", "C. Volcanoes", "D. Ocean currents"],
+        options: [
+          "A. Natural weather",
+          "B. Human activity",
+          "C. Volcanoes",
+          "D. Ocean currents",
+        ],
         correctAnswer: "B. Human activity",
-        explanation: "Câu trả lời đúng là 'Human activity' vì đoạn văn nói rõ rằng hoạt động con người là nguyên nhân chính. Các đáp án khác không được nêu ra trong đoạn văn."
+        explanation:
+          "Câu trả lời đúng là 'Human activity' vì đoạn văn nói rõ rằng hoạt động con người là nguyên nhân chính. Các đáp án khác không được nêu ra trong đoạn văn.",
       },
       {
         id: 2,
         question: "What is the main greenhouse gas mentioned?",
-        options: ["A. Oxygen", "B. Nitrogen", "C. Carbon dioxide", "D. Hydrogen"],
+        options: [
+          "A. Oxygen",
+          "B. Nitrogen",
+          "C. Carbon dioxide",
+          "D. Hydrogen",
+        ],
         correctAnswer: "C. Carbon dioxide",
-        explanation: "Câu trả lời đúng là 'Carbon dioxide' vì đoạn văn đề cập rõ đây là loại khí giữ nhiệt gây hiện tượng nóng lên toàn cầu."
-      }
-    ]
-  }
+        explanation:
+          "Câu trả lời đúng là 'Carbon dioxide' vì đoạn văn đề cập rõ đây là loại khí giữ nhiệt gây hiện tượng nóng lên toàn cầu.",
+      },
+    ],
+  },
 ];
 
 const totalTime = 10 * 60;
@@ -53,7 +83,9 @@ const totalTime = 10 * 60;
 const ReadingTestPage: React.FC = () => {
   const [currentPartIndex, setCurrentPartIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<{ [partIdx: number]: { [qIdx: number]: string } }>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<{
+    [partIdx: number]: { [qIdx: number]: string };
+  }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(totalTime);
 
@@ -77,13 +109,14 @@ const ReadingTestPage: React.FC = () => {
       ...prev,
       [currentPartIndex]: {
         ...prev[currentPartIndex],
-        [currentQuestionIndex]: answer
-      }
+        [currentQuestionIndex]: answer,
+      },
     }));
   };
 
   const handlePartChange = (direction: "next" | "prev") => {
-    const newIndex = direction === "next" ? currentPartIndex + 1 : currentPartIndex - 1;
+    const newIndex =
+      direction === "next" ? currentPartIndex + 1 : currentPartIndex - 1;
     if (newIndex >= 0 && newIndex < readingParts.length) {
       setCurrentPartIndex(newIndex);
       setCurrentQuestionIndex(0);
@@ -111,7 +144,9 @@ const ReadingTestPage: React.FC = () => {
           transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-red-600">Reading Test</h2>
+            <h2 className="text-2xl font-semibold text-red-600">
+              Reading Test
+            </h2>
             <span className="text-gray-700 font-medium flex items-center gap-2">
               <ClockCircleOutlined className="text-lg" /> {formatTime(timeLeft)}
             </span>
@@ -119,28 +154,44 @@ const ReadingTestPage: React.FC = () => {
 
           {!isSubmitted ? (
             <>
-              <motion.h3 className="text-xl font-semibold mb-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <motion.h3
+                className="text-xl font-semibold mb-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
                 {readingParts[currentPartIndex].title}
               </motion.h3>
-              <motion.p className="text-gray-800 mb-6 whitespace-pre-wrap" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <motion.p
+                className="text-gray-800 mb-6 whitespace-pre-wrap"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
                 {readingParts[currentPartIndex].passage}
               </motion.p>
 
               <h4 className="text-lg font-medium mb-3">
-                Question {currentQuestionIndex + 1} of {readingParts[currentPartIndex].questions.length}
+                Question {currentQuestionIndex + 1} of{" "}
+                {readingParts[currentPartIndex].questions.length}
               </h4>
               <p className="text-gray-700 mb-4">
-                {readingParts[currentPartIndex].questions[currentQuestionIndex].question}
+                {
+                  readingParts[currentPartIndex].questions[currentQuestionIndex]
+                    .question
+                }
               </p>
               <ul className="space-y-3">
-                {readingParts[currentPartIndex].questions[currentQuestionIndex].options.map((opt, idx) => (
+                {readingParts[currentPartIndex].questions[
+                  currentQuestionIndex
+                ].options.map((opt, idx) => (
                   <motion.li
                     key={idx}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleAnswer(opt)}
                     className={`p-3 rounded-md cursor-pointer border transition duration-300 ${
-                      selectedAnswers[currentPartIndex]?.[currentQuestionIndex] === opt
+                      selectedAnswers[currentPartIndex]?.[
+                        currentQuestionIndex
+                      ] === opt
                         ? "bg-red-100 border-red-500"
                         : "bg-gray-50 hover:bg-gray-100"
                     }`}
@@ -159,7 +210,8 @@ const ReadingTestPage: React.FC = () => {
                 >
                   Previous
                 </Button>
-                {currentQuestionIndex < readingParts[currentPartIndex].questions.length - 1 ? (
+                {currentQuestionIndex <
+                readingParts[currentPartIndex].questions.length - 1 ? (
                   <Button
                     type="primary"
                     icon={<RightOutlined />}
@@ -168,11 +220,7 @@ const ReadingTestPage: React.FC = () => {
                     Next
                   </Button>
                 ) : (
-                  <Button
-                    type="primary"
-                    danger
-                    onClick={handleSubmit}
-                  >
+                  <Button type="primary" danger onClick={handleSubmit}>
                     Submit
                   </Button>
                 )}
@@ -202,8 +250,12 @@ const ReadingTestPage: React.FC = () => {
               <h3 className="text-xl font-semibold mb-6">📝 Result Review</h3>
               {readingParts.map((part, partIdx) => (
                 <div key={partIdx} className="mb-8">
-                  <h4 className="text-lg font-semibold text-red-600 mb-2">{part.title}</h4>
-                  <p className="text-gray-800 mb-4 whitespace-pre-wrap">{part.passage}</p>
+                  <h4 className="text-lg font-semibold text-red-600 mb-2">
+                    {part.title}
+                  </h4>
+                  <p className="text-gray-800 mb-4 whitespace-pre-wrap">
+                    {part.passage}
+                  </p>
                   <ul className="space-y-6">
                     {part.questions.map((q, qIdx) => {
                       const userAnswer = selectedAnswers[partIdx]?.[qIdx];
@@ -220,13 +272,18 @@ const ReadingTestPage: React.FC = () => {
                             {qIdx + 1}. {q.question}
                           </p>
                           <p className="mt-1 flex items-center gap-2">
-                            Your answer: {" "}
+                            Your answer:{" "}
                             <span
                               className={`font-semibold flex items-center gap-1 ${
                                 isCorrect ? "text-green-600" : "text-red-600"
                               }`}
                             >
-                              {isCorrect ? <CheckCircleOutlined /> : <CloseCircleOutlined />} {userAnswer || "No answer"}
+                              {isCorrect ? (
+                                <CheckCircleOutlined />
+                              ) : (
+                                <CloseCircleOutlined />
+                              )}{" "}
+                              {userAnswer || "No answer"}
                             </span>
                           </p>
                           {!isCorrect && (

@@ -1,10 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import {
-  FaBookReader,
-  FaLaptopCode,
-  FaCertificate,
-} from "react-icons/fa";
+import { FaBookReader, FaLaptopCode, FaCertificate } from "react-icons/fa";
 
 const LeftSidePanel: React.FC = () => {
   return (
@@ -20,7 +16,7 @@ const LeftSidePanel: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
       >
-        Welcome to <span className="text-red-500">VLearnReading</span>
+        Chào mừng đến với <span className="text-red-500">VLearnReading</span>
       </motion.h2>
 
       <motion.p
@@ -29,7 +25,8 @@ const LeftSidePanel: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4, duration: 0.6 }}
       >
-        Build your reading and learning skills with interactive tutorials, expert-led courses, and a vibrant community.
+        Phát triển kỹ năng đọc và học tập của bạn với hướng dẫn tương tác, khóa
+        học chuyên gia và cộng đồng sôi động.
       </motion.p>
 
       <motion.ul
@@ -40,15 +37,15 @@ const LeftSidePanel: React.FC = () => {
       >
         <li className="flex items-center space-x-3">
           <FaBookReader className="text-red-400 text-lg" />
-          <span>Personalized Learning Paths</span>
+          <span>Các lộ trình học cá nhân hóa</span>
         </li>
         <li className="flex items-center space-x-3">
           <FaLaptopCode className="text-yellow-400 text-lg" />
-          <span>Interactive Reading Experiences</span>
+          <span>Trải nghiệm đọc tương tác</span>
         </li>
         <li className="flex items-center space-x-3">
           <FaCertificate className="text-green-400 text-lg" />
-          <span>Earn Certificates & Track Progress</span>
+          <span>Nhận chứng chỉ và theo dõi tiến trình</span>
         </li>
       </motion.ul>
     </motion.div>

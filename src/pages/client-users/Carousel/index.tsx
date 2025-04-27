@@ -15,24 +15,24 @@ const HeroCarousel: React.FC = () => {
                 className="text-white text-xl font-sans"
               />
             </div>
-            Improve
+            Nâng Cao
             <span className="text-black ml-2 font-sans">
-              Your English Reading Skills
+              Kỹ Năng Reading Của Bạn
             </span>
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="text-2xl text-gray-700 mb-1 font-bold font-sans  ">
-          with Online Reading Practice for University Students
+          Biến Việc Học Tiếng Anh Thành Đam Mê Đích Thực
         </p>
         <p className="text-sm text-gray-500 mb-6 font-sans">
-          Learn with Custom Exercise and Track Your Progress
+          Mở Cánh Cửa Tri Thức, Làm Chủ Kỹ Năng Reading Đỉnh Cao
         </p>
 
         <div className="flex justify-center mt-10 font-sans">
           <button className="bg-red-500  !text-white px-4 py-3.5 rounded-full font-semibold hover:bg-red-700 transition duration-300 text-sm cursor-pointer">
-            Explore Courses
+            Khởi Động
           </button>
         </div>
       </div>

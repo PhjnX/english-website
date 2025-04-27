@@ -10,39 +10,39 @@ interface Benefit {
 const benefits: Benefit[] = [
   {
     number: "01",
-    title: "Personalized Learning Experience",
+    title: "Trải nghiệm học cá nhân hóa",
     description:
-      "Smart algorithms adapt the content to your strengths and weaknesses, ensuring every session is relevant and efficient.",
+      "Thuật toán thông minh điều chỉnh nội dung phù hợp với điểm mạnh và điểm yếu của bạn, đảm bảo mỗi buổi học đều hiệu quả.",
   },
   {
     number: "02",
-    title: "Flexible and Accessible",
+    title: "Linh hoạt và dễ tiếp cận",
     description:
-      "Study on your own schedule, from any location or device — perfect for busy student life.",
+      "Học theo lịch của bạn, trên mọi thiết bị và mọi nơi — lý tưởng cho cuộc sống sinh viên bận rộn.",
   },
   {
     number: "03",
-    title: "Test-Aligned Practice",
+    title: "Luyện tập theo đề thi",
     description:
-      "Practice with reading formats modeled after real exams such as IELTS, TOEIC, and CEFR B2 — build confidence with familiarity.",
+      "Luyện kỹ năng đọc với định dạng mô phỏng đề thi thực tế như IELTS, TOEIC và CEFR B2 — xây dựng sự tự tin qua tính quen thuộc.",
   },
   {
     number: "04",
-    title: "Progress Monitoring Tools",
+    title: "Công cụ theo dõi tiến trình",
     description:
-      "Track your performance with clear stats, insights, and recommendations — stay motivated and focused.",
+      "Theo dõi hiệu suất với thống kê, phân tích và đề xuất rõ ràng — giữ động lực và tập trung.",
   },
   {
     number: "05",
-    title: "Rich, Curated Reading Resources",
+    title: "Nguồn tư liệu phong phú",
     description:
-      "Explore academic, scientific, and real-world texts chosen to enhance your vocabulary and comprehension step-by-step.",
+      "Khám phá các văn bản học thuật, khoa học và thực tế được tuyển chọn để nâng cao từ vựng và khả năng hiểu dần từng bước.",
   },
   {
     number: "06",
-    title: "Interactive & Motivating Environment",
+    title: "Môi trường tương tác và truyền cảm hứng",
     description:
-      "Gamified elements and user-friendly design make self-study enjoyable, boosting consistency and productivity.",
+      "Yếu tố trò chơi hóa và thiết kế thân thiện giúp việc tự học trở nên thú vị, tăng tính kiên trì và hiệu suất.",
   },
 ];
 
@@ -53,11 +53,11 @@ const BenefitsSection: React.FC = () => {
         className="text-3xl font-bold text-gray-900 mb-2"
         style={{ fontFamily: "'Bubblegum Sans', cursive" }}
       >
-        Benefits
+        Lợi ích
       </h2>
       <p className="text-gray-600 max-w-2xl mx-auto mb-10">
-        Unlock your reading potential with our smart, student-focused English
-        reading platform:
+        Khai phá tiềm năng đọc với nền tảng ôn luyện tiếng Anh dành cho sinh
+        viên:
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
