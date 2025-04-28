@@ -2,8 +2,7 @@
 import React, { JSX, lazy } from "react";
 import { Route } from "react-router-dom";
 import Login from "../pages/client-users/Login";
-import ReadingTestPage from "../pages/client-users/CourseTest";4
-
+import ReadingTest from "../pages/client-users/ReadingTestPage";
 type TRoute = {
   path: string;
   element: React.ComponentType;
@@ -30,8 +29,8 @@ const routes: TRoute[] = [
     element: Login,
   },
   {
-    path: "courses_test",
-    element: ReadingTestPage,
+    path: "assessment",
+    element: ReadingTest,
   },
 ];
 
