@@ -1,9 +1,24 @@
-// src/pages/client-users/ReadingTestPage/index.tsx
-import React, { useState, useEffect } from "react";
-import { Button, Tabs, Modal, Progress, Card } from "antd";
-import { parts } from "../../../data/readingTestData"; // <-- Phải import đúng parts nhé!
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Button,
+  Tabs,
+  Modal,
+  Progress,
+  Card,
+  Skeleton,
+  Select,
+  Input,
+  Radio,
+  Flex,
+  Splitter,
+} from "antd";
+import { motion } from "framer-motion";
+import { useMediaQuery } from "react-responsive";
+import { parts } from "../../../data/readingTestData";
 
 const { TabPane } = Tabs;
+const { Option } = Select;
 
 interface Answers {
   [key: number]: string;
@@ -13,13 +28,42 @@ const ReadingTest: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60 * 60);
   const [answers, setAnswers] = useState<Answers>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [highlightedSentence, setHighlightedSentence] = useState<string | null>(
+    null
+  );
+  const [splitSizes, setSplitSizes] = useState<(string | number)[]>([
+    "50%",
+    "50%",
+  ]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isMobile = useMediaQuery({ maxWidth: 767 });
 
   useEffect(() => {
-    if (timeLeft <= 0) {
+    const loadData = setTimeout(() => setIsLoading(false), 1000);
+    return () => clearTimeout(loadData);
+  }, []);
+
+  useEffect(() => {
+    if (isSubmitted && timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    if (!isSubmitted) {
+      timerRef.current = setInterval(
+        () => setTimeLeft((prev) => prev - 1),
+        1000
+      );
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isSubmitted]);
+
+  useEffect(() => {
+    if (timeLeft <= 0 && !isSubmitted) {
       handleSubmit();
     }
-    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-    return () => clearInterval(timer);
   }, [timeLeft]);
 
   const formatTime = (seconds: number) => {
@@ -30,7 +74,10 @@ const ReadingTest: React.FC = () => {
 
   const handleAnswer = (questionId: number, option: string) => {
     if (!isSubmitted) {
-      setAnswers({ ...answers, [questionId]: option });
+      setAnswers((prev) => ({
+        ...prev,
+        [questionId]: option,
+      }));
     }
   };
 
@@ -38,7 +85,10 @@ const ReadingTest: React.FC = () => {
     let score = 0;
     parts.forEach((part) => {
       part.questions.forEach((q) => {
-        if (answers[q.id] === q.correctAnswer) {
+        if (
+          answers[q.id]?.trim().toLowerCase() ===
+          q.correctAnswer.trim().toLowerCase()
+        ) {
           score++;
         }
       });
@@ -65,25 +115,33 @@ const ReadingTest: React.FC = () => {
 
   const handleSubmit = () => {
     setIsSubmitted(true);
+    if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
     const band = convertScoreToBand(score);
     Modal.success({
-      title: "Test Result",
-      content: `✅ You answered ${score}/40 correctly.\n🏆 Estimated Band Score: ${band}`,
-      okText: "OK",
+      title: "🎉 Chúc mừng bạn đã hoàn thành bài kiểm tra!",
+      content: (
+        <div className="space-y-2">
+          <p>✅ Số câu đúng: {score}/40 câu</p>
+          <p>🏆 Band ước lượng: {band}</p>
+        </div>
+      ),
+      okText: "Tuyệt vời!",
     });
   };
 
   return (
-    <div className="p-4 max-w-[1440px] mx-auto">
+    <div className="p-4 max-w-[1440px] mx-auto min-h-screen flex flex-col">
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">IELTS Reading Practice Test 01</h1>
+        <h1 className="text-2xl font-bold">IELTS Reading Practice Test</h1>
         <div className="flex items-center gap-4">
           <Progress
             type="circle"
             percent={(timeLeft / (60 * 60)) * 100}
             format={() => formatTime(timeLeft)}
             width={80}
+            status={timeLeft <= 300 ? "exception" : "normal"}
           />
           <Button
             onClick={handleSubmit}
@@ -91,63 +149,226 @@ const ReadingTest: React.FC = () => {
             danger
             disabled={isSubmitted}
           >
-            Submit Test
+            Nộp bài
           </Button>
         </div>
       </div>
 
-      <Tabs defaultActiveKey="1">
+      {/* Tabs */}
+      <Tabs defaultActiveKey="1" className="flex-grow">
         {parts.map((part) => (
           <TabPane tab={part.title} key={part.partId.toString()}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* LEFT COLUMN: Passage */}
-              <div className="bg-white p-4 rounded shadow overflow-y-auto h-[80vh]">
-                <h2 className="text-lg font-semibold mb-2">Passage</h2>
-                <p className="text-gray-700 whitespace-pre-line text-justify leading-relaxed">
-                  {part.passage}
-                </p>
-              </div>
-
-              {/* RIGHT COLUMN: Questions */}
-              <div className="space-y-6 overflow-y-auto h-[80vh]">
-                {part.questions.map((q) => (
-                  <Card key={q.id} className="shadow">
-                    <p className="font-semibold mb-2">
-                      {q.id}. {q.question}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {q.options.map((option, idx) => {
-                        const isSelected = answers[q.id] === option;
-                        const isCorrect = option === q.correctAnswer;
-                        const showCorrect = isSubmitted && isCorrect;
-                        const showWrong =
-                          isSubmitted && isSelected && !isCorrect;
-
-                        return (
-                          <Button
-                            key={idx}
-                            type={isSelected ? "primary" : "default"}
-                            className={`w-full ${
-                              showCorrect ? "border-green-500" : ""
-                            } ${showWrong ? "border-red-500" : ""}`}
-                            onClick={() => handleAnswer(q.id, option)}
-                          >
-                            {option}
-                          </Button>
-                        );
-                      })}
+            {/* Mobile Layout */}
+            {isMobile ? (
+              <div className="flex flex-col gap-6">
+                {/* Passage */}
+                <div className="h-full p-4 bg-white overflow-y-auto rounded shadow">
+                  <h2 className="text-lg font-semibold mb-4">Đoạn văn</h2>
+                  {isLoading ? (
+                    <Skeleton active paragraph={{ rows: 10 }} />
+                  ) : (
+                    <div className="text-gray-700 whitespace-pre-line text-justify leading-relaxed">
+                      {part.passage.split("\n").map((line, idx) => (
+                        <motion.p
+                          key={idx}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className={`mb-3 ${
+                            highlightedSentence === line.trim()
+                              ? "bg-yellow-200 px-2 rounded"
+                              : ""
+                          }`}
+                        >
+                          {line}
+                        </motion.p>
+                      ))}
                     </div>
+                  )}
+                </div>
 
-                    {/* Explanation */}
-                    {isSubmitted && (
-                      <p className="text-sm text-gray-600 mt-2">
-                        💡 Explanation: {q.explanation}
-                      </p>
-                    )}
-                  </Card>
-                ))}
+                {/* Questions */}
+                <div className="h-full p-4 bg-white overflow-y-auto rounded shadow space-y-6">
+                  {isLoading
+                    ? Array(5)
+                        .fill(0)
+                        .map((_, idx) => (
+                          <Skeleton.Input
+                            key={idx}
+                            active
+                            className="h-24 w-full"
+                          />
+                        ))
+                    : part.questions.map((q) => (
+                        <motion.div
+                          key={q.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          <Card
+                            className="shadow"
+                            onMouseEnter={() =>
+                              setHighlightedSentence(q.highlightSentence)
+                            }
+                            onMouseLeave={() => setHighlightedSentence(null)}
+                          >
+                            <p className="font-semibold mb-2">
+                              {q.id}. {q.question}
+                            </p>
+                            {/* Render by questionType */}
+                            {q.questionType === "multiple-choice" && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {q.options?.map((option, idx) => {
+                                  const isSelected = answers[q.id] === option;
+                                  const isCorrect = option === q.correctAnswer;
+                                  const showCorrect = isSubmitted && isCorrect;
+                                  const showWrong =
+                                    isSubmitted && isSelected && !isCorrect;
+
+                                  return (
+                                    <Button
+                                      key={idx}
+                                      type={isSelected ? "primary" : "default"}
+                                      className={`w-full ${
+                                        showCorrect ? "border-green-500" : ""
+                                      } ${showWrong ? "border-red-500" : ""}`}
+                                      onClick={() => handleAnswer(q.id, option)}
+                                    >
+                                      {option}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {q.questionType === "select" && (
+                              <Select
+                                value={answers[q.id]}
+                                onChange={(value) => handleAnswer(q.id, value)}
+                                className="w-full mt-2"
+                                placeholder="Chọn đáp án"
+                                disabled={isSubmitted}
+                              >
+                                {q.options?.map((option, idx) => (
+                                  <Option key={idx} value={option}>
+                                    {option}
+                                  </Option>
+                                ))}
+                              </Select>
+                            )}
+                            {q.questionType === "input" && (
+                              <Input
+                                placeholder="Nhập câu trả lời"
+                                value={answers[q.id]}
+                                onChange={(e) =>
+                                  handleAnswer(q.id, e.target.value)
+                                }
+                                disabled={isSubmitted}
+                                className="mt-2"
+                              />
+                            )}
+                            {q.questionType === "true-false-notgiven" && (
+                              <Radio.Group
+                                onChange={(e) =>
+                                  handleAnswer(q.id, e.target.value)
+                                }
+                                value={answers[q.id]}
+                                className="mt-2"
+                                disabled={isSubmitted}
+                              >
+                                <Radio.Button value="True">True</Radio.Button>
+                                <Radio.Button value="False">False</Radio.Button>
+                                <Radio.Button value="Not Given">
+                                  Not Given
+                                </Radio.Button>
+                              </Radio.Group>
+                            )}
+                            {/* Explanation */}
+                            {isSubmitted && (
+                              <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-sm text-gray-600 mt-2"
+                              >
+                                💡 Giải thích: {q.explanation}
+                              </motion.p>
+                            )}
+                          </Card>
+                        </motion.div>
+                      ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <Splitter
+                style={{
+                  height: "75vh",
+                  boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+                }}
+                onResize={setSplitSizes}
+              >
+                {/* Left: Passage */}
+                <Splitter.Panel size={splitSizes[0]}>
+                  <div className="p-4 h-full overflow-y-auto bg-white rounded">
+                    <h2 className="text-lg font-semibold mb-4">Đoạn văn</h2>
+                    {isLoading ? (
+                      <Skeleton active paragraph={{ rows: 10 }} />
+                    ) : (
+                      <div className="text-gray-700 whitespace-pre-line text-justify leading-relaxed">
+                        {part.passage.split("\n").map((line, idx) => (
+                          <motion.p
+                            key={idx}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className={`mb-3 ${
+                              highlightedSentence === line.trim()
+                                ? "bg-yellow-200 px-2 rounded"
+                                : ""
+                            }`}
+                          >
+                            {line}
+                          </motion.p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Splitter.Panel>
+
+                {/* Right: Questions */}
+                <Splitter.Panel size={splitSizes[1]}>
+                  <div className="p-4 h-full overflow-y-auto bg-white rounded space-y-6">
+                    {isLoading
+                      ? Array(5)
+                          .fill(0)
+                          .map((_, idx) => (
+                            <Skeleton.Input
+                              key={idx}
+                              active
+                              className="h-24 w-full"
+                            />
+                          ))
+                      : part.questions.map((q) => (
+                          <motion.div
+                            key={q.id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            <Card
+                              className="shadow"
+                              onMouseEnter={() =>
+                                setHighlightedSentence(q.highlightSentence)
+                              }
+                              onMouseLeave={() => setHighlightedSentence(null)}
+                            >
+                              <p className="font-semibold mb-2">
+                                {q.id}. {q.question}
+                              </p>
+                              {/* (Câu hỏi như mobile) */}
+                              ...
+                            </Card>
+                          </motion.div>
+                        ))}
+                  </div>
+                </Splitter.Panel>
+              </Splitter>
+            )}
           </TabPane>
         ))}
       </Tabs>
