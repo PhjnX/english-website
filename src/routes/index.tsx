@@ -1,8 +1,9 @@
-// renderRoutes.tsx
 import React, { JSX, lazy } from "react";
 import { Route } from "react-router-dom";
 import Login from "../pages/client-users/Login";
 import ReadingTest from "../pages/client-users/ReadingTestPage";
+import ReadingScore from "../pages/client-users/ReadingTestPage/ReadingScore";
+
 type TRoute = {
   path: string;
   element: React.ComponentType;
@@ -31,6 +32,10 @@ const routes: TRoute[] = [
   {
     path: "assessment",
     element: ReadingTest,
+  },
+  {
+    path: "reading-score",
+    element: ReadingScore,
   },
 ];
 
