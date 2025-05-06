@@ -1,121 +1,147 @@
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import {
+  CircularProgressbarWithChildren,
+  buildStyles,
+} from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import { FaHome, FaRedo, FaBookOpen } from "react-icons/fa";
-import Confetti from "react-confetti";
 import { motion } from "framer-motion";
-import logo from "../../../assets/images/logo.png";
+import Confetti from "react-confetti";
+import { Button } from "antd";
 
-const bandScale = [9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5, 5, 4.5, 4, 3.5, 3];
+const bandMapping = [
+  { score: 39, band: 9 },
+  { score: 37, band: 8.5 },
+  { score: 35, band: 8 },
+  { score: 33, band: 7.5 },
+  { score: 30, band: 7 },
+  { score: 27, band: 6.5 },
+  { score: 23, band: 6 },
+  { score: 19, band: 5.5 },
+  { score: 15, band: 5 },
+  { score: 13, band: 4.5 },
+  { score: 10, band: 4 },
+  { score: 8, band: 3.5 },
+  { score: 6, band: 3 },
+];
 
-export default function ReadingScore() {
-  const navigate = useNavigate();
+const getBand = (score: number) => {
+  for (let i = 0; i < bandMapping.length; i++) {
+    if (score >= bandMapping[i].score) return bandMapping[i].band;
+  }
+  return "Below 3";
+};
+
+const ReadingScore: React.FC = () => {
   const location = useLocation();
-  const { score = 0, band = 3, timeSpent = 0 } = location.state || {};
+  const navigate = useNavigate();
+  const { score, timeSpent, answers } = location.state || {};
+  const band = getBand(score);
 
-  const formatTime = (seconds: number) => {
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${min}m ${sec}s`;
+  const handleReview = () => {
+    navigate("/assessment", {
+      state: {
+        answers,
+        isSubmitted: true,
+        isReviewing: true,
+      },
+    });
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 px-4 py-8">
-      <Confetti numberOfPieces={200} recycle={false} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center px-4">
+      <Confetti recycle={false} numberOfPieces={250} />
 
-      <img src={logo} alt="Logo" className="w-100 h-30 mb-4 " />
-
-      <motion.h1
-        className="text-2xl md:text-3xl font-bold text-center text-blue-800"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
+      <motion.div
+        className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl text-center"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
       >
-        Chúc mừng! Bạn đã hoàn thành bài kiểm tra đầu vào!
-      </motion.h1>
+        <img src="/logo.svg" alt="Logo" className="w-16 h-16 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          🎉 Chúc mừng bạn đã hoàn thành bài kiểm tra!
+        </h2>
 
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
-        <div className="flex flex-col items-center">
-          <CircularProgressbar
-            value={score}
-            maxValue={40}
-            text={`${score}/40`}
-            styles={buildStyles({
-              textColor: "#111",
-              pathColor: "#3b82f6",
-              trailColor: "#dbeafe",
-            })}
-          />
-          <p className="mt-2 font-semibold text-gray-600">Correct Answers</p>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <CircularProgressbar
-            value={Number(band) * 10}
-            maxValue={90}
-            text={`${band}`}
-            styles={buildStyles({
-              textColor: "#111",
-              pathColor: "#10b981",
-              trailColor: "#d1fae5",
-            })}
-          />
-          <p className="mt-2 font-semibold text-gray-600">Band Score</p>
-        </div>
-
-        <div className="flex flex-col items-center">
-          <CircularProgressbar
-            value={timeSpent}
-            maxValue={60 * 60}
-            text={formatTime(timeSpent)}
-            styles={buildStyles({
-              textColor: "#111",
-              pathColor: "#f59e0b",
-              trailColor: "#fef3c7",
-            })}
-          />
-          <p className="mt-2 font-semibold text-gray-600">Time Spent</p>
-        </div>
-      </div>
-
-      <div className="mt-8 w-full max-w-xl">
-        <div className="grid grid-cols-13 gap-2 text-xs text-center text-gray-500">
-          {bandScale.map((b, i) => (
-            <div
-              key={b}
-              className={`p-2 rounded-full border border-gray-300 ${
-                Number(band) === b
-                  ? "bg-green-500 text-white font-bold scale-110 shadow"
-                  : "bg-white"
-              }`}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="flex flex-col items-center">
+            <CircularProgressbarWithChildren
+              value={(score / 40) * 100}
+              styles={buildStyles({
+                pathColor: "#36d399",
+                trailColor: "#d1d5db",
+              })}
             >
-              {b}
-            </div>
-          ))}
-        </div>
-      </div>
+              <div className="text-sm text-gray-600">Correct Answers</div>
+              <div className="text-xl font-semibold text-green-500">
+                {score}/40
+              </div>
+            </CircularProgressbarWithChildren>
+          </div>
 
-      <div className="mt-8 space-y-4 w-full max-w-sm">
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-          >
-            <FaHome /> Trang chủ
-          </button>
-          <button
-            onClick={() => navigate("/assessment")}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-          >
-            <FaRedo /> Làm lại
-          </button>
+          <div className="flex flex-col items-center">
+            <CircularProgressbarWithChildren
+              value={100}
+              styles={buildStyles({
+                pathColor: "#3b82f6",
+                trailColor: "#d1d5db",
+              })}
+            >
+              <div className="text-sm text-gray-600">Band</div>
+              <div className="text-xl font-semibold text-blue-500">{band}</div>
+            </CircularProgressbarWithChildren>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <CircularProgressbarWithChildren
+              value={100}
+              styles={buildStyles({
+                pathColor: "#f97316",
+                trailColor: "#d1d5db",
+              })}
+            >
+              <div className="text-sm text-gray-600">Time Spent</div>
+              <div className="text-base font-semibold text-orange-500">
+                {Math.floor(timeSpent / 60)}m {timeSpent % 60}s
+              </div>
+            </CircularProgressbarWithChildren>
+          </div>
         </div>
-        <button
-          onClick={() => navigate("/lessons")}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 shadow-lg text-lg"
-        >
-          <FaBookOpen /> Bắt đầu ôn luyện
-        </button>
-      </div>
+
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {[9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5, 5, 4.5, 4, 3.5, 3].map((b) => (
+              <span
+                key={b}
+                className={`px-3 py-1 rounded-full border text-sm font-semibold ${
+                  b === band
+                    ? "bg-blue-500 text-white border-blue-500"
+                    : "border-gray-300 text-gray-600"
+                }`}
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex justify-center gap-4">
+            <Button onClick={() => navigate("/")}>🏠 Về trang chủ</Button>
+            <Button onClick={() => navigate("/assessment")}>🔁 Làm lại</Button>
+            <Button onClick={handleReview}>👁️ Xem lại bài</Button>
+          </div>
+          <Button
+            type="primary"
+            className="mt-4 !bg-green-500 hover:!bg-green-600 !text-white"
+            onClick={() => navigate("/lessons")}
+          >
+            🚀 Bắt đầu ôn luyện
+          </Button>
+        </div>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default ReadingScore;

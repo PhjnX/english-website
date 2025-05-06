@@ -37,3 +37,9 @@
 .custom-menu.ant-menu-horizontal .ant-menu-item-selected .anticon {
   color: #dc2626 !important;
 }
+
+.custom-gutter {
+  background-color: #f9fafb;
+  cursor: col-resize;
+  width: 8px;
+}
