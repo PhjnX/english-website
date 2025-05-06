@@ -231,10 +231,44 @@ const QuestionList: React.FC<QuestionProps> = ({
                         }
                       }}
                     >
-                      {q.questionType === "input" && q.id === 9 ? (
-                        <div className="mt-2 text-base text-gray-800 leading-7">
-                          {renderInterpolatedTextWithInputs(q.question)}
-                        </div>
+                      {q.questionType === "input" && q.id >= 9 && q.id <= 14 ? (
+                        q.question.includes("{}") ? null : (
+                          <p className="mt-2 text-base text-gray-800 leading-7">
+                            {q.question
+                              .split(/({{\d+}})/g)
+                              .map((part, idx, arr) => {
+                                const match = part.match(/{{(\d+)}}/);
+                                if (match) {
+                                  const id = parseInt(match[1]);
+                                  return (
+                                    <Input
+                                      key={`input-${id}`}
+                                      value={answers[id] || ""}
+                                      onChange={(e) =>
+                                        handleAnswer(id, e.target.value)
+                                      }
+                                      disabled={isSubmitted && !isReviewing}
+                                      placeholder={String(id)}
+                                      className="mx-1 text-center font-semibold"
+                                      style={{
+                                        width: 90,
+                                        display: "inline-block",
+                                        verticalAlign: "middle",
+                                      }}
+                                    />
+                                  );
+                                }
+                                return (
+                                  <span
+                                    key={`text-${idx}`}
+                                    className="whitespace-pre-wrap"
+                                  >
+                                    {part}
+                                  </span>
+                                );
+                              })}
+                          </p>
+                        )
                       ) : q.questionType === "input" &&
                         q.question.includes("{}") ? null : (
                         <p className="font-semibold mb-2">
