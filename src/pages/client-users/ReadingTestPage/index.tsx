@@ -1,43 +1,30 @@
-"use client";
-import React, { useState, useEffect, useRef } from "react";
-import {
-  Button,
-  Tabs,
-  Modal,
-  Progress,
-  Card,
-  Skeleton,
-  Select,
-  Input,
-  Radio,
-  Splitter,
-} from "antd";
-import { motion } from "framer-motion";
-import { useMediaQuery } from "react-responsive";
+import React, { useEffect, useRef, useState } from "react";
+import { Tabs, Progress, Button } from "antd";
+import Split from "react-split";
+import { useNavigate } from "react-router-dom";
 import { parts } from "../../../data/readingTestData";
+import Paragraph from "./Paragraph";
+import Question from "./Question";
+import { motion, AnimatePresence } from "framer-motion";
 
 const { TabPane } = Tabs;
-const { Option } = Select;
 
-interface Answers {
+export interface Answers {
   [key: number]: string;
 }
 
-const ReadingTest: React.FC = () => {
+const ReadingTestPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60 * 60);
   const [answers, setAnswers] = useState<Answers>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [highlightedSentence, setHighlightedSentence] = useState<string | null>(
     null
   );
-  const [splitSizes, setSplitSizes] = useState<(string | number)[]>([
-    "50%",
-    "50%",
-  ]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeKey, setActiveKey] = useState("1");
+  const [prevKey, setPrevKey] = useState("1");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const isMobile = useMediaQuery({ maxWidth: 767 });
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadData = setTimeout(() => setIsLoading(false), 1000);
@@ -45,14 +32,13 @@ const ReadingTest: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isSubmitted && timerRef.current) {
-      clearInterval(timerRef.current);
-    }
     if (!isSubmitted) {
       timerRef.current = setInterval(
         () => setTimeLeft((prev) => prev - 1),
         1000
       );
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -73,10 +59,7 @@ const ReadingTest: React.FC = () => {
 
   const handleAnswer = (questionId: number, option: string) => {
     if (!isSubmitted) {
-      setAnswers((prev) => ({
-        ...prev,
-        [questionId]: option,
-      }));
+      setAnswers((prev) => ({ ...prev, [questionId]: option }));
     }
   };
 
@@ -117,257 +100,135 @@ const ReadingTest: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
     const band = convertScoreToBand(score);
-    Modal.success({
-      title: "🎉 Chúc mừng bạn đã hoàn thành bài kiểm tra!",
-      content: (
-        <div className="space-y-2">
-          <p>✅ Số câu đúng: {score}/40 câu</p>
-          <p>🏆 Band ước lượng: {band}</p>
-        </div>
-      ),
-      okText: "Tuyệt vời!",
+
+    navigate("/reading-score", {
+      state: {
+        answers,
+        score,
+        band,
+        timeSpent: 60 * 60 - timeLeft,
+        isSubmitted: true,
+        questions: parts.flatMap((p) => p.questions),
+      },
     });
   };
 
+  const handleTabChange = (key: string) => {
+    setPrevKey(activeKey);
+    setActiveKey(key);
+  };
+
   return (
-    <div className="p-4 max-w-[1440px] mx-auto min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">IELTS Reading Practice Test</h1>
+    <div className="p-0 max-w-[1440px] mx-auto h-screen flex flex-col overflow-hidden bg-gradient-to-br from-white to-gray-100 text-gray-800 font-inter">
+      <div className="flex justify-between items-center px-6 py-4 bg-white shadow-md border-b border-gray-200">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          📘 IELTS Reading Test
+        </h1>
         <div className="flex items-center gap-4">
           <Progress
             type="circle"
             percent={(timeLeft / (60 * 60)) * 100}
             format={() => formatTime(timeLeft)}
-            width={80}
-            status={timeLeft <= 300 ? "exception" : "normal"}
+            width={70}
+            strokeColor={timeLeft <= 300 ? "#ef4444" : "#3b82f6"}
+            trailColor="#e5e7eb"
           />
           <Button
             onClick={handleSubmit}
-            type="primary"
-            danger
+            className="bg-red-500 hover:bg-red-600 text-white font-medium shadow"
             disabled={isSubmitted}
           >
-            Nộp bài
+            ✅ Submit
           </Button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultActiveKey="1" className="flex-grow">
+      <Tabs
+        activeKey={activeKey}
+        onChange={handleTabChange}
+        className="flex-grow overflow-hidden px-6 pt-2"
+        tabBarGutter={24}
+        tabBarStyle={{ fontWeight: 600 }}
+      >
         {parts.map((part) => (
-          <TabPane tab={part.title} key={part.partId.toString()}>
-            {/* Mobile Layout */}
-            {isMobile ? (
-              <div className="flex flex-col gap-6">
-                {/* Passage */}
-                <div className="h-full p-4 bg-white overflow-y-auto rounded shadow">
-                  <h2 className="text-lg font-semibold mb-4">Đoạn văn</h2>
-                  {isLoading ? (
-                    <Skeleton active paragraph={{ rows: 10 }} />
-                  ) : (
-                    <div className="text-gray-700 whitespace-pre-line text-justify leading-relaxed">
-                      {part.passage.split("\n").map((line, idx) => (
-                        <motion.p
-                          key={idx}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className={`mb-3 ${
-                            highlightedSentence === line.trim()
-                              ? "bg-yellow-200 px-2 rounded"
-                              : ""
-                          }`}
-                        >
-                          {line}
-                        </motion.p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Questions */}
-                <div className="h-full p-4 bg-white overflow-y-auto rounded shadow space-y-6">
-                  {isLoading
-                    ? Array(5)
-                        .fill(0)
-                        .map((_, idx) => (
-                          <Skeleton.Input
-                            key={idx}
-                            active
-                            className="h-24 w-full"
-                          />
-                        ))
-                    : part.questions.map((q) => (
-                        <motion.div
-                          key={q.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                        >
-                          <Card
-                            className="shadow"
-                            onMouseEnter={() =>
-                              setHighlightedSentence(q.highlightSentence)
-                            }
-                            onMouseLeave={() => setHighlightedSentence(null)}
-                          >
-                            <p className="font-semibold mb-2">
-                              {q.id}. {q.question}
-                            </p>
-                            {/* Render by questionType */}
-                            {q.questionType === "multiple-choice" && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {q.options?.map((option, idx) => {
-                                  const isSelected = answers[q.id] === option;
-                                  const isCorrect = option === q.correctAnswer;
-                                  const showCorrect = isSubmitted && isCorrect;
-                                  const showWrong =
-                                    isSubmitted && isSelected && !isCorrect;
-
-                                  return (
-                                    <Button
-                                      key={idx}
-                                      type={isSelected ? "primary" : "default"}
-                                      className={`w-full ${
-                                        showCorrect ? "border-green-500" : ""
-                                      } ${showWrong ? "border-red-500" : ""}`}
-                                      onClick={() => handleAnswer(q.id, option)}
-                                    >
-                                      {option}
-                                    </Button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            {q.questionType === "select" && (
-                              <Select
-                                value={answers[q.id]}
-                                onChange={(value) => handleAnswer(q.id, value)}
-                                className="w-full mt-2"
-                                placeholder="Chọn đáp án"
-                                disabled={isSubmitted}
-                              >
-                                {q.options?.map((option, idx) => (
-                                  <Option key={idx} value={option}>
-                                    {option}
-                                  </Option>
-                                ))}
-                              </Select>
-                            )}
-                            {q.questionType === "input" && (
-                              <Input
-                                placeholder="Nhập câu trả lời"
-                                value={answers[q.id]}
-                                onChange={(e) =>
-                                  handleAnswer(q.id, e.target.value)
-                                }
-                                disabled={isSubmitted}
-                                className="mt-2"
-                              />
-                            )}
-                            {q.questionType === "true-false-notgiven" && (
-                              <Radio.Group
-                                onChange={(e) =>
-                                  handleAnswer(q.id, e.target.value)
-                                }
-                                value={answers[q.id]}
-                                className="mt-2"
-                                disabled={isSubmitted}
-                              >
-                                <Radio.Button value="True">True</Radio.Button>
-                                <Radio.Button value="False">False</Radio.Button>
-                                <Radio.Button value="Not Given">
-                                  Not Given
-                                </Radio.Button>
-                              </Radio.Group>
-                            )}
-                            {/* Explanation */}
-                            {isSubmitted && (
-                              <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-sm text-gray-600 mt-2"
-                              >
-                                💡 Giải thích: {q.explanation}
-                              </motion.p>
-                            )}
-                          </Card>
-                        </motion.div>
-                      ))}
-                </div>
-              </div>
-            ) : (
-              <Splitter
-                style={{
-                  height: "75vh",
-                  boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+          <TabPane
+            tab={
+              <span className="text-gray-700">
+                Part {part.partId}: {part.title}
+              </span>
+            }
+            key={part.partId.toString()}
+            className="rounded"
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeKey}
+                initial={{
+                  opacity: 0,
+                  x: parseInt(prevKey) < parseInt(activeKey) ? 100 : -100,
                 }}
-                onResize={setSplitSizes}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{
+                  opacity: 0,
+                  x: parseInt(prevKey) < parseInt(activeKey) ? -100 : 100,
+                }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="h-[calc(100vh-160px)] overflow-hidden rounded"
               >
-                {/* Left: Passage */}
-                <Splitter.Panel size={splitSizes[0]}>
-                  <div className="p-4 h-full overflow-y-auto bg-white rounded">
-                    <h2 className="text-lg font-semibold mb-4">Đoạn văn</h2>
-                    {isLoading ? (
-                      <Skeleton active paragraph={{ rows: 10 }} />
-                    ) : (
-                      <div className="text-gray-700 whitespace-pre-line text-justify leading-relaxed">
-                        {part.passage.split("\n").map((line, idx) => (
-                          <motion.p
-                            key={idx}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className={`mb-3 ${
-                              highlightedSentence === line.trim()
-                                ? "bg-yellow-200 px-2 rounded"
-                                : ""
-                            }`}
-                          >
-                            {line}
-                          </motion.p>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </Splitter.Panel>
-
-                {/* Right: Questions */}
-                <Splitter.Panel size={splitSizes[1]}>
-                  <div className="p-4 h-full overflow-y-auto bg-white rounded space-y-6">
-                    {isLoading
-                      ? Array(5)
-                          .fill(0)
-                          .map((_, idx) => (
-                            <Skeleton.Input
-                              key={idx}
-                              active
-                              className="h-24 w-full"
-                            />
-                          ))
-                      : part.questions.map((q) => (
-                          <motion.div
-                            key={q.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                          >
-                            <Card
-                              className="shadow"
-                              onMouseEnter={() =>
-                                setHighlightedSentence(q.highlightSentence)
-                              }
-                              onMouseLeave={() => setHighlightedSentence(null)}
-                            >
-                              <p className="font-semibold mb-2">
-                                {q.id}. {q.question}
-                              </p>
-                              {/* (Câu hỏi như mobile) */}
-                              ...
-                            </Card>
-                          </motion.div>
-                        ))}
-                  </div>
-                </Splitter.Panel>
-              </Splitter>
-            )}
+                <Split
+                  className="flex h-full bg-white rounded shadow-md"
+                  sizes={[50, 50]}
+                  minSize={300}
+                  gutterSize={10}
+                  gutter={() => {
+                    const gutter = document.createElement("div");
+                    gutter.className =
+                      "bg-gray-300 hover:bg-blue-400 transition-all duration-200 cursor-col-resize";
+                    return gutter;
+                  }}
+                >
+                  <motion.div
+                    key={`para-${activeKey}`}
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    transition={{ duration: 0.4 }}
+                    className="overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-blue-300"
+                  >
+                    <Paragraph
+                      partId={part.partId}
+                      highlightedSentence={
+                        isSubmitted ? highlightedSentence : null
+                      }
+                      setHighlightedSentence={setHighlightedSentence}
+                      isLoading={isLoading}
+                      questionStart={part.questions[0]?.id}
+                      questionEnd={
+                        part.questions[part.questions.length - 1]?.id
+                      }
+                    />
+                  </motion.div>
+                  <motion.div
+                    key={`ques-${activeKey}`}
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    transition={{ duration: 0.4 }}
+                    className="overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-green-300"
+                  >
+                    <Question
+                      questions={part.questions}
+                      answers={answers}
+                      handleAnswer={handleAnswer}
+                      isSubmitted={isSubmitted}
+                      setHighlightedSentence={setHighlightedSentence}
+                      highlightedSentence={highlightedSentence}
+                      isLoading={isLoading}
+                    />
+                  </motion.div>
+                </Split>
+              </motion.div>
+            </AnimatePresence>
           </TabPane>
         ))}
       </Tabs>
@@ -375,4 +236,4 @@ const ReadingTest: React.FC = () => {
   );
 };
 
-export default ReadingTest;
+export default ReadingTestPage;
