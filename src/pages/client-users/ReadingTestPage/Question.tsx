@@ -46,37 +46,39 @@ const QuestionList: React.FC<QuestionProps> = ({
     {}
   );
 
-  const renderInterpolatedTextWithInputs = (text: string) => {
-    const parts = text.split(/({{\d+}})/g); // Tách thành chuỗi và placeholder
+  const questionInstructions: Record<string, JSX.Element | null> = {
+    // Tiêu đề Select
+    select: (() => {
+      const startId = groupedQuestions.select?.[0]?.id;
+      const endId = groupedQuestions.select?.at(-1)?.id;
 
-    return parts.map((part, idx) => {
-      const match = part.match(/{{(\d+)}}/);
-      if (match) {
-        const inputId = parseInt(match[1]);
+      if (startId && endId) {
         return (
-          <Input
-            key={`input-${idx}`}
-            value={answers[inputId] || ""}
-            onChange={(e) => handleAnswer(inputId, e.target.value)}
-            placeholder={match[1]}
-            disabled={isSubmitted && !isReviewing}
-            className="mx-1 w-[80px] text-center"
-            style={{
-              display: "inline-block",
-              verticalAlign: "middle",
-            }}
-          />
+          <div className="mb-4">
+            <h2 className="text-indigo-700 font-bold text-xl">
+              Questions {startId}–{endId}
+            </h2>
+            <p className="text-gray-800">
+              The reading Passage has eight paragraphs,{" "}
+              <span className="font-bold"> A-H</span>.
+            </p>
+            <p>Which paragraph contains the following information?</p>
+            <p>
+              Choose the correct letter, <span className="font-bold">A-H</span>,
+              in boxes{" "}
+              <span className="font-semibold">
+                {startId}–{endId}
+              </span>{" "}
+              on your answer sheet.
+            </p>
+          </div>
         );
       }
-      return (
-        <span key={`text-${idx}`} className="whitespace-pre-wrap">
-          {part}
-        </span>
-      );
-    });
-  };
 
-  const questionInstructions: Record<string, JSX.Element> = {
+      return null;
+    })(),
+
+    // Tiêu đề True - False - Not Given
     "true-false-notgiven": (
       <div className="mb-4">
         <h2 className="text-indigo-700 font-bold text-xl">
@@ -109,6 +111,7 @@ const QuestionList: React.FC<QuestionProps> = ({
         </div>
       </div>
     ),
+    // Tiêu đề Multiple Choice
     "multiple-choice": (
       <div className="mb-4">
         <h2 className="text-indigo-700 font-bold text-xl">
@@ -126,6 +129,7 @@ const QuestionList: React.FC<QuestionProps> = ({
         </p>
       </div>
     ),
+    // Tiêu đề Input
     input: (
       <div className="mb-4">
         <h2 className="text-indigo-700 font-bold text-xl">
@@ -163,241 +167,265 @@ const QuestionList: React.FC<QuestionProps> = ({
             .map((_, idx) => (
               <Skeleton.Input key={idx} active className="h-24 w-full" />
             ))
-        : Object.entries(groupedQuestions).map(([type, group]) => (
-            <div key={type} className="space-y-4">
-              {questionInstructions[type]}
+        : Object.keys(groupedQuestions)
+            .sort((a, b) => {
+              const aStart = groupedQuestions[a]?.[0]?.id ?? Infinity;
+              const bStart = groupedQuestions[b]?.[0]?.id ?? Infinity;
+              return aStart - bStart;
+            })
+            .map((type) => {
+              const group = groupedQuestions[type];
+              return (
+                <div key={type} className="space-y-4">
+                  {questionInstructions[type]}
 
-              {/* Handle paragraph-based input (Part 1) */}
-              {type === "input" &&
-              group[0].question.includes("{{paragraph}}") ? (
-                <Card className="shadow">
-                  <p className="text-base leading-8">
-                    {group[0].question.split(/({{\d+}})/g).map((part, idx) => {
-                      const match = part.match(/{{(\d+)}}/);
-                      if (match) {
-                        const id = parseInt(match[1], 10);
-                        return (
-                          <Input
-                            key={id}
-                            value={answers[id] || ""}
-                            onChange={(e) => handleAnswer(id, e.target.value)}
-                            disabled={isSubmitted && !isReviewing}
-                            placeholder={String(id)}
-                            className="mx-2 inline-block text-center font-semibold"
-                            style={{
-                              width: 90,
-                              display: "inline-block",
-                              verticalAlign: "middle",
-                            }}
-                          />
-                        );
-                      }
-                      return <span key={idx}>{part}</span>;
-                    })}
-                  </p>
-                </Card>
-              ) : (
-                group
-                  .filter((q) => {
-                    if (
-                      type === "input" &&
-                      q.id >= 9 &&
-                      q.id <= 14 &&
-                      q.question.includes("{{paragraph}}")
-                    ) {
-                      return false; // bỏ mấy dòng thừa
-                    }
-                    if (type === "input" && q.id >= 9 && q.id <= 14) {
-                      return q.id === 9; // chỉ giữ dòng 9 vì nó render toàn bộ part 1
-                    }
-                    return true; // các part khác giữ nguyên
-                  })
-                  .map((q) => (
-                    <motion.div
-                      key={q.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      {q.sectionTitle &&
-                        !renderedSectionTitles.has(q.sectionTitle) && (
-                          <h3 className="text-base font-bold mt-6">
-                            {renderedSectionTitles.add(q.sectionTitle) &&
-                              q.sectionTitle}
-                          </h3>
-                        )}
-                      {q.subSectionTitle &&
-                        !renderedSubSectionTitles.has(q.subSectionTitle) && (
-                          <h4 className="text-sm font-semibold text-gray-700 mt-2">
-                            {renderedSubSectionTitles.add(q.subSectionTitle) &&
-                              q.subSectionTitle}
-                          </h4>
-                        )}
-
-                      <Card
-                        className="shadow"
-                        onMouseEnter={() => {
-                          if (isSubmitted && isReviewing) {
-                            setHighlightedSentence(q.highlightSentence);
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          if (isSubmitted && isReviewing) {
-                            setHighlightedSentence(null);
-                          }
-                        }}
-                      >
-                        {q.questionType === "input" &&
-                        q.id >= 9 &&
-                        q.id <= 14 ? (
-                          q.question.includes("{}") ? null : (
-                            <p className="mt-2 text-base text-gray-800 leading-7">
-                              {q.question
-                                .split(/({{\d+}})/g)
-                                .map((part, idx, arr) => {
-                                  const match = part.match(/{{(\d+)}}/);
-                                  if (match) {
-                                    const id = parseInt(match[1]);
-                                    return (
-                                      <Input
-                                        key={`input-${id}`}
-                                        value={answers[id] || ""}
-                                        onChange={(e) =>
-                                          handleAnswer(id, e.target.value)
-                                        }
-                                        disabled={isSubmitted && !isReviewing}
-                                        placeholder={String(id)}
-                                        className="mx-1 text-center font-semibold"
-                                        style={{
-                                          width: 90,
-                                          display: "inline-block",
-                                          verticalAlign: "middle",
-                                        }}
-                                      />
-                                    );
+                  {/* Handle paragraph-based input (Part 1) */}
+                  {type === "input" &&
+                  group[0].question.includes("{{paragraph}}") ? (
+                    <Card className="shadow">
+                      <p className="text-base leading-8">
+                        {group[0].question
+                          .split(/({{\d+}})/g)
+                          .map((part, idx) => {
+                            const match = part.match(/{{(\d+)}}/);
+                            if (match) {
+                              const id = parseInt(match[1], 10);
+                              return (
+                                <Input
+                                  key={id}
+                                  value={answers[id] || ""}
+                                  onChange={(e) =>
+                                    handleAnswer(id, e.target.value)
                                   }
+                                  disabled={isSubmitted && !isReviewing}
+                                  placeholder={String(id)}
+                                  className="mx-2 inline-block text-center font-semibold"
+                                  style={{
+                                    width: 90,
+                                    display: "inline-block",
+                                    verticalAlign: "middle",
+                                  }}
+                                />
+                              );
+                            }
+                            return <span key={idx}>{part}</span>;
+                          })}
+                      </p>
+                    </Card>
+                  ) : (
+                    group
+                      .filter((q) => {
+                        if (
+                          type === "input" &&
+                          q.id >= 9 &&
+                          q.id <= 14 &&
+                          q.question.includes("{{paragraph}}")
+                        ) {
+                          return false; // bỏ mấy dòng thừa
+                        }
+                        if (type === "input" && q.id >= 9 && q.id <= 14) {
+                          return q.id === 9; // chỉ giữ dòng 9 vì nó render toàn bộ part 1
+                        }
+                        return true; // các part khác giữ nguyên
+                      })
+                      .map((q) => (
+                        <motion.div
+                          key={q.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                        >
+                          {q.sectionTitle &&
+                            !renderedSectionTitles.has(q.sectionTitle) && (
+                              <h3 className="text-base font-bold mt-6">
+                                {renderedSectionTitles.add(q.sectionTitle) &&
+                                  q.sectionTitle}
+                              </h3>
+                            )}
+                          {q.subSectionTitle &&
+                            !renderedSubSectionTitles.has(
+                              q.subSectionTitle
+                            ) && (
+                              <h4 className="text-sm font-semibold text-gray-700 mt-2">
+                                {renderedSubSectionTitles.add(
+                                  q.subSectionTitle
+                                ) && q.subSectionTitle}
+                              </h4>
+                            )}
+
+                          <Card
+                            className="shadow"
+                            onMouseEnter={() => {
+                              if (isSubmitted && isReviewing) {
+                                setHighlightedSentence(q.highlightSentence);
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              if (isSubmitted && isReviewing) {
+                                setHighlightedSentence(null);
+                              }
+                            }}
+                          >
+                            {q.questionType === "input" &&
+                            q.id >= 9 &&
+                            q.id <= 14 ? (
+                              q.question.includes("{}") ? null : (
+                                <p className="mt-2 text-base text-gray-800 leading-7">
+                                  {q.question
+                                    .split(/({{\d+}})/g)
+                                    .map((part, idx, arr) => {
+                                      const match = part.match(/{{(\d+)}}/);
+                                      if (match) {
+                                        const id = parseInt(match[1]);
+                                        return (
+                                          <Input
+                                            key={`input-${id}`}
+                                            value={answers[id] || ""}
+                                            onChange={(e) =>
+                                              handleAnswer(id, e.target.value)
+                                            }
+                                            disabled={
+                                              isSubmitted && !isReviewing
+                                            }
+                                            placeholder={String(id)}
+                                            className="mx-1 text-center font-semibold"
+                                            style={{
+                                              width: 90,
+                                              display: "inline-block",
+                                              verticalAlign: "middle",
+                                            }}
+                                          />
+                                        );
+                                      }
+                                      return (
+                                        <span
+                                          key={`text-${idx}`}
+                                          className="whitespace-pre-wrap"
+                                        >
+                                          {part}
+                                        </span>
+                                      );
+                                    })}
+                                </p>
+                              )
+                            ) : q.questionType === "input" &&
+                              q.question.includes("{}") ? null : (
+                              <p className="font-semibold mb-2">
+                                {q.id}. {q.question}
+                              </p>
+                            )}
+
+                            {q.questionType === "multiple-choice" && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {q.options?.map((option, idx) => {
+                                  const isSelected = answers[q.id] === option;
+                                  const isCorrect = option === q.correctAnswer;
+                                  const showCorrect = isSubmitted && isCorrect;
+                                  const showWrong =
+                                    isSubmitted && isSelected && !isCorrect;
                                   return (
-                                    <span
-                                      key={`text-${idx}`}
-                                      className="whitespace-pre-wrap"
+                                    <Button
+                                      key={idx}
+                                      type={isSelected ? "primary" : "default"}
+                                      className={`w-full text-left whitespace-pre-wrap break-words min-h-[56px] px-4 py-2 rounded-md ${
+                                        showCorrect ? "border-green-500" : ""
+                                      } ${showWrong ? "border-red-500" : ""}`}
+                                      style={{
+                                        whiteSpace: "normal",
+                                        wordBreak: "break-word",
+                                      }}
+                                      onClick={() => handleAnswer(q.id, option)}
+                                      disabled={isSubmitted && !isReviewing}
                                     >
-                                      {part}
-                                    </span>
+                                      <span className="inline-block w-full">
+                                        {option}
+                                      </span>
+                                    </Button>
                                   );
                                 })}
-                            </p>
-                          )
-                        ) : q.questionType === "input" &&
-                          q.question.includes("{}") ? null : (
-                          <p className="font-semibold mb-2">
-                            {q.id}. {q.question}
-                          </p>
-                        )}
+                              </div>
+                            )}
 
-                        {q.questionType === "multiple-choice" && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {q.options?.map((option, idx) => {
-                              const isSelected = answers[q.id] === option;
-                              const isCorrect = option === q.correctAnswer;
-                              const showCorrect = isSubmitted && isCorrect;
-                              const showWrong =
-                                isSubmitted && isSelected && !isCorrect;
-                              return (
-                                <Button
-                                  key={idx}
-                                  type={isSelected ? "primary" : "default"}
-                                  className={`w-full text-left whitespace-pre-wrap break-words min-h-[56px] px-4 py-2 rounded-md ${
-                                    showCorrect ? "border-green-500" : ""
-                                  } ${showWrong ? "border-red-500" : ""}`}
-                                  style={{
-                                    whiteSpace: "normal",
-                                    wordBreak: "break-word",
-                                  }}
-                                  onClick={() => handleAnswer(q.id, option)}
-                                  disabled={isSubmitted && !isReviewing}
-                                >
-                                  <span className="inline-block w-full">
+                            {q.questionType === "select" && (
+                              <Select
+                                value={answers[q.id]}
+                                onChange={(value) => handleAnswer(q.id, value)}
+                                className="w-full mt-2"
+                                placeholder="Choose an option"
+                                disabled={isSubmitted && !isReviewing}
+                              >
+                                {q.options?.map((option, idx) => (
+                                  <Option key={idx} value={option}>
                                     {option}
-                                  </span>
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        )}
+                                  </Option>
+                                ))}
+                              </Select>
+                            )}
 
-                        {q.questionType === "select" && (
-                          <Select
-                            value={answers[q.id]}
-                            onChange={(value) => handleAnswer(q.id, value)}
-                            className="w-full mt-2"
-                            placeholder="Choose an option"
-                            disabled={isSubmitted && !isReviewing}
-                          >
-                            {q.options?.map((option, idx) => (
-                              <Option key={idx} value={option}>
-                                {option}
-                              </Option>
-                            ))}
-                          </Select>
-                        )}
+                            {q.questionType === "input" &&
+                              q.question.includes("{}") &&
+                              !(q.id >= 1 && q.id <= 14) && (
+                                <p className="mt-2 text-base text-gray-800 leading-7">
+                                  {q.question
+                                    .split("{}")
+                                    .map((part, idx, arr) => (
+                                      <React.Fragment key={idx}>
+                                        <span>{part}</span>
+                                        {idx < arr.length - 1 && (
+                                          <Input
+                                            value={answers[q.id]}
+                                            onChange={(e) =>
+                                              handleAnswer(q.id, e.target.value)
+                                            }
+                                            disabled={
+                                              isSubmitted && !isReviewing
+                                            }
+                                            className="mx-1 text-center font-semibold"
+                                            style={{
+                                              width: 90,
+                                              display: "inline-block",
+                                              verticalAlign: "middle",
+                                            }}
+                                            placeholder={String(q.id)}
+                                          />
+                                        )}
+                                      </React.Fragment>
+                                    ))}
+                                </p>
+                              )}
 
-                        {q.questionType === "input" &&
-                          q.question.includes("{}") &&
-                          !(q.id >= 1 && q.id <= 14) && (
-                            <p className="mt-2 text-base text-gray-800 leading-7">
-                              {q.question.split("{}").map((part, idx, arr) => (
-                                <React.Fragment key={idx}>
-                                  <span>{part}</span>
-                                  {idx < arr.length - 1 && (
-                                    <Input
-                                      value={answers[q.id]}
-                                      onChange={(e) =>
-                                        handleAnswer(q.id, e.target.value)
-                                      }
-                                      disabled={isSubmitted && !isReviewing}
-                                      className="mx-1 text-center font-semibold"
-                                      style={{
-                                        width: 90,
-                                        display: "inline-block",
-                                        verticalAlign: "middle",
-                                      }}
-                                      placeholder={String(q.id)}
-                                    />
-                                  )}
-                                </React.Fragment>
-                              ))}
-                            </p>
-                          )}
+                            {q.questionType === "true-false-notgiven" && (
+                              <Radio.Group
+                                onChange={(e) =>
+                                  handleAnswer(q.id, e.target.value)
+                                }
+                                value={answers[q.id]}
+                                className="mt-2"
+                                disabled={isSubmitted && !isReviewing}
+                              >
+                                <Radio.Button value="True">True</Radio.Button>
+                                <Radio.Button value="False">False</Radio.Button>
+                                <Radio.Button value="Not Given">
+                                  Not Given
+                                </Radio.Button>
+                              </Radio.Group>
+                            )}
 
-                        {q.questionType === "true-false-notgiven" && (
-                          <Radio.Group
-                            onChange={(e) => handleAnswer(q.id, e.target.value)}
-                            value={answers[q.id]}
-                            className="mt-2"
-                            disabled={isSubmitted && !isReviewing}
-                          >
-                            <Radio.Button value="True">True</Radio.Button>
-                            <Radio.Button value="False">False</Radio.Button>
-                            <Radio.Button value="Not Given">
-                              Not Given
-                            </Radio.Button>
-                          </Radio.Group>
-                        )}
-
-                        {isSubmitted && (
-                          <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-sm text-gray-600 mt-2"
-                          >
-                            💡 Giải thích: {q.explanation}
-                          </motion.p>
-                        )}
-                      </Card>
-                    </motion.div>
-                  ))
-              )}
-            </div>
-          ))}
+                            {isSubmitted && (
+                              <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-sm text-gray-600 mt-2"
+                              >
+                                💡 Giải thích: {q.explanation}
+                              </motion.p>
+                            )}
+                          </Card>
+                        </motion.div>
+                      ))
+                  )}
+                </div>
+              );
+            })}
     </div>
   );
 };
