@@ -166,6 +166,7 @@ const QuestionList: React.FC<QuestionProps> = ({
         : Object.entries(groupedQuestions).map(([type, group]) => (
             <div key={type} className="space-y-4">
               {questionInstructions[type]}
+
               {/* Handle paragraph-based input (Part 1) */}
               {type === "input" &&
               group[0].question.includes("{{paragraph}}") ? (
@@ -339,31 +340,33 @@ const QuestionList: React.FC<QuestionProps> = ({
                           </Select>
                         )}
 
-                        <p className="mt-2 text-base text-gray-800 leading-7">
-                          {q.question.split("{}").map((part, idx, arr) => (
-                            <React.Fragment key={idx}>
-                              {!(q.id >= 1 && q.id <= 14) && (
-                                <span>{part}</span>
-                              )}
-                              {idx < arr.length - 1 && (
-                                <Input
-                                  value={answers[q.id]}
-                                  onChange={(e) =>
-                                    handleAnswer(q.id, e.target.value)
-                                  }
-                                  disabled={isSubmitted && !isReviewing}
-                                  className="mx-1 text-center font-semibold"
-                                  style={{
-                                    width: 90,
-                                    display: "inline-block",
-                                    verticalAlign: "middle",
-                                  }}
-                                  placeholder={String(q.id)}
-                                />
-                              )}
-                            </React.Fragment>
-                          ))}
-                        </p>
+                        {q.questionType === "input" &&
+                          q.question.includes("{}") &&
+                          !(q.id >= 1 && q.id <= 14) && (
+                            <p className="mt-2 text-base text-gray-800 leading-7">
+                              {q.question.split("{}").map((part, idx, arr) => (
+                                <React.Fragment key={idx}>
+                                  <span>{part}</span>
+                                  {idx < arr.length - 1 && (
+                                    <Input
+                                      value={answers[q.id]}
+                                      onChange={(e) =>
+                                        handleAnswer(q.id, e.target.value)
+                                      }
+                                      disabled={isSubmitted && !isReviewing}
+                                      className="mx-1 text-center font-semibold"
+                                      style={{
+                                        width: 90,
+                                        display: "inline-block",
+                                        verticalAlign: "middle",
+                                      }}
+                                      placeholder={String(q.id)}
+                                    />
+                                  )}
+                                </React.Fragment>
+                              ))}
+                            </p>
+                          )}
 
                         {q.questionType === "true-false-notgiven" && (
                           <Radio.Group

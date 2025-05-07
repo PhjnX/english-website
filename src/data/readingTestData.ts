@@ -375,7 +375,7 @@ G One factor that makes some songs stick might be repetition. 'Repetition leads 
 
 H The researchers plan next to test their results in reverse, and play ringtones from songs of both the earworm and non earworm variety for volunteers several times a day to see which ones get stuck. Drs Stewart and Halper are now working together to recruit survey participants for a study looking at whether people at different stages of life experience earworms differently. 'You can argue that older people might get them more often because they know more songs,' Dr Halpern says. 'But the few responses we have so far indicate that they have earworms less often. It could be that they don't play music as often as younger people do.`,
     questions: [
-      // Questions 28–31: Select (A–H)
+      // Questions 28–31: Select A–H
       {
         id: 28,
         questionType: "select",
@@ -416,11 +416,11 @@ H The researchers plan next to test their results in reverse, and play ringtones
         highlightSentence: "",
       },
 
-      // Questions 32–35: Summary Input
+      // Questions 32–35: Summary Input (1 đoạn paragraph duy nhất)
       {
         id: 32,
         questionType: "input",
-        question: `Researchers from Goldsmiths concluded that the music we imagine in our minds is quite similar to recordings. They proved this by asking volunteers to record the rhythm of music using a monitor on their {{32}}. Further research has demonstrated that those who hear earworms more frequently have brains that may deal with {{33}} differently from other people, Dr Stewart also believes that the brain is {{34}} by earworms when it is not focused on a task. In fact, a reduction in the occurrence of earworms was found to be directly related to how {{35}} the task was Interestingly, volunteers' diaries revealed that the songs they heard inside their head reflected their moods, so the choice of music is not accidental.`,
+        question: `Researchers from Goldsmiths concluded that the music we imagine in our minds is quite similar to recordings. They proved this by asking volunteers to record the rhythm of music using a monitor on their {{32}}. Further research has demonstrated that those who hear earworms more frequently have brains that may deal with {{33}} differently from other people, Dr Stewart also believes that the brain is {{34}} by earworms when it is not focused on a task. In fact, a reduction in the occurrence of earworms was found to be directly related to how {{35}} the task was. Interestingly, volunteers' diaries revealed that the songs they heard inside their head reflected their moods, so the choice of music is not accidental.`,
         correctAnswer: "wrist",
         explanation: "",
         highlightSentence: "",
@@ -450,7 +450,7 @@ H The researchers plan next to test their results in reverse, and play ringtones
         highlightSentence: "",
       },
 
-      // Questions 36–40: Match researcher A–D
+      // Questions 36–40: Select A–D (matching researchers)
       {
         id: 36,
         questionType: "select",
