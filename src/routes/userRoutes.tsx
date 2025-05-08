@@ -9,6 +9,7 @@ import ReviewPage from "../pages/client-users/ReadingTestPage/ReviewPage";
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
 const AboutPage = lazy(() => import("../pages/client-users/AboutPage"));
+
 export const userRoutes = [
   {
     path: "",

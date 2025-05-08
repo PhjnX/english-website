@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Modal } from 'antd';
-import { useNavigate, useLocation } from 'react-router-dom';
-import ReadingTestPage from '../pages/client-users/ReadingTestPage';
+import React, { useState, useEffect } from "react";
+import { Modal } from "antd";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+import ReadingTestPage from "../pages/client-users/ReadingTestPage";
 
 const ProtectedRoute: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showConfirm, setShowConfirm] = useState(true);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (!token) {
-      navigate('/login', {
-        state: {
-          from: location.pathname
-        },
-        replace: true
+      navigate("/login", {
+        state: { from: location.pathname },
+        replace: true,
       });
     }
   }, [token, navigate, location]);
@@ -25,27 +24,43 @@ const ProtectedRoute: React.FC = () => {
   };
 
   const handleCancel = () => {
-    navigate('/');
+    navigate("/");
   };
 
-  if (!token) {
-    return null;
-  }
+  if (!token) return null;
 
   return (
     <>
       <Modal
-        title="Xác nhận làm bài test"
+        title={
+          <div className="flex items-center gap-2 text-xl font-semibold text-red-600">
+            <ExclamationCircleOutlined />
+            Bắt đầu bài kiểm tra đánh giá 🎯
+          </div>
+        }
         open={showConfirm}
         onOk={handleConfirm}
         onCancel={handleCancel}
-        okText="Có, tôi muốn làm bài test"
-        cancelText="Không, quay về trang chủ"
+        okText="✅ Tôi sẵn sàng"
+        cancelText="❌ Quay về trang chủ"
         centered
-        bodyStyle={{ textAlign: 'center', fontSize: 16 }}
+        bodyStyle={{ padding: 20, fontSize: 16 }}
+        okButtonProps={{
+          className: "bg-green-500 hover:bg-green-600 text-white",
+        }}
+        cancelButtonProps={{ danger: true }}
       >
-        <p style={{ marginBottom: 8 }}><b>Bạn có chắc chắn muốn làm bài test đánh giá trình độ không?</b></p>
-        <p>Bài test sẽ giúp chúng tôi đánh giá trình độ hiện tại của bạn và đề xuất lộ trình học phù hợp.</p>
+        <div className="text-base text-gray-800 space-y-3 leading-relaxed text-center">
+          <p>
+            ✍️ <strong>Bài test đánh giá trình độ đọc hiểu tiếng Anh</strong>.
+          </p>
+          <p>
+            🚀 Dựa vào kết quả, hệ thống sẽ <strong>gợi ý lộ trình học phù hợp</strong> với bạn.
+          </p>
+          <p>
+            ⏱️ <strong>Thời gian làm bài: 60 phút.</strong> Hãy đảm bảo bạn đang sẵn sàng!
+          </p>
+        </div>
       </Modal>
 
       {!showConfirm && <ReadingTestPage />}
@@ -53,4 +68,4 @@ const ProtectedRoute: React.FC = () => {
   );
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;
