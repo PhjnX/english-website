@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import HeroCarousel from "../Carousel";
 import TargetSection from "../Target";
 import BenefitsSection from "../Benefits";
 import ReadingCourses from "../Courses";
-import AssessmentConfirmModal from '../../../components/AssessmentConfirmModal';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   const handleAssessmentClick = () => {
     if (!token) {
-      navigate('/login', { state: { from: { pathname: '/assessment' } } });
+      navigate("/login", { state: { from: { pathname: "/assessment" } } });
     } else {
       setIsConfirmModalOpen(true);
     }
@@ -28,11 +27,6 @@ const HomePage: React.FC = () => {
       <button onClick={handleAssessmentClick}>
         Làm bài test đánh giá trình độ
       </button>
-
-      <AssessmentConfirmModal 
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-      />
     </div>
   );
 };
