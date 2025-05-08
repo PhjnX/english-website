@@ -41,12 +41,8 @@ const menuItems: MenuItem[] = [
   {
     key: "lessons",
     icon: <BookOutlined />,
-    label: <span>Bài học</span>,
-    children: Array.from({ length: 6 }, (_, i) => ({
-      key: `level${i + 1}`,
-      label: <Link to={`/lessons/${i + 1}`}>{`Level ${i + 1}`}</Link>,
-      href: `/lessons/${i + 1}`,
-    })),
+    label: <Link to="/lessons">Bài học</Link>,
+    href: "/lessons",
   },
   {
     key: "assessment",
@@ -156,7 +152,12 @@ const Header: React.FC = () => {
         {/* Tài khoản / Nút đăng nhập */}
         <div className="flex items-center space-x-4">
           {user ? (
-            <Dropdown menu={dropdownMenu} trigger={["click"]} placement="bottomRight" arrow>
+            <Dropdown
+              menu={dropdownMenu}
+              trigger={["click"]}
+              placement="bottomRight"
+              arrow
+            >
               <Space className="cursor-pointer">
                 <Avatar icon={<UserOutlined />} className="bg-red-600" />
                 <span className="text-gray-800 font-medium">
