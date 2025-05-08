@@ -1,7 +1,7 @@
 // src/apis/auth-api.ts
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://localhost:8000";
 
 // 🟢 Login dùng cho cả user và admin
 export const loginApi = async (identifier: string, password: string) => {
