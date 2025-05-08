@@ -21,7 +21,7 @@ const AddUserPage = () => {
   const onFinish = async (values: any) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8080/user", values, {
+      await axios.post("http://localhost:8000/user", values, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
