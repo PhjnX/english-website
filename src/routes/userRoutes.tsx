@@ -12,18 +12,18 @@ const AboutPage = lazy(() => import("../pages/client-users/AboutPage"));
 
 export const userRoutes = [
   {
-    path: "",
-    element: ClientUserLayout,
-    children: [
-      { path: "", element: HomePage },
-      { path: "about", element: AboutPage },
-      {
-        path: "assessment",
-        element: ProtectedRoute,
-      },
-   
-    ],
-  },
+  path: "",
+  element: ClientUserLayout,
+  children: [
+    { path: "", element: HomePage },
+    { path: "about", element: AboutPage },
+  ],
+},
+{
+  path: "assessment",
+  element: ProtectedRoute, // ❌ không bị bọc layout nữa
+},
+
   {
     path: "login",
     element: LoginPage,

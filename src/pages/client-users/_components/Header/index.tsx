@@ -72,18 +72,7 @@ const menuItems: MenuItem[] = [
     label: <Link to="/dashboard">Lộ trình của tôi</Link>,
     href: "/dashboard",
   },
-  {
-    key: "help",
-    icon: <QuestionCircleOutlined />,
-    label: <Link to="/help">Giúp đỡ</Link>,
-    href: "/help",
-  },
-  {
-    key: "contact",
-    icon: <PhoneOutlined />,
-    label: <Link to="/contact">Liên hệ</Link>,
-    href: "/contact",
-  },
+
 ];
 
 const Header: React.FC = () => {

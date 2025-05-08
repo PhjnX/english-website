@@ -11,6 +11,7 @@ import { Button } from "antd";
 import { FaRedo, FaHome, FaEye, FaRocket } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
 import logo from "../../../assets/images/logo.png";
+
 const bandMapping = [
   { score: 39, band: 9 },
   { score: 37, band: 8.5 },
@@ -41,7 +42,7 @@ const ReadingScore: React.FC = () => {
   const band = getBand(score);
 
   const handleReview = () => {
-    navigate("/assessment", {
+    navigate("/review", {
       state: {
         answers,
         isSubmitted: true,
@@ -51,16 +52,16 @@ const ReadingScore: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center px-4">
+    <div className="h-screen overflow-y-auto bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-4 py-6">
       <Confetti recycle={false} numberOfPieces={250} />
       <motion.div
-        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl text-center"
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl text-center mx-auto my-auto"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="flex flex-col items-center mb-2">
-          <img src={logo} alt="Logo" className="w-100  h-30 mx-auto mb-2" />
+        <div className="flex flex-col items-center mb-4">
+          <img src={logo} alt="Logo" className="w-80 h-auto mx-auto mb-2" />
           <motion.div
             initial={{ scale: 0.7, rotate: -10 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -75,10 +76,7 @@ const ReadingScore: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
-          <motion.div
-            whileHover={{ scale: 1.08 }}
-            className="flex flex-col items-center"
-          >
+          <motion.div whileHover={{ scale: 1.08 }} className="flex flex-col items-center">
             <CircularProgressbarWithChildren
               value={(score / 40) * 100}
               styles={buildStyles({
@@ -93,10 +91,7 @@ const ReadingScore: React.FC = () => {
             </CircularProgressbarWithChildren>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.08 }}
-            className="flex flex-col items-center"
-          >
+          <motion.div whileHover={{ scale: 1.08 }} className="flex flex-col items-center">
             <CircularProgressbarWithChildren
               value={100}
               styles={buildStyles({
@@ -109,10 +104,7 @@ const ReadingScore: React.FC = () => {
             </CircularProgressbarWithChildren>
           </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.08 }}
-            className="flex flex-col items-center"
-          >
+          <motion.div whileHover={{ scale: 1.08 }} className="flex flex-col items-center">
             <CircularProgressbarWithChildren
               value={100}
               styles={buildStyles({
@@ -147,33 +139,13 @@ const ReadingScore: React.FC = () => {
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap justify-center gap-4">
-            <Button
-              icon={<FaHome />}
-              onClick={() => navigate("/")}
-              className="font-semibold"
-            >
+            <Button icon={<FaHome />} onClick={() => navigate("/")} className="font-semibold">
               Về trang chủ
             </Button>
-            <Button
-              icon={<FaRedo />}
-              onClick={() => navigate("/assessment")}
-              className="font-semibold"
-            >
+            <Button icon={<FaRedo />} onClick={() => navigate("/assessment")} className="font-semibold">
               Làm lại
             </Button>
-            <Button
-              icon={<FaEye />}
-              onClick={() =>
-                navigate("/review", {
-                  state: {
-                    answers,
-                    isSubmitted: true,
-                    isReviewing: true,
-                  },
-                })
-              }
-              className="font-semibold"
-            >
+            <Button icon={<FaEye />} onClick={handleReview} className="font-semibold">
               Xem lại bài
             </Button>
           </div>

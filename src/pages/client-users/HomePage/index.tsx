@@ -10,13 +10,7 @@ const HomePage: React.FC = () => {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const token = localStorage.getItem('token');
 
-  const handleAssessmentClick = () => {
-    if (!token) {
-      navigate('/login', { state: { from: { pathname: '/assessment' } } });
-    } else {
-      setIsConfirmModalOpen(true);
-    }
-  };
+
 
   return (
     <div>
@@ -24,9 +18,7 @@ const HomePage: React.FC = () => {
       <TargetSection />
       <BenefitsSection />
       <ReadingCourses />
-      <button onClick={handleAssessmentClick}>
-        Làm bài test đánh giá trình độ
-      </button>
+ 
 
   
     </div>
@@ -34,3 +26,4 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+

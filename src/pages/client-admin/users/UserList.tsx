@@ -103,7 +103,7 @@ const handleDelete = async (userId: number) => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8080/user/${editInitialValues.user_id}`,
+        `http://localhost:8000/user/${editInitialValues.user_id}`,
         values,
         {
           headers: { Authorization: `Bearer ${token}` },
