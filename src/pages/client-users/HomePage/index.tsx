@@ -4,7 +4,6 @@ import HeroCarousel from "../Carousel";
 import TargetSection from "../Target";
 import BenefitsSection from "../Benefits";
 import ReadingCourses from "../Courses";
-import AssessmentConfirmModal from '../../../components/AssessmentConfirmModal';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -29,10 +28,7 @@ const HomePage: React.FC = () => {
         Làm bài test đánh giá trình độ
       </button>
 
-      <AssessmentConfirmModal 
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-      />
+  
     </div>
   );
 };
