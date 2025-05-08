@@ -1,12 +1,13 @@
 // src/routes/userRoutes.tsx
 import { lazy } from "react";
-import Login from "../pages/client-users/Login";
-import ReadingTest from "../pages/client-users/ReadingTestPage";
+
+import ReadingScore from "../pages/client-users/ReadingTestPage/ReadingScore";
+import ProtectedRoute from "../components/ProtectedRoute";
+import LoginPage from "../pages/client-users/Login";
 
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
 const AboutPage = lazy(() => import("../pages/client-users/AboutPage"));
-import ReadingScore from "../pages/client-users/ReadingTestPage/ReadingScore";
 
 export const userRoutes = [
   {
@@ -15,15 +16,16 @@ export const userRoutes = [
     children: [
       { path: "", element: HomePage },
       { path: "about", element: AboutPage },
+      {
+        path: "assessment",
+        element: ProtectedRoute,
+      },
+   
     ],
   },
   {
     path: "login",
-    element: Login,
-  },
-  {
-    path: "assessment",
-    element: ReadingTest,
+    element: LoginPage,
   },
   {
     path: "reading-score",

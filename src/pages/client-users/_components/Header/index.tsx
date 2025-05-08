@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Menu, Button } from "antd";
+import { Menu, Avatar, Dropdown, Button, Space, message } from "antd";
 import "../../../../App.css";
 import {
   HomeOutlined,
@@ -10,9 +10,12 @@ import {
   ProfileOutlined,
   QuestionCircleOutlined,
   PhoneOutlined,
+  UserOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../../../assets/images/logo.png";
+import { getUserInfo, logout as logoutApi } from "../../../../apis/auth-api";
 
 interface SubMenuItem {
   key: string;
@@ -86,20 +89,31 @@ const menuItems: MenuItem[] = [
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("username");
-    setUsername(storedUser);
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    getUserInfo(token)
+      .then((data) => {
+        setUser(data);
+      })
+      .catch(() => {
+        logoutApi();
+        setUser(null);
+        message.warning("Phiên đăng nhập đã hết hạn");
+        navigate("/login");
+      });
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("username");
-    setUsername(null);
+    logoutApi();
+    setUser(null);
+    message.success("Đăng xuất thành công");
     navigate("/login");
   };
 
-  // Determine selected key, including submenu cases
   const findKey = (items: MenuItem[]): string => {
     for (const item of items) {
       if (item.href === location.pathname) return item.key;
@@ -112,6 +126,17 @@ const Header: React.FC = () => {
     return "home";
   };
   const selectedKey = findKey(menuItems);
+
+  const dropdownMenu = {
+    items: [
+      {
+        key: "logout",
+        icon: <LogoutOutlined />,
+        label: "Đăng xuất",
+        onClick: handleLogout,
+      },
+    ],
+  };
 
   return (
     <header className="bg-gray-50 shadow-md">
@@ -141,17 +166,15 @@ const Header: React.FC = () => {
 
         {/* Tài khoản / Nút đăng nhập */}
         <div className="flex items-center space-x-4">
-          {username ? (
-            <>
-              <span className="text-gray-800 font-medium">Hi! {username}</span>
-              <Button
-                danger
-                onClick={handleLogout}
-                className="bg-red-600 border-red-600 text-white hover:bg-red-700"
-              >
-                Logout
-              </Button>
-            </>
+          {user ? (
+            <Dropdown menu={dropdownMenu} trigger={["click"]} placement="bottomRight" arrow>
+              <Space className="cursor-pointer">
+                <Avatar icon={<UserOutlined />} className="bg-red-600" />
+                <span className="text-gray-800 font-medium">
+                  {user.full_name || user.user_name}
+                </span>
+              </Space>
+            </Dropdown>
           ) : (
             <>
               <Link

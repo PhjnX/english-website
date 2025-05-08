@@ -12,7 +12,8 @@ export default function AuthLogin() {
 
   const handleLogin = async (values: { identifier: string; password: string }) => {
     try {
-      const { token, role } = await loginApi(values);
+const { identifier, password } = values;
+      const { token, role } = await loginApi(identifier, password);
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
 
