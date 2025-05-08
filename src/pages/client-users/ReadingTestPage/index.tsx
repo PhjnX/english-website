@@ -224,6 +224,7 @@ const ReadingTestPage: React.FC = () => {
                       setHighlightedSentence={setHighlightedSentence}
                       highlightedSentence={highlightedSentence}
                       isLoading={isLoading}
+                      partId={part.partId}
                     />
                   </motion.div>
                 </Split>

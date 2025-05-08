@@ -7,7 +7,7 @@ const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
 const AboutPage = lazy(() => import("../pages/client-users/AboutPage"));
 import ReadingScore from "../pages/client-users/ReadingTestPage/ReadingScore";
-
+import ReviewPage from "../pages/client-users/ReadingTestPage/ReviewPage";
 export const userRoutes = [
   {
     path: "",
@@ -28,5 +28,9 @@ export const userRoutes = [
   {
     path: "reading-score",
     element: ReadingScore,
+  },
+  {
+    path: "review",
+    element: ReviewPage,
   },
 ];

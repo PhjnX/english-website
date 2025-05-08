@@ -8,7 +8,9 @@ import "react-circular-progressbar/dist/styles.css";
 import { motion } from "framer-motion";
 import Confetti from "react-confetti";
 import { Button } from "antd";
-
+import { FaRedo, FaHome, FaEye, FaRocket } from "react-icons/fa";
+import { GiPartyPopper } from "react-icons/gi";
+import logo from "../../../assets/images/logo.png";
 const bandMapping = [
   { score: 39, band: 9 },
   { score: 37, band: 8.5 },
@@ -35,7 +37,7 @@ const getBand = (score: number) => {
 const ReadingScore: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { score, timeSpent, answers } = location.state || {};
+  const { score = 0, timeSpent = 0, answers } = location.state || {};
   const band = getBand(score);
 
   const handleReview = () => {
@@ -51,20 +53,32 @@ const ReadingScore: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex flex-col items-center justify-center px-4">
       <Confetti recycle={false} numberOfPieces={250} />
-
       <motion.div
-        className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl text-center"
+        className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl text-center"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6 }}
       >
-        <img src="/logo.svg" alt="Logo" className="w-16 h-16 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          🎉 Chúc mừng bạn đã hoàn thành bài kiểm tra!
-        </h2>
+        <div className="flex flex-col items-center mb-2">
+          <img src={logo} alt="Logo" className="w-100  h-30 mx-auto mb-2" />
+          <motion.div
+            initial={{ scale: 0.7, rotate: -10 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 10 }}
+            className="flex items-center justify-center gap-2 mb-2"
+          >
+            <GiPartyPopper className="text-3xl text-yellow-400 animate-bounce" />
+            <span className="text-2xl font-bold text-gray-800">
+              Chúc mừng bạn đã hoàn thành bài kiểm tra!
+            </span>
+          </motion.div>
+        </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="flex flex-col items-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            className="flex flex-col items-center"
+          >
             <CircularProgressbarWithChildren
               value={(score / 40) * 100}
               styles={buildStyles({
@@ -73,13 +87,16 @@ const ReadingScore: React.FC = () => {
               })}
             >
               <div className="text-sm text-gray-600">Correct Answers</div>
-              <div className="text-xl font-semibold text-green-500">
+              <div className="text-2xl font-bold text-green-500">
                 {score}/40
               </div>
             </CircularProgressbarWithChildren>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-center">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            className="flex flex-col items-center"
+          >
             <CircularProgressbarWithChildren
               value={100}
               styles={buildStyles({
@@ -88,11 +105,14 @@ const ReadingScore: React.FC = () => {
               })}
             >
               <div className="text-sm text-gray-600">Band</div>
-              <div className="text-xl font-semibold text-blue-500">{band}</div>
+              <div className="text-2xl font-bold text-blue-500">{band}</div>
             </CircularProgressbarWithChildren>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-center">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            className="flex flex-col items-center"
+          >
             <CircularProgressbarWithChildren
               value={100}
               styles={buildStyles({
@@ -101,11 +121,11 @@ const ReadingScore: React.FC = () => {
               })}
             >
               <div className="text-sm text-gray-600">Time Spent</div>
-              <div className="text-base font-semibold text-orange-500">
+              <div className="text-lg font-semibold text-orange-500">
                 {Math.floor(timeSpent / 60)}m {timeSpent % 60}s
               </div>
             </CircularProgressbarWithChildren>
-          </div>
+          </motion.div>
         </div>
 
         <div className="mb-4">
@@ -113,9 +133,9 @@ const ReadingScore: React.FC = () => {
             {[9, 8.5, 8, 7.5, 7, 6.5, 6, 5.5, 5, 4.5, 4, 3.5, 3].map((b) => (
               <span
                 key={b}
-                className={`px-3 py-1 rounded-full border text-sm font-semibold ${
+                className={`px-3 py-1 rounded-full border text-sm font-semibold transition-all duration-200 ${
                   b === band
-                    ? "bg-blue-500 text-white border-blue-500"
+                    ? "bg-blue-500 text-white border-blue-500 scale-110 shadow"
                     : "border-gray-300 text-gray-600"
                 }`}
               >
@@ -126,17 +146,44 @@ const ReadingScore: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="flex justify-center gap-4">
-            <Button onClick={() => navigate("/")}>🏠 Về trang chủ</Button>
-            <Button onClick={() => navigate("/assessment")}>🔁 Làm lại</Button>
-            <Button onClick={handleReview}>👁️ Xem lại bài</Button>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button
+              icon={<FaHome />}
+              onClick={() => navigate("/")}
+              className="font-semibold"
+            >
+              Về trang chủ
+            </Button>
+            <Button
+              icon={<FaRedo />}
+              onClick={() => navigate("/assessment")}
+              className="font-semibold"
+            >
+              Làm lại
+            </Button>
+            <Button
+              icon={<FaEye />}
+              onClick={() =>
+                navigate("/review", {
+                  state: {
+                    answers,
+                    isSubmitted: true,
+                    isReviewing: true,
+                  },
+                })
+              }
+              className="font-semibold"
+            >
+              Xem lại bài
+            </Button>
           </div>
           <Button
             type="primary"
-            className="mt-4 !bg-green-500 hover:!bg-green-600 !text-white"
+            icon={<FaRocket />}
+            className="mt-4 !bg-green-500 hover:!bg-green-600 !text-white text-lg font-bold py-2"
             onClick={() => navigate("/lessons")}
           >
-            🚀 Bắt đầu ôn luyện
+            Bắt đầu ôn luyện
           </Button>
         </div>
       </motion.div>
