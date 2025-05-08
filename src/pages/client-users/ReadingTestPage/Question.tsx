@@ -188,22 +188,70 @@ const QuestionList: React.FC<QuestionProps> = ({
                               const match = part.match(/{{(\d+)}}/);
                               if (match) {
                                 const id = parseInt(match[1], 10);
+                                const userAnswer = answers[id] || "";
+                                const blankQuestion = questions.find(
+                                  (qq) => qq.id === id
+                                );
+                                const correctAnswer =
+                                  blankQuestion?.correctAnswer || "";
+                                const isCorrect =
+                                  isSubmitted &&
+                                  isReviewing &&
+                                  userAnswer.trim().toLowerCase() ===
+                                    correctAnswer.trim().toLowerCase();
+                                const isWrong =
+                                  isSubmitted &&
+                                  isReviewing &&
+                                  userAnswer &&
+                                  userAnswer.trim().toLowerCase() !==
+                                    correctAnswer.trim().toLowerCase();
                                 return (
-                                  <Input
+                                  <span
                                     key={id}
-                                    value={answers[id] || ""}
-                                    onChange={(e) =>
-                                      handleAnswer(id, e.target.value)
-                                    }
-                                    disabled={isSubmitted && !isReviewing}
-                                    placeholder={String(id)}
-                                    className="mx-2 inline-block text-center font-semibold"
-                                    style={{
-                                      width: 90,
-                                      display: "inline-block",
-                                      verticalAlign: "middle",
-                                    }}
-                                  />
+                                    className="inline-block align-middle"
+                                  >
+                                    <Input
+                                      value={userAnswer}
+                                      onChange={(e) =>
+                                        handleAnswer(id, e.target.value)
+                                      }
+                                      disabled={isSubmitted && !isReviewing}
+                                      placeholder={String(id)}
+                                      className={`mx-2 text-center font-semibold !w-24 !inline-block !align-middle ${
+                                        isCorrect
+                                          ? "!border-green-600 !bg-green-100 !text-green-800"
+                                          : ""
+                                      } ${
+                                        isWrong
+                                          ? "!border-red-600 !bg-red-100 !text-red-800"
+                                          : ""
+                                      }`}
+                                      style={{
+                                        borderColor: isCorrect
+                                          ? "#16a34a"
+                                          : isWrong
+                                          ? "#dc2626"
+                                          : undefined,
+                                        backgroundColor: isCorrect
+                                          ? "#bbf7d0"
+                                          : isWrong
+                                          ? "#fecaca"
+                                          : undefined,
+                                        color: isCorrect
+                                          ? "#166534"
+                                          : isWrong
+                                          ? "#991b1b"
+                                          : undefined,
+                                        fontWeight: 600,
+                                      }}
+                                    />
+                                    {isCorrect && (
+                                      <FaCheckCircle className="inline ml-1 text-green-500" />
+                                    )}
+                                    {isWrong && (
+                                      <FaTimesCircle className="inline ml-1 text-red-500" />
+                                    )}
+                                  </span>
                                 );
                               }
                               return <span key={idx}>{part}</span>;
@@ -613,47 +661,82 @@ const QuestionList: React.FC<QuestionProps> = ({
                         }}
                       >
                         {q.questionType === "input" &&
-                        q.id >= 9 &&
-                        q.id <= 14 ? (
-                          q.question.includes("{}") ? null : (
-                            <p className="mt-2 text-base text-gray-800 leading-7">
-                              {q.question
-                                .split(/({{\d+}})/g)
-                                .map((part, idx, arr) => {
-                                  const match = part.match(/{{(\d+)}}/);
-                                  if (match) {
-                                    const id = parseInt(match[1]);
-                                    return (
-                                      <Input
-                                        key={`input-${id}`}
-                                        value={answers[id] || ""}
-                                        onChange={(e) =>
-                                          handleAnswer(id, e.target.value)
-                                        }
-                                        disabled={isSubmitted && !isReviewing}
-                                        placeholder={String(id)}
-                                        className="mx-1 text-center font-semibold"
-                                        style={{
-                                          width: 90,
-                                          display: "inline-block",
-                                          verticalAlign: "middle",
-                                        }}
-                                      />
-                                    );
-                                  }
-                                  return (
-                                    <span
-                                      key={`text-${idx}`}
-                                      className="whitespace-pre-wrap"
-                                    >
-                                      {part}
-                                    </span>
-                                  );
-                                })}
-                            </p>
-                          )
-                        ) : q.questionType === "input" &&
-                          q.question.includes("{}") ? null : (
+                        q.question.includes("{{") ? (
+                          <p className="mt-2 text-base text-gray-800 leading-7">
+                            {q.question.split(/({{\d+}})/g).map((part, idx) => {
+                              const match = part.match(/{{(\d+)}}/);
+                              if (match) {
+                                const id = parseInt(match[1], 10);
+                                const userAnswer = answers[id] || "";
+                                const blankQuestion = questions.find(
+                                  (qq) => qq.id === id
+                                );
+                                const correctAnswer =
+                                  blankQuestion?.correctAnswer || "";
+                                const isCorrect =
+                                  isSubmitted &&
+                                  isReviewing &&
+                                  userAnswer.trim().toLowerCase() ===
+                                    correctAnswer.trim().toLowerCase();
+                                const isWrong =
+                                  isSubmitted &&
+                                  isReviewing &&
+                                  userAnswer &&
+                                  userAnswer.trim().toLowerCase() !==
+                                    correctAnswer.trim().toLowerCase();
+                                return (
+                                  <span
+                                    key={id}
+                                    className="inline-block align-middle"
+                                  >
+                                    <Input
+                                      value={userAnswer}
+                                      onChange={(e) =>
+                                        handleAnswer(id, e.target.value)
+                                      }
+                                      disabled={isSubmitted && !isReviewing}
+                                      placeholder={String(id)}
+                                      className={`mx-2 text-center font-semibold !w-24 !inline-block !align-middle ${
+                                        isCorrect
+                                          ? "!border-green-600 !bg-green-100 !text-green-800"
+                                          : ""
+                                      } ${
+                                        isWrong
+                                          ? "!border-red-600 !bg-red-100 !text-red-800"
+                                          : ""
+                                      }`}
+                                      style={{
+                                        borderColor: isCorrect
+                                          ? "#16a34a"
+                                          : isWrong
+                                          ? "#dc2626"
+                                          : undefined,
+                                        backgroundColor: isCorrect
+                                          ? "#bbf7d0"
+                                          : isWrong
+                                          ? "#fecaca"
+                                          : undefined,
+                                        color: isCorrect
+                                          ? "#166534"
+                                          : isWrong
+                                          ? "#991b1b"
+                                          : undefined,
+                                        fontWeight: 600,
+                                      }}
+                                    />
+                                    {isCorrect && (
+                                      <FaCheckCircle className="inline ml-1 text-green-500" />
+                                    )}
+                                    {isWrong && (
+                                      <FaTimesCircle className="inline ml-1 text-red-500" />
+                                    )}
+                                  </span>
+                                );
+                              }
+                              return <span key={idx}>{part}</span>;
+                            })}
+                          </p>
+                        ) : (
                           <p className="font-semibold mb-2">
                             {q.id}. {q.question}
                           </p>

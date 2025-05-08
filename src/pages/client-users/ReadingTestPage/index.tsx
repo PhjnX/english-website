@@ -6,7 +6,6 @@ import { parts } from "../../../data/readingTestData";
 import Paragraph from "./Paragraph";
 import Question from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
-
 export interface Answers {
   [key: number]: string;
 }
@@ -149,7 +148,7 @@ const ReadingTestPage: React.FC = () => {
         tabBarStyle={{ fontWeight: 600 }}
       >
         {parts.map((part) => (
-          <TabPane
+          <Tabs.TabPane
             tab={
               <span className="text-gray-700">
                 Part {part.partId}: {part.title}
@@ -228,7 +227,7 @@ const ReadingTestPage: React.FC = () => {
                 </Split>
               </motion.div>
             </AnimatePresence>
-          </TabPane>
+          </Tabs.TabPane>
         ))}
       </Tabs>
     </div>
