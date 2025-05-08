@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Tabs, Progress, Button } from "antd";
+import { Tabs } from "antd";
+const { TabPane } = Tabs;
 import Split from "react-split";
 import { useNavigate } from "react-router-dom";
 import { parts } from "../../../data/readingTestData";
@@ -48,12 +49,6 @@ const ReadingTestPage: React.FC = () => {
       handleSubmit();
     }
   }, [timeLeft]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? `0${s}` : s}`;
-  };
 
   const handleAnswer = (questionId: number, option: string) => {
     if (!isSubmitted) {
@@ -117,30 +112,7 @@ const ReadingTestPage: React.FC = () => {
   };
 
   return (
-    <div className="p-0 max-w-[1440px] mx-auto h-screen flex flex-col overflow-hidden bg-gradient-to-br from-white to-gray-100 text-gray-800 font-inter">
-      <div className="flex justify-between items-center px-6 py-4 bg-white shadow-md border-b border-gray-200">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          📘 IELTS Reading Test
-        </h1>
-        <div className="flex items-center gap-4">
-          <Progress
-            type="circle"
-            percent={(timeLeft / (60 * 60)) * 100}
-            format={() => formatTime(timeLeft)}
-            width={70}
-            strokeColor={timeLeft <= 300 ? "#ef4444" : "#3b82f6"}
-            trailColor="#e5e7eb"
-          />
-          <Button
-            onClick={handleSubmit}
-            className="bg-red-500 hover:bg-red-600 text-white font-medium shadow"
-            disabled={isSubmitted}
-          >
-            ✅ Submit
-          </Button>
-        </div>
-      </div>
-
+    <div className="p-0 max-w-[1440px] mx-auto flex flex-col flex-grow overflow-hidden bg-gradient-to-br from-white to-gray-100 text-gray-800 font-inter">
       <Tabs
         activeKey={activeKey}
         onChange={handleTabChange}
