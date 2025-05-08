@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://localhost:8000";
 
 const token = () => localStorage.getItem("token");
 
@@ -33,50 +33,83 @@ export const deleteAssessment = async (id: number) => {
 // ===== PART =====
 
 export const createPart = async (assessmentId: number, data: any) => {
-  const res = await axios.post(`${BASE_URL}/assessment/${assessmentId}/parts`, data, headers());
+  const res = await axios.post(
+    `${BASE_URL}/assessment/${assessmentId}/parts`,
+    data,
+    headers()
+  );
   return res.data;
 };
 
 export const updatePart = async (partId: number, data: any) => {
-  const res = await axios.put(`${BASE_URL}/assessment/parts/${partId}`, data, headers());
+  const res = await axios.put(
+    `${BASE_URL}/assessment/parts/${partId}`,
+    data,
+    headers()
+  );
   return res.data;
 };
 
 export const deletePart = async (partId: number) => {
-  const res = await axios.delete(`${BASE_URL}/assessment/parts/${partId}`, headers());
+  const res = await axios.delete(
+    `${BASE_URL}/assessment/parts/${partId}`,
+    headers()
+  );
   return res.data;
 };
 
 // ===== GROUP =====
 
 export const createGroup = async (partId: number, data: any) => {
-  const res = await axios.post(`${BASE_URL}/assessment/parts/${partId}/groups`, data, headers());
+  const res = await axios.post(
+    `${BASE_URL}/assessment/parts/${partId}/groups`,
+    data,
+    headers()
+  );
   return res.data;
 };
 
 export const updateGroup = async (groupId: number, data: any) => {
-  const res = await axios.put(`${BASE_URL}/assessment/groups/${groupId}`, data, headers());
+  const res = await axios.put(
+    `${BASE_URL}/assessment/groups/${groupId}`,
+    data,
+    headers()
+  );
   return res.data;
 };
 
 export const deleteGroup = async (groupId: number) => {
-  const res = await axios.delete(`${BASE_URL}/assessment/groups/${groupId}`, headers());
+  const res = await axios.delete(
+    `${BASE_URL}/assessment/groups/${groupId}`,
+    headers()
+  );
   return res.data;
 };
 
 // ===== QUESTION =====
 
 export const createQuestion = async (groupId: number, data: any) => {
-  const res = await axios.post(`${BASE_URL}/assessment/groups/${groupId}/questions`, data, headers());
+  const res = await axios.post(
+    `${BASE_URL}/assessment/groups/${groupId}/questions`,
+    data,
+    headers()
+  );
   return res.data;
 };
 
 export const updateQuestion = async (questionId: number, data: any) => {
-  const res = await axios.put(`${BASE_URL}/assessment/questions/${questionId}`, data, headers());
+  const res = await axios.put(
+    `${BASE_URL}/assessment/questions/${questionId}`,
+    data,
+    headers()
+  );
   return res.data;
 };
 
 export const deleteQuestion = async (questionId: number) => {
-  const res = await axios.delete(`${BASE_URL}/assessment/questions/${questionId}`, headers());
+  const res = await axios.delete(
+    `${BASE_URL}/assessment/questions/${questionId}`,
+    headers()
+  );
   return res.data;
 };

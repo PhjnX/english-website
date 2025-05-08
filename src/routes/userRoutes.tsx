@@ -9,6 +9,7 @@ import ReviewPage from "../pages/client-users/ReadingTestPage/ReviewPage";
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
 const AboutPage = lazy(() => import("../pages/client-users/AboutPage"));
+const PracticePage = lazy(() => import("../pages/client-users/Lessons"));
 
 export const userRoutes = [
   {
@@ -20,6 +21,10 @@ export const userRoutes = [
       {
         path: "assessment",
         element: ProtectedRoute,
+      },
+      {
+        path: "lessons",
+        element: PracticePage,
       },
     ],
   },
