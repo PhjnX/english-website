@@ -53,8 +53,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
         questionType: "true-false-notgiven",
         options: ["True", "False", "Not Given"],
         correctAnswer: "True",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Trong đoạn A, có đề cập rằng nghiên cứu về tác hại của sàn phẳng đối với sức khỏe được 'tiên phong' (pioneered) vào cuối những năm 1960. Brantingham và Beekman được nhắc đến là những người đầu tiên thực hiện nghiên cứu này.",
+        highlightSentence:
+          "Research into the idea that flat floors could be detrimental to our health was pioneered back in the late 1960s in Long Beach, California. Podiatrist Charles Brantingham and physiologist Bruce Beekman were concerned with the growing epidemic of high blood pressure, varicose veins and deep-vein thromboses and reckoned they might be linked to the uniformity of the surfaces that we tend to stand and walk on.",
       },
       {
         id: 2,
@@ -63,8 +65,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
         questionType: "true-false-notgiven",
         options: ["True", "False", "Not Given"],
         correctAnswer: "False",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Trong đoạn 4, người trong nhóm đối chứng của thí nghiệm Fisher cho thấy sự cải thiện về sức khỏe. Tuy nhiên, câu hỏi nói họ bị suy giảm (decline), điều này trái ngược với 'cải thiện' (improvement).",
+        highlightSentence:
+          "People in a control group who walked on ordinary floors also improved but not as dramatically.",
       },
       {
         id: 3,
@@ -73,8 +77,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
         questionType: "true-false-notgiven",
         options: ["True", "False", "Not Given"],
         correctAnswer: "True",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Trong đoạn văn có đề cập 'production is being scaled up' (sản xuất đang được mở rộng), điều này tương đương với việc tăng số lượng thảm đá cuội được sản xuất.",
+        highlightSentence:
+          "The mats are now available for purchase and production is being scaled up.",
       },
       {
         id: 4,
@@ -83,8 +89,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
         questionType: "true-false-notgiven",
         options: ["True", "False", "Not Given"],
         correctAnswer: "True",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Fisher thừa nhận rằng ông đã có ý tưởng từ những lần thăm Trung Quốc. 'Overseas trip' (chuyến đi nước ngoài) tương đương với 'regular visits to the country' (những lần thăm đều đặn đến đất nước này).",
+        highlightSentence:
+          "Fisher admits he got the concept from regular visits to the country.",
       },
       {
         id: 5,
@@ -93,8 +101,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
         questionType: "true-false-notgiven",
         options: ["True", "False", "Not Given"],
         correctAnswer: "Not Given",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Đoạn văn chỉ mô tả đôi giày Masai Barefoot Technology có đế tròn và tác dụng của nó, không có thông tin nào về việc giày được thiết kế cho mọi lứa tuổi.",
+        highlightSentence:
+          "Known as the Masai Barefoot Technology, the shoes have rounded soles that cause you to rock slightly when you stand still, exercising the small muscles around the ankle that are responsible for stability.",
       },
       {
         id: 6,
@@ -108,8 +118,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
           "surprising to them.",
         ],
         correctAnswer: "ignored by big companies.",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Brantingham và Beekman đã chỉ ra tác hại của bề mặt phẳng, nhưng các công ty lớn vẫn bỏ qua và tiếp tục sử dụng sàn phẳng ('the flooring of the world's largest workplaces remains relentlessly smooth').",
+        highlightSentence:
+          "Yet decades later, the flooring of the world's largest workplaces remains relentlessly smooth.",
       },
       {
         id: 7,
@@ -124,8 +136,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
         ],
         correctAnswer:
           "They could be an effective alternative to medical intervention.",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Trong chuyến thăm Trung Quốc, Fisher nhận ra rằng đường lát đá cuội có thể cải thiện sức khỏe. Ông thừa nhận ý tưởng đến từ đó và đó là mục đích tạo ra thảm đá cuội - như một phương pháp thay thế cho can thiệp y tế.",
+        highlightSentence:
+          "a 'useful nonpharmacological approach for preventing or controlling hypertension of older adults, as the researchers believe.",
       },
       {
         id: 8,
@@ -139,8 +153,10 @@ However, for many modern citizens, the countryside is not as accessible as it on
           "The natural environment is fast disappearing.",
         ],
         correctAnswer: "The natural environment is fast disappearing.",
-        explanation: "",
-        highlightSentence: "",
+        explanation:
+          "Đoạn cuối đề cập rằng vùng nông thôn đang trở nên khó tiếp cận hơn và đang dần cạn kiệt ('the countryside is not as accessible as it once was and is in fact a dwindling resource'). Điều này tương đương với việc môi trường tự nhiên đang biến mất nhanh chóng.",
+        highlightSentence:
+          "the countryside is not as accessible as it once was and is in fact a dwindling resource.",
       },
       {
         id: 9,
@@ -150,38 +166,37 @@ However, for many modern citizens, the countryside is not as accessible as it on
       
           Similar research was undertaken by John Fisher and colleagues in Oregon. As a result of their findings, they decided to market cobblestone mats to the elderly as a means of dealing with {{12}}. Reflexologists claim that by manipulating specific parts of the feet, the performance of certain {{13}} will also improve. Finally, Benno Nigg at Calgary University believes that specially shaped {{14}} on shoes should give health benefits.
         `,
-        correctAnswer: "",
-        explanation: "",
+        correctAnswer: "anatomy",
+        explanation:
+          "Bàn chân có cấu trúc phức tạp với 26 xương, 33 khớp và hơn 100 cơ, gân và dây chằng. Đây chính là giải phẫu học (anatomy) phức tạp của bàn chân.",
         highlightSentence: "",
       },
       {
         id: 10,
         questionType: "input",
         question: "{{paragraph}}",
-        correctAnswer: "levels",
+        correctAnswer: "resistance",
         explanation:
-          "The passage explains that different levels in the mat encourage muscle activity.",
-        highlightSentence:
-          "the different levels of X in the mat would encourage greater muscle action.",
+          "Thảm có các mức độ kháng lực (resistance) khác nhau trên bề mặt, giúp kích thích hoạt động cơ bắp khi người dùng đi trên đó.",
+        highlightSentence: "",
       },
       {
         id: 11,
         questionType: "input",
         question: "{{paragraph}}",
-        correctAnswer: "pressure",
+        correctAnswer: "stress",
         explanation:
-          "The mat's function is to reduce cardiovascular system pressure.",
-        highlightSentence:
-          "this lessened the effect of pressure on the cardiovascular system.",
+          "Hoạt động cơ bắp ngăn máu ứ đọng ở chân, giảm áp lực (stress) lên tim và hệ tuần hoàn.",
+        highlightSentence: "",
       },
       {
         id: 12,
         questionType: "input",
         question: "{{paragraph}}",
-        correctAnswer: "pain",
+        correctAnswer: "hypertension",
         explanation:
-          "It was used as a solution for elderly people suffering from pain.",
-        highlightSentence: "to the elderly as a means of dealing with pain.",
+          "Thảm đá cuội được tiếp thị cho người cao tuổi như một phương pháp không dùng thuốc để ngăn ngừa hoặc kiểm soát bệnh cao huyết áp (hypertension).",
+        highlightSentence: "",
       },
       {
         id: 13,
@@ -189,18 +204,17 @@ However, for many modern citizens, the countryside is not as accessible as it on
         question: "{{paragraph}}",
         correctAnswer: "organs",
         explanation:
-          "Reflexologists claim that foot manipulation improves certain organs.",
-        highlightSentence:
-          "the performance of certain organs will also improve.",
+          "Các nhà phản xạ học tin rằng áp lực tác động lên các điểm cụ thể trên bàn chân có liên kết trực tiếp với các cơ quan (organs) cụ thể trong cơ thể và cải thiện chức năng của chúng.",
+        highlightSentence: "",
       },
       {
         id: 14,
         questionType: "input",
         question: "{{paragraph}}",
-        correctAnswer: "patterns",
-        explanation: "Specially shaped patterns on shoes may enhance health.",
-        highlightSentence:
-          "specially shaped patterns on shoes should give health benefits.",
+        correctAnswer: "soles",
+        explanation:
+          "Giày Masai Barefoot Technology có đế (soles) tròn, giúp người dùng hơi lắc lư khi đứng yên, kích thích các cơ nhỏ xung quanh mắt cá chân.",
+        highlightSentence: "",
       },
     ],
   },

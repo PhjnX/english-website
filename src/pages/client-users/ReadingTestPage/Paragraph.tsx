@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { parts } from "../../../data/readingTestData";
 
@@ -19,6 +19,22 @@ const Paragraph: React.FC<ParagraphProps> = ({
   questionEnd,
 }) => {
   const currentPart = parts.find((p) => p.partId === partId);
+  const lineRefs = useRef<(HTMLParagraphElement | null)[]>([]);
+
+  useEffect(() => {
+    if (highlightedSentence && lineRefs.current.length > 0) {
+      // Tìm dòng chứa highlightSentence
+      const idx = currentPart?.passage
+        .split("\n")
+        .findIndex((line) => line.includes(highlightedSentence));
+      if (idx !== undefined && idx >= 0 && lineRefs.current[idx]) {
+        lineRefs.current[idx]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }
+  }, [highlightedSentence, currentPart]);
 
   if (!currentPart)
     return <div className="p-4 text-red-500">Part not found.</div>;
@@ -56,21 +72,52 @@ const Paragraph: React.FC<ParagraphProps> = ({
               ))}
           </div>
         ) : (
-          currentPart.passage.split("\n").map((line, idx) => (
-            <motion.p
-              key={idx}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className={`${
-                highlightedSentence === line.trim()
-                  ? "bg-yellow-200 px-2 rounded"
-                  : ""
-              }`}
-            >
-              {line}
-            </motion.p>
-          ))
+          currentPart.passage.split("\n").map((line, idx) => {
+            if (
+              highlightedSentence &&
+              highlightedSentence.length > 0 &&
+              line.includes(highlightedSentence)
+            ) {
+              // Tách dòng thành 3 phần: trước, highlight, sau
+              const parts = line.split(highlightedSentence);
+              return (
+                <motion.p
+                  key={idx}
+                  ref={(el) => {
+                    lineRefs.current[idx] = el;
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                >
+                  {parts.map((part, i) => (
+                    <React.Fragment key={i}>
+                      {part}
+                      {i < parts.length - 1 && (
+                        <span className="bg-yellow-200 px-2 rounded font-semibold">
+                          {highlightedSentence}
+                        </span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </motion.p>
+              );
+            } else {
+              return (
+                <motion.p
+                  key={idx}
+                  ref={(el) => {
+                    lineRefs.current[idx] = el;
+                  }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: idx * 0.05 }}
+                >
+                  {line}
+                </motion.p>
+              );
+            }
+          })
         )}
       </div>
     </div>
