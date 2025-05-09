@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaPlayCircle, FaStar } from "react-icons/fa";
+import { FaPlayCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 export interface ExerciseTest {
@@ -20,27 +20,7 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ title, tests }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center py-4">
-      {/* Banner sinh động */}
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-6xl mx-auto mb-6 rounded-2xl bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 p-6 flex items-center gap-4 shadow-lg"
-      >
-        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white bg-opacity-30 mr-4">
-          <FaStar className="text-white text-3xl animate-bounce" />
-        </div>
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow mb-1">
-            Chinh phục Reading IELTS
-          </h2>
-          <p className="text-white/90 text-base md:text-lg font-medium">
-            Luyện tập các đề thi thật, nâng cao kỹ năng đọc hiểu và bứt phá band
-            điểm!
-          </p>
-        </div>
-      </motion.div>
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center pb-0">
       <div className="w-full max-w-6xl mx-auto">
         <h1 className="text-3xl font-extrabold mb-3">{title}</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -71,6 +51,13 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ title, tests }) => {
                   whileHover={{ scale: 1.06 }}
                   whileTap={{ scale: 0.97 }}
                   className="mt-auto flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 text-white font-semibold shadow transition-colors duration-600 hover:from-blue-500 hover:to-pink-500 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const match =
+                      window.location.pathname.match(/lessons\/(level\d+)/);
+                    const level = match ? match[1] : "level1";
+                    navigate(`/lessons/${level}/exercise/${test.id}`);
+                  }}
                 >
                   <FaPlayCircle className="text-lg" />
                   Làm bài

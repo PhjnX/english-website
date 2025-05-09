@@ -24,9 +24,6 @@ const HomePage: React.FC = () => {
       <TargetSection />
       <BenefitsSection />
       <ReadingCourses />
-      <button onClick={handleAssessmentClick}>
-        Làm bài test đánh giá trình độ
-      </button>
     </div>
   );
 };
