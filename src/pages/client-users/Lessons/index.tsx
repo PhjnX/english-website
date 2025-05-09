@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FaBookOpen } from "react-icons/fa";
+import { GiOpenBook } from "react-icons/gi";
 import { useNavigate } from "react-router-dom";
 
 interface ReadingCard {
@@ -19,7 +20,7 @@ const readingLevels: ReadingCard[] = [
     title: "Reading Level 1",
     description: "Bài tập đọc hiểu cơ bản, phù hợp cho người mới bắt đầu.",
     color: "bg-blue-400",
-    path: "/reading-practice/1",
+    path: "/lessons/level1",
   },
   {
     id: 2,
@@ -27,7 +28,7 @@ const readingLevels: ReadingCard[] = [
     title: "Reading Level 2",
     description: "Nâng cao kỹ năng đọc hiểu với các đoạn văn ngắn.",
     color: "bg-green-400",
-    path: "/reading-practice/2",
+    path: "/lessons/level2",
   },
   {
     id: 3,
@@ -35,7 +36,7 @@ const readingLevels: ReadingCard[] = [
     title: "Reading Level 3",
     description: "Luyện tập đọc hiểu với các chủ đề đa dạng hơn.",
     color: "bg-yellow-400",
-    path: "/reading-practice/3",
+    path: "/lessons/level3",
   },
   {
     id: 4,
@@ -43,7 +44,7 @@ const readingLevels: ReadingCard[] = [
     title: "Reading Level 4",
     description: "Đọc hiểu các đoạn văn dài và phức tạp hơn.",
     color: "bg-orange-400",
-    path: "/reading-practice/4",
+    path: "/lessons/level4",
   },
   {
     id: 5,
@@ -51,7 +52,7 @@ const readingLevels: ReadingCard[] = [
     title: "Reading Level 5",
     description: "Thử thách với các bài đọc học thuật và chuyên sâu.",
     color: "bg-purple-400",
-    path: "/reading-practice/5",
+    path: "/lessons/level5",
   },
   {
     id: 6,
@@ -59,7 +60,7 @@ const readingLevels: ReadingCard[] = [
     title: "Reading Level 6",
     description: "Ôn luyện nâng cao, chuẩn bị cho các kỳ thi quốc tế.",
     color: "bg-red-400",
-    path: "/reading-practice/6",
+    path: "/lessons/level6",
   },
 ];
 
@@ -91,13 +92,22 @@ const LessonsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-white shadow-md">
-        <div className="container mx-auto px-6 py-4">
-          <h1 className="text-3xl font-bold text-gray-800">Ôn luyện Reading</h1>
-          <p className="text-gray-600 mt-2">
-            Chọn level phù hợp để luyện tập kỹ năng đọc hiểu tiếng Anh của bạn!
-          </p>
+      <header className="relative bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 shadow-md overflow-hidden">
+        <div className="container mx-auto px-6 py-8 flex flex-col md:flex-row items-center gap-6">
+          <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-tr from-pink-400 to-blue-500 shadow-lg">
+            <GiOpenBook className="text-white text-5xl drop-shadow-lg" />
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-extrabold font-sans tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 drop-shadow-lg leading-tight pb-1">
+              <span className="inline-block">Ô</span>n luyện Reading
+            </h1>
+            <p className="text-lg text-gray-700 mt-2 font-medium">
+              Chọn level phù hợp để luyện tập kỹ năng đọc hiểu tiếng Anh của
+              bạn!
+            </p>
+          </div>
         </div>
+        <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 opacity-60 rounded-t-full" />
       </header>
 
       {/* Main Content */}
@@ -119,7 +129,7 @@ const LessonsPage: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               onHoverStart={() => setHovered(card.id)}
               onHoverEnd={() => setHovered(null)}
-              className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer transition-all duration-300 ${card.color} bg-opacity-20`}
+              className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer transition-all !duration-300 ${card.color} bg-opacity-20`}
               onClick={() => navigate(card.path)}
             >
               <div className="flex flex-col items-center justify-center p-8 bg-white bg-opacity-90 h-full min-h-[220px]">
@@ -135,7 +145,7 @@ const LessonsPage: React.FC = () => {
                   {card.description}
                 </p>
                 <motion.button
-                  className="px-5 py-2 rounded-full font-semibold text-white bg-blue-600 hover:bg-blue-800 transition"
+                  className="px-6 py-2.5 rounded-full font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 cursor-pointer"
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.96 }}
                 >
@@ -146,17 +156,6 @@ const LessonsPage: React.FC = () => {
           ))}
         </motion.div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white shadow-inner mt-12">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col items-center">
-            <p className="text-gray-600 text-center">
-              Luyện tập thường xuyên để nâng cao kỹ năng đọc hiểu của bạn!
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

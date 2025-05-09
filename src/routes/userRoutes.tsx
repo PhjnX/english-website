@@ -5,6 +5,8 @@ import ReadingScore from "../pages/client-users/ReadingTestPage/ReadingScore";
 import ProtectedRoute from "../components/ProtectedRoute";
 import LoginPage from "../pages/client-users/Login";
 import ReviewPage from "../pages/client-users/ReadingTestPage/ReviewPage";
+import LevelPage from "../pages/client-users/Lessons/LevelPage";
+import ExercisePage from "../pages/client-users/Exercise";
 
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
@@ -25,6 +27,14 @@ export const userRoutes = [
       {
         path: "lessons",
         element: PracticePage,
+      },
+      {
+        path: "lessons/:level",
+        element: LevelPage,
+      },
+      {
+        path: "lessons/:level/exercise/:exercise",
+        element: ExercisePage,
       },
     ],
   },
