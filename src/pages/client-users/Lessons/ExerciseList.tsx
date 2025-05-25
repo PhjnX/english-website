@@ -31,7 +31,13 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ title, tests }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * i, duration: 0.5 }}
               className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-300 group cursor-pointer p-4"
-              onClick={() => navigate(test.path)}
+              onClick={(e) => {
+                e.stopPropagation();
+                const match =
+                  window.location.pathname.match(/lessons\/(level\d+)/);
+                const level = match ? match[1] : "level1";
+                navigate(`/lessons/${level}/exercise/${test.id}`);
+              }}
             >
               <div className="relative">
                 <img
@@ -51,13 +57,6 @@ const ExerciseList: React.FC<ExerciseListProps> = ({ title, tests }) => {
                   whileHover={{ scale: 1.06 }}
                   whileTap={{ scale: 0.97 }}
                   className="mt-auto flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 text-white font-semibold shadow transition-colors duration-600 hover:from-blue-500 hover:to-pink-500 cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const match =
-                      window.location.pathname.match(/lessons\/(level\d+)/);
-                    const level = match ? match[1] : "level1";
-                    navigate(`/lessons/${level}/exercise/${test.id}`);
-                  }}
                 >
                   <FaPlayCircle className="text-lg" />
                   Làm bài

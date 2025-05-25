@@ -1,96 +1,67 @@
 import React, { useEffect, useState } from "react";
-import { Menu, Avatar, Dropdown, Button, Space, message } from "antd";
-import "../../../../App.css";
-import {
-  HomeOutlined,
-  BookOutlined,
-  FormOutlined,
-  ReadOutlined,
-  FileTextOutlined,
-  ProfileOutlined,
-  QuestionCircleOutlined,
-  PhoneOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
+import { Avatar, Dropdown, Space, message } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../../../../assets/images/logo.png";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faHouse,
+  faBookOpen,
+  faClipboardCheck,
+  faFileAlt,
+  faFileLines,
+  faUserGraduate,
+  faSignOutAlt,
+  faUserCircle,
+  faBars,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
+import { motion, AnimatePresence } from "framer-motion";
+import logo from "../../../../assets/images/logo.jpg";
 import { getUserInfo, logout as logoutApi } from "../../../../apis/auth-api";
 
-interface SubMenuItem {
-  key: string;
-  label: React.ReactNode;
-  href: string;
-}
-
-interface MenuItem {
-  key: string;
-  icon: React.ReactNode;
-  label: React.ReactNode;
-  href?: string;
-  children?: SubMenuItem[];
-}
-
-const menuItems: MenuItem[] = [
-  {
-    key: "home",
-    icon: <HomeOutlined />,
-    label: <Link to="/">Trang chủ</Link>,
-    href: "/",
-  },
-  {
-    key: "lessons",
-    icon: <BookOutlined />,
-    label: <Link to="/lessons">Bài học</Link>,
-    href: "/lessons",
-  },
+const menuItems = [
+  { key: "home", icon: faHouse, label: "Trang chủ", href: "/" },
+  { key: "lessons", icon: faBookOpen, label: "Bài học", href: "/lessons" },
   {
     key: "assessment",
-    icon: <FormOutlined />,
-    label: <Link to="/assessment">Đánh giá đầu vào</Link>,
+    icon: faClipboardCheck,
+    label: "Đánh giá đầu vào",
     href: "/assessment",
   },
-  {
-    key: "mock",
-    icon: <ReadOutlined />,
-    label: <Link to="/mock-test">Bài thi thử</Link>,
-    href: "/mock-test",
-  },
+  { key: "mock", icon: faFileAlt, label: "Bài thi thử", href: "/mock-test" },
   {
     key: "resources",
-    icon: <FileTextOutlined />,
-    label: <Link to="/resources">Tài nguyên</Link>,
+    icon: faFileLines,
+    label: "Tài nguyên",
     href: "/resources",
   },
   {
     key: "dashboard",
-    icon: <ProfileOutlined />,
-    label: <Link to="/dashboard">Lộ trình của tôi</Link>,
+    icon: faUserGraduate,
+    label: "Lộ trình của tôi",
     href: "/dashboard",
   },
-
 ];
 
 const Header: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
     getUserInfo(token)
-      .then((data) => {
-        setUser(data);
-      })
+      .then((data) => setUser(data))
       .catch(() => {
         logoutApi();
         setUser(null);
         message.warning("Phiên đăng nhập đã hết hạn");
         navigate("/login");
       });
-  }, []);
+  }, [navigate]);
+
+  useEffect(() => setMenuOpen(false), [location.pathname]);
 
   const handleLogout = () => {
     logoutApi();
@@ -99,24 +70,14 @@ const Header: React.FC = () => {
     navigate("/login");
   };
 
-  const findKey = (items: MenuItem[]): string => {
-    for (const item of items) {
-      if (item.href === location.pathname) return item.key;
-      if (item.children) {
-        for (const sub of item.children) {
-          if (sub.href === location.pathname) return sub.key;
-        }
-      }
-    }
-    return "home";
-  };
-  const selectedKey = findKey(menuItems);
+  const selectedKey =
+    menuItems.find((item) => item.href === location.pathname)?.key || "home";
 
   const dropdownMenu = {
     items: [
       {
         key: "logout",
-        icon: <LogoutOutlined />,
+        icon: <FontAwesomeIcon icon={faSignOutAlt} />,
         label: "Đăng xuất",
         onClick: handleLogout,
       },
@@ -124,33 +85,42 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-gray-50 shadow-md">
-      <div className="container mx-auto flex items-center justify-between py-4 px-6">
-        {/* Logo */}
-        <Link to="/">
-          <img src={logo} alt="Logo" className="h-25 pt-5" />
+    <motion.header
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="w-full bg-gradient-to-r from-[#f5e9e2] via-[#fff4e6] to-[#e3f2fd] shadow-md fixed top-0 z-50 backdrop-blur-sm"
+    >
+      <div className="w-full mx-auto flex items-center justify-between py-2 px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10 2xl:px-16 max-w-screen-2xl">
+        <Link to="/" className="flex items-center gap-3">
+          <img
+            src={logo}
+            alt="Vlearn Logo"
+            className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-full bg-white p-1 shadow-md"
+          />
+          <span className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight text-[#5a4032]">
+            Vlearn<span className="text-[#ec8a48]">Reading</span>
+          </span>
         </Link>
 
-        {/* Menu giữa */}
-        <div className="flex-1">
-          <Menu
-            mode="horizontal"
-            selectedKeys={[selectedKey]}
-            className="custom-menu justify-center"
-            items={menuItems.map((item) => ({
-              key: item.key,
-              icon: item.icon,
-              label: item.label,
-              children: item.children?.map((sub) => ({
-                key: sub.key,
-                label: sub.label,
-              })),
-            }))}
-          />
+        <div className="hidden lg:flex flex-wrap gap-2 xl:gap-4 bg-white/80 rounded-full px-4 py-2 shadow-sm items-center backdrop-blur-md">
+          {menuItems.map((item) => (
+            <Link
+              key={item.key}
+              to={item.href}
+              className={`flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-2 rounded-full font-bold transition-all duration-200 text-xs sm:text-sm md:text-base ${
+                selectedKey === item.key
+                  ? "bg-gradient-to-r from-[#ff8a65] to-[#ff7043] text-white shadow"
+                  : "text-gray-700 hover:bg-[#ffe0b2] hover:text-[#ff7043]"
+              }`}
+            >
+              <FontAwesomeIcon icon={item.icon} />
+              {item.label}
+            </Link>
+          ))}
         </div>
 
-        {/* Tài khoản / Nút đăng nhập */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           {user ? (
             <Dropdown
               menu={dropdownMenu}
@@ -159,8 +129,12 @@ const Header: React.FC = () => {
               arrow
             >
               <Space className="cursor-pointer">
-                <Avatar icon={<UserOutlined />} className="bg-red-600" />
-                <span className="text-gray-800 font-medium">
+                <Avatar
+                  icon={<FontAwesomeIcon icon={faUserCircle} />}
+                  className="bg-[#ffe0b2] text-[#6d4c41] border"
+                  size={36}
+                />
+                <span className="hidden sm:inline text-[#5d4037] font-semibold text-sm sm:text-base">
                   {user.full_name || user.user_name}
                 </span>
               </Space>
@@ -170,24 +144,60 @@ const Header: React.FC = () => {
               <Link
                 to="/login"
                 state={{ isSignUp: true }}
-                className="text-sm text-gray-800 hover:text-red-600 hover:underline"
+                className="hidden sm:inline text-xs sm:text-sm text-[#d32f2f] hover:underline font-semibold"
               >
                 Đăng ký
               </Link>
-              <Link to="/login">
-                <Button
-                  type="primary"
-                  danger
-                  className="bg-red-600 border-red-600 hover:bg-red-700 rounded-md px-5 text-white"
-                >
+              <Link to="/login" className="hidden sm:inline">
+                <button className="text-xs sm:text-sm md:text-base bg-gradient-to-r from-[#ff7043] to-[#d84315] hover:from-[#f4511e] hover:to-[#e9582b] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold shadow-md transition-all duration-300 cursor-pointer transform hover:scale-105">
                   Đăng nhập
-                </Button>
+                </button>
               </Link>
             </>
           )}
+          <button
+            className="lg:hidden text-[#d32f2f]"
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            <FontAwesomeIcon icon={menuOpen ? faTimes : faBars} size="lg" />
+          </button>
         </div>
       </div>
-    </header>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: "auto" }}
+            exit={{ height: 0 }}
+            className="lg:hidden bg-white/90 shadow-inner px-6 pt-2 pb-4 space-y-2 backdrop-blur"
+          >
+            {menuItems.map((item) => (
+              <Link
+                key={item.key}
+                to={item.href}
+                className={`block rounded-lg px-4 py-2 font-medium text-base transition-all duration-150 ${
+                  selectedKey === item.key
+                    ? "bg-gradient-to-r from-[#ff8a65] to-[#ff7043] text-white"
+                    : "text-gray-800 hover:bg-[#ffe0b2] hover:text-[#d84315]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {!user && (
+              <div className="pt-3 border-t ">
+                <Link to="/login">
+                  <button className="w-full bg-gradient-to-r from-[#ff7043] to-[#d84315] hover:from-[#f4511e] hover:to-[#bf360c] text-white px-4 py-2 rounded-full font-bold shadow-md transition-all duration-300 ">
+                    Đăng nhập
+                  </button>
+                </Link>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
   );
 };
 

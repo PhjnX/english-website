@@ -1,4 +1,4 @@
-import React from "react";
+import { motion } from "framer-motion";
 import pic1 from "../../../assets/images/pic1.png";
 import pic2 from "../../../assets/images/pic2.png";
 import pic3 from "../../../assets/images/pic3.jpg";
@@ -65,21 +65,43 @@ const courses = [
 
 export default function ReadingCourses() {
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <h2
+    <motion.div
+      className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7 }}
+    >
+      <motion.h2
         className="text-3xl font-bold text-center mb-2"
         style={{ fontFamily: "'Bubblegum Sans', cursive" }}
+        initial={{ opacity: 0, y: -20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7 }}
       >
         Các Khóa Học
-      </h2>
-      <p className="text-center text-gray-600 mb-10">
+      </motion.h2>
+      <motion.p
+        className="text-center text-gray-600 mb-10"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.7 }}
+      >
         Nâng cao kỹ năng đọc tiếng Anh theo band IELTS từ 3.0 đến 6.0+
-      </p>
+      </motion.p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {courses.map((course, idx) => (
-          <div
+          <motion.div
             key={idx}
             className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            whileHover={{
+              scale: 1.04,
+              boxShadow: "0 8px 32px rgba(59,130,246,0.12)",
+            }}
+            transition={{ duration: 0.5, delay: 0.1 * idx }}
+            viewport={{ once: true, amount: 0.2 }}
           >
             <img
               src={course.image}
@@ -98,14 +120,22 @@ export default function ReadingCourses() {
                   {course.description}
                 </p>
               </div>
-              <button className="w-full bg-gray-200 text-gray-700 font-medium py-2 rounded hover:bg-gray-300 transition">
+              <motion.button
+                className="w-full bg-gray-200 text-gray-700 font-medium py-2 rounded hover:bg-gray-300 transition shadow"
+                whileHover={{
+                  scale: 1.06,
+                  backgroundColor: "#f87171",
+                  color: "#fff",
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+              >
                 Tham gia ngay
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 }
-  

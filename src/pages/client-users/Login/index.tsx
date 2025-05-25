@@ -4,7 +4,7 @@ import { Form, Input, Button, Checkbox } from "antd";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import Header from "../_components/Header";
 import Footer from "../_components/Footer";
-import logo from "../../../assets/images/logo.png";
+import logo from "../../../assets/images/logo.jpg";
 import bg from "../../../assets/images/background-1.jpg";
 import LeftSidePanel from "./LeftSidePanel";
 import { loginApi, signupApi, logout } from "../../../apis/auth-api";
@@ -47,12 +47,12 @@ const LoginPage: React.FC = () => {
         localStorage.setItem("token", res.token);
         localStorage.setItem("user_name", res.user_name);
         toast.success("Đăng nhập thành công!");
-const from = location.state?.from?.pathname || "/";
-if (from === "/assessment") {
-  navigate("/assessment-confirm", { replace: true });
-} else {
-  navigate("/", { replace: true });
-}
+        const from = location.state?.from?.pathname || "/";
+        if (from === "/assessment") {
+          navigate("/assessment-confirm", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       } else {
         if (password !== confirmPassword) {
           toast.error("Mật khẩu không khớp");
@@ -133,7 +133,9 @@ if (from === "/assessment") {
                       <Form.Item
                         label="Họ tên"
                         name="full_name"
-                        rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
+                        rules={[
+                          { required: true, message: "Vui lòng nhập họ tên!" },
+                        ]}
                       >
                         <Input
                           placeholder="Nhập họ tên"
@@ -147,7 +149,10 @@ if (from === "/assessment") {
                         label="Số điện thoại"
                         name="phone_number"
                         rules={[
-                          { required: true, message: "Vui lòng nhập số điện thoại!" },
+                          {
+                            required: true,
+                            message: "Vui lòng nhập số điện thoại!",
+                          },
                           {
                             pattern: /^[0-9]{9,11}$/,
                             message: "Số điện thoại không hợp lệ",
@@ -183,7 +188,12 @@ if (from === "/assessment") {
                   <Form.Item
                     label="Tên đăng nhập"
                     name="user_name"
-                    rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Vui lòng nhập tên đăng nhập!",
+                      },
+                    ]}
                   >
                     <Input
                       placeholder="Nhập tên đăng nhập"
@@ -196,7 +206,9 @@ if (from === "/assessment") {
                   <Form.Item
                     label="Mật khẩu"
                     name="password"
-                    rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
+                    rules={[
+                      { required: true, message: "Vui lòng nhập mật khẩu!" },
+                    ]}
                   >
                     <Input.Password
                       placeholder="Nhập mật khẩu"
@@ -213,7 +225,12 @@ if (from === "/assessment") {
                     <Form.Item
                       label="Xác nhận mật khẩu"
                       name="confirmPassword"
-                      rules={[{ required: true, message: "Vui lòng xác nhận mật khẩu!" }]}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Vui lòng xác nhận mật khẩu!",
+                        },
+                      ]}
                     >
                       <Input.Password
                         placeholder="Xác nhận mật khẩu"
@@ -226,8 +243,14 @@ if (from === "/assessment") {
 
                   {isLogin && (
                     <div className="flex justify-between items-center">
-                      <Form.Item name="remember" valuePropName="checked" noStyle>
-                        <Checkbox className="text-gray-600">Ghi nhớ đăng nhập</Checkbox>
+                      <Form.Item
+                        name="remember"
+                        valuePropName="checked"
+                        noStyle
+                      >
+                        <Checkbox className="text-gray-600">
+                          Ghi nhớ đăng nhập
+                        </Checkbox>
                       </Form.Item>
                       <span className="text-sm text-orange-500 cursor-pointer hover:underline">
                         Quên mật khẩu?

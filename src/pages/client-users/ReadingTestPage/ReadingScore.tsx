@@ -10,7 +10,7 @@ import Confetti from "react-confetti";
 import { Button } from "antd";
 import { FaRedo, FaHome, FaEye, FaRocket } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
-import logo from "../../../assets/images/logo.png";
+import logo from "../../../assets/images/logo.jpg";
 
 const bandMapping = [
   { score: 39, band: 9 },
@@ -76,7 +76,10 @@ const ReadingScore: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
-          <motion.div whileHover={{ scale: 1.08 }} className="flex flex-col items-center">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            className="flex flex-col items-center"
+          >
             <CircularProgressbarWithChildren
               value={(score / 40) * 100}
               styles={buildStyles({
@@ -91,7 +94,10 @@ const ReadingScore: React.FC = () => {
             </CircularProgressbarWithChildren>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.08 }} className="flex flex-col items-center">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            className="flex flex-col items-center"
+          >
             <CircularProgressbarWithChildren
               value={100}
               styles={buildStyles({
@@ -104,7 +110,10 @@ const ReadingScore: React.FC = () => {
             </CircularProgressbarWithChildren>
           </motion.div>
 
-          <motion.div whileHover={{ scale: 1.08 }} className="flex flex-col items-center">
+          <motion.div
+            whileHover={{ scale: 1.08 }}
+            className="flex flex-col items-center"
+          >
             <CircularProgressbarWithChildren
               value={100}
               styles={buildStyles({
@@ -139,13 +148,25 @@ const ReadingScore: React.FC = () => {
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap justify-center gap-4">
-            <Button icon={<FaHome />} onClick={() => navigate("/")} className="font-semibold">
+            <Button
+              icon={<FaHome />}
+              onClick={() => navigate("/")}
+              className="font-semibold"
+            >
               Về trang chủ
             </Button>
-            <Button icon={<FaRedo />} onClick={() => navigate("/assessment")} className="font-semibold">
+            <Button
+              icon={<FaRedo />}
+              onClick={() => navigate("/assessment")}
+              className="font-semibold"
+            >
               Làm lại
             </Button>
-            <Button icon={<FaEye />} onClick={handleReview} className="font-semibold">
+            <Button
+              icon={<FaEye />}
+              onClick={handleReview}
+              className="font-semibold"
+            >
               Xem lại bài
             </Button>
           </div>

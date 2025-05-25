@@ -135,7 +135,6 @@ const ReadingTestPage: React.FC = () => {
 
   return (
     <>
-      <Header />
       <main className="min-h-screen bg-gray-100 px-6 py-10">
         <motion.div
           className="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-xl"
@@ -304,7 +303,6 @@ const ReadingTestPage: React.FC = () => {
           )}
         </motion.div>
       </main>
-      <Footer />
     </>
   );
 };

@@ -8,7 +8,7 @@ import {
   PhoneOutlined,
   EnvironmentOutlined,
 } from "@ant-design/icons";
-import logo from "../../../../assets/images/logo.png";
+import logo from "../../../../assets/images/logo.jpg";
 
 const { Footer: AntFooter } = Layout;
 

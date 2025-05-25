@@ -1,29 +1,18 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import HeroCarousel from "../Carousel";
-import TargetSection from "../Target";
-import BenefitsSection from "../Benefits";
-import ReadingCourses from "../Courses";
+import React from "react";
+import Carousel from "../Carousel";
+import Target from "../Target";
+import Benefits from "../Benefits";
+import Courses from "../Courses";
 
 const HomePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const token = localStorage.getItem("token");
-
-  const handleAssessmentClick = () => {
-    if (!token) {
-      navigate("/login", { state: { from: { pathname: "/assessment" } } });
-    } else {
-      setIsConfirmModalOpen(true);
-    }
-  };
-
   return (
-    <div>
-      <HeroCarousel />
-      <TargetSection />
-      <BenefitsSection />
-      <ReadingCourses />
+    <div className="relative min-h-screen bg-gradient-to-br from-[#fff7f7] via-[#f9fafb] to-[#fffbe7] overflow-x-hidden">
+      <main className="relative z-10">
+        <Carousel />
+        <Target />
+        <Benefits />
+        <Courses />
+      </main>
     </div>
   );
 };
