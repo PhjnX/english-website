@@ -41,15 +41,15 @@ const targets: TargetItem[] = [
 const TargetSection: React.FC = () => {
   return (
     <motion.section
-      className="py-16 px-4 bg-white text-center"
+      className="py-20 px-4 bg-white text-center relative"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.7 }}
     >
       <motion.h2
-        className="text-3xl font-bold mb-10"
-        style={{ fontFamily: "'Bubblegum Sans', cursive" }}
+        className="text-4xl font-extrabold mb-10 bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent drop-shadow-lg"
+        style={{ fontFamily: "'Be Vietnam Pro', 'Bubblegum Sans', cursive" }}
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
@@ -61,35 +61,31 @@ const TargetSection: React.FC = () => {
         {targets.map((item, index) => (
           <motion.div
             key={index}
-            className="flex flex-col items-center text-center px-4"
+            className="flex flex-col items-center text-center px-4 py-8 bg-white rounded-2xl shadow-xl border border-[#ffe0b2]/40 hover:shadow-2xl transition-all duration-300 group"
             initial={{ opacity: 0, scale: 0.85 }}
             whileInView={{ opacity: 1, scale: 1 }}
             whileHover={{
-              scale: 1.08,
-              boxShadow: "0 8px 32px rgba(59,130,246,0.15)",
+              scale: 1.07,
+              boxShadow: "0 8px 32px rgba(220,38,38,0.10)",
             }}
             transition={{ duration: 0.5, delay: 0.1 * index }}
             viewport={{ once: true, amount: 0.2 }}
           >
             <motion.div
-              className="bg-blue-100 w-20 h-20 flex items-center justify-center rounded-full mb-4 shadow-lg"
-              whileHover={{ rotate: 12, scale: 1.1 }}
-              transition={{
-                type: "spring",
-                stiffness: 200,
-                damping: 10,
-              }}
+              className="w-20 h-20 flex items-center justify-center rounded-full mb-4 shadow-lg bg-gradient-to-br from-[#ffb300] via-[#fffde7] to-[#d32f2f] group-hover:scale-110 transition-transform duration-300"
+              whileHover={{ rotate: 10, scale: 1.13 }}
+              transition={{ type: "spring", stiffness: 200, damping: 10 }}
             >
               <img
                 src={item.icon}
                 alt={item.title}
-                className="max-w-[60%] max-h-[60%] object-contain"
+                className="max-w-[60%] max-h-[60%] object-contain drop-shadow-md"
               />
             </motion.div>
-            <h3 className="text-xl font-bold mb-2 font-stretch-100%">
+            <h3 className="text-xl font-bold mb-2 bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent">
               {item.title}
             </h3>
-            <p className="text-sm text-gray-600 font-stretch-100%">
+            <p className="text-sm text-gray-600 font-medium">
               {item.description}
             </p>
           </motion.div>

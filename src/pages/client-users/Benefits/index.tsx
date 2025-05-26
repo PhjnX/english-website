@@ -50,15 +50,15 @@ const benefits: Benefit[] = [
 const BenefitsSection: React.FC = () => {
   return (
     <motion.section
-      className="bg-gray-50 py-16 px-4 md:px-8 text-center"
+      className="bg-[#f9f9f9] py-20 px-4 md:px-8 text-center relative"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.7 }}
     >
       <motion.h2
-        className="text-3xl font-bold text-gray-900 mb-2"
-        style={{ fontFamily: "'Bubblegum Sans', cursive" }}
+        className="text-4xl font-extrabold mb-2 bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent drop-shadow-lg"
+        style={{ fontFamily: "'Be Vietnam Pro', 'Bubblegum Sans', cursive" }}
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
@@ -66,7 +66,7 @@ const BenefitsSection: React.FC = () => {
         Lợi ích
       </motion.h2>
       <motion.p
-        className="text-gray-600 max-w-2xl mx-auto mb-10"
+        className="text-gray-600 max-w-2xl mx-auto mb-10 text-lg"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.7 }}
@@ -75,11 +75,11 @@ const BenefitsSection: React.FC = () => {
         viên:
       </motion.p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         {benefits.map((item, index) => (
           <motion.div
             key={index}
-            className="bg-white rounded-xl shadow-sm p-6 text-left relative border border-gray-100"
+            className="bg-white rounded-2xl shadow-xl border border-[#ffe0b2]/40 p-8 text-left relative group overflow-hidden hover:shadow-2xl transition-all duration-300"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             whileHover={{
@@ -89,18 +89,27 @@ const BenefitsSection: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.1 * index }}
             viewport={{ once: true, amount: 0.2 }}
           >
-            <div className="text-4xl font-extrabold text-gray-900 mb-2">
-              {item.number}
+            <div className="flex items-center mb-4">
+              <div className="w-14 h-14 flex items-center justify-center rounded-full bg-gradient-to-br from-[#ffb300] via-[#fffde7] to-[#d32f2f] text-white text-2xl font-extrabold shadow-lg mr-4">
+                <span className="bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent text-2xl font-extrabold">
+                  {item.number}
+                </span>
+              </div>
+              <h3 className="font-semibold text-lg bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent">
+                {item.title}
+              </h3>
             </div>
-            <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
-            <p className="text-sm text-gray-600 mb-6">{item.description}</p>
+            <p className="text-gray-700 text-base mb-8 min-h-[72px]">
+              {item.description}
+            </p>
             <motion.button
-              className="absolute bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white p-2 rounded-md shadow-lg"
+              className="absolute bottom-6 right-6 bg-gradient-to-br from-[#d32f2f] via-[#ffb300] to-[#d32f2f] hover:from-[#ffb300] hover:to-[#d32f2f] text-white p-3 rounded-full shadow-lg transition-all duration-300 focus:outline-none"
               whileHover={{ scale: 1.15, rotate: 12 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 200, damping: 10 }}
+              aria-label="Xem chi tiết"
             >
-              <ArrowUpRightIcon className="w-4 h-4 text-white" />
+              <ArrowUpRightIcon className="w-5 h-5 text-white" />
             </motion.button>
           </motion.div>
         ))}

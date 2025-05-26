@@ -1,5 +1,5 @@
 import React from "react";
-import { Layout } from "antd";
+import logo from "../../../../assets/images/logo.jpg";
 import {
   FacebookFilled,
   TwitterOutlined,
@@ -8,71 +8,112 @@ import {
   PhoneOutlined,
   EnvironmentOutlined,
 } from "@ant-design/icons";
-import logo from "../../../../assets/images/logo.jpg";
-
-const { Footer: AntFooter } = Layout;
 
 const Footer: React.FC = () => (
-  <AntFooter className="bg-white border-t border-gray-200">
-    <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 text-sm text-gray-700">
-      {/* Phần Liên hệ */}
-      <div className="space-y-4">
-        <div>
-          <img src={logo} alt="Logo" className="h-20" />
-        </div>
-        <div className="ml-12">
-          <div className="flex items-center gap-2 mb-2">
+  <footer className="w-full bg-gradient-to-r from-[#f5e9e2] via-[#fff4e6] to-[#e3f2fd] border-t border-[#ffe0b2]/40 shadow-inner pt-10 pb-4 px-4">
+    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
+      {/* Liên hệ */}
+      <div className="space-y-4 flex flex-col items-start">
+        <img
+          src={logo}
+          alt="Logo"
+          className="h-14 rounded-full shadow border-2 border-[#ffe0b2]/60 bg-white p-1"
+        />
+        <div className="ml-2 space-y-2">
+          <div className="flex items-center gap-2 text-[#a0522d]">
             <MailOutlined />
-            <span>VLearnReading@gmail.com</span>
+            <span className="font-semibold">VLearnReading@gmail.com</span>
           </div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 text-[#a0522d]">
             <PhoneOutlined />
-            <span>+0123456789</span>
+            <span className="font-semibold">+0123456789</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-[#a0522d]">
             <EnvironmentOutlined />
-            <span>TP. Hồ Chí Minh, Việt Nam</span>
+            <span className="font-semibold">TP. Hồ Chí Minh, Việt Nam</span>
           </div>
         </div>
       </div>
-
-      {/* Liên kết Trang chung */}
-      <div className="space-y-2 mt-5 ml-20">
-        <h4 className="text-black text-base !font-bold">Trang chủ</h4>
-        <p>Mục tiêu</p>
-        <p>Lợi ích</p>
-        <p>Các khóa học</p>
+      {/* Trang chung */}
+      <div className="space-y-2 mt-2">
+        <h4 className="text-lg font-bold text-[#d32f2f] mb-2">Trang chủ</h4>
+        <div className="flex flex-col gap-4">
+          <a
+            href="#target"
+            className="hover:text-[#ffb300] transition font-semibold text-[#7B4230]"
+          >
+            Mục tiêu
+          </a>
+          <a
+            href="#benefits"
+            className="hover:text-[#ffb300] transition font-semibold text-[#7B4230]"
+          >
+            Lợi ích
+          </a>
+          <a
+            href="#courses"
+            className="hover:text-[#ffb300] transition font-semibold text-[#7B4230]"
+          >
+            Các khóa học
+          </a>
+        </div>
       </div>
-
-      {/* Liên kết Về chúng tôi */}
-      <div className="space-y-2 mt-5">
-        <h4 className="text-black text-base !font-bold">Về chúng tôi</h4>
-        <p>Công ty</p>
-        <p>Thành tựu</p>
-        <p>Mục tiêu của chúng tôi</p>
+      {/* Về chúng tôi */}
+      <div className="space-y-2 mt-2">
+        <h4 className="text-lg font-bold text-[#d32f2f] mb-2">Về chúng tôi</h4>
+        <div className="flex flex-col gap-4">
+          <a
+            href="#company"
+            className="hover:text-[#ffb300] transition font-semibold text-[#7B4230]"
+          >
+            Công ty
+          </a>
+          <a
+            href="#achievements"
+            className="hover:text-[#ffb300] transition font-semibold text-[#7B4230]"
+          >
+            Thành tựu
+          </a>
+          <a
+            href="#mission"
+            className="hover:text-[#ffb300] transition font-semibold text-[#7B4230]"
+          >
+            Mục tiêu của chúng tôi
+          </a>
+        </div>
       </div>
-
       {/* Mạng xã hội */}
-      <div className="space-y-2 mt-5">
-        <h4 className="text-black text-base !font-bold">Mạng xã hội</h4>
-        <div className="flex gap-3 text-xl">
-          <a href="https://facebook.com" aria-label="Facebook">
+      <div className="space-y-2 mt-2">
+        <h4 className="text-lg font-bold text-[#d32f2f] mb-2">Mạng xã hội</h4>
+        <div className="flex gap-4 text-2xl">
+          <a
+            href="https://facebook.com"
+            aria-label="Facebook"
+            className="hover:text-[#ffb300] transition drop-shadow-lg"
+          >
             <FacebookFilled />
           </a>
-          <a href="https://twitter.com" aria-label="Twitter">
+          <a
+            href="https://twitter.com"
+            aria-label="Twitter"
+            className="hover:text-[#ffb300] transition drop-shadow-lg"
+          >
             <TwitterOutlined />
           </a>
-          <a href="https://linkedin.com" aria-label="LinkedIn">
+          <a
+            href="https://linkedin.com"
+            aria-label="LinkedIn"
+            className="hover:text-[#ffb300] transition drop-shadow-lg"
+          >
             <LinkedinFilled />
           </a>
         </div>
       </div>
     </div>
-
-    <div className="text-center text-gray-500 text-xs mt-4 pb-2">
+    <div className="text-center text-[#7B4230]/70 text-xs mt-8 font-semibold">
       © 2025 VLearnReading. Bảo lưu mọi quyền.
     </div>
-  </AntFooter>
+  </footer>
 );
 
 export default Footer;

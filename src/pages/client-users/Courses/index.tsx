@@ -66,15 +66,15 @@ const courses = [
 export default function ReadingCourses() {
   return (
     <motion.div
-      className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8"
+      className="max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.7 }}
     >
       <motion.h2
-        className="text-3xl font-bold text-center mb-2"
-        style={{ fontFamily: "'Bubblegum Sans', cursive" }}
+        className="text-4xl font-extrabold text-center mb-2 bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent drop-shadow-lg"
+        style={{ fontFamily: "'Be Vietnam Pro', 'Bubblegum Sans', cursive" }}
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
@@ -82,7 +82,7 @@ export default function ReadingCourses() {
         Các Khóa Học
       </motion.h2>
       <motion.p
-        className="text-center text-gray-600 mb-10"
+        className="text-center text-gray-600 mb-10 text-lg"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.7 }}
@@ -93,12 +93,12 @@ export default function ReadingCourses() {
         {courses.map((course, idx) => (
           <motion.div
             key={idx}
-            className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col"
+            className="bg-white rounded-2xl shadow-xl border border-[#ffe0b2]/40 overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-300 group"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             whileHover={{
               scale: 1.04,
-              boxShadow: "0 8px 32px rgba(59,130,246,0.12)",
+              boxShadow: "0 8px 32px rgba(220,38,38,0.10)",
             }}
             transition={{ duration: 0.5, delay: 0.1 * idx }}
             viewport={{ once: true, amount: 0.2 }}
@@ -108,30 +108,35 @@ export default function ReadingCourses() {
               alt={course.title}
               className="w-full h-48 object-cover"
             />
-            <div className="p-5 flex flex-col justify-between flex-grow">
+            <div className="p-6 flex flex-col justify-between flex-grow">
               <div>
                 <div className="text-sm text-gray-500 flex justify-between mb-2">
-                  <span>{course.duration}</span>
-                  <span>{course.level}</span>
+                  <span className="font-bold text-[#d32f2f]">
+                    {course.duration}
+                  </span>
+                  <span className="font-bold text-[#ffb300]">
+                    {course.level}
+                  </span>
                 </div>
-                <h3 className="text-xl font-semibold mb-1">{course.title}</h3>
-                <p className="text-gray-600 mb-3">{course.author}</p>
-                <p className="text-gray-700 text-sm min-h-[96px] mb-4">
+                <h3 className="text-xl font-semibold mb-1 bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] bg-clip-text text-transparent">
+                  {course.title}
+                </h3>
+                <p className="text-gray-600 mb-3 font-medium">
+                  {course.author}
+                </p>
+                <p className="text-gray-700 text-base min-h-[96px] mb-4">
                   {course.description}
                 </p>
               </div>
-              <motion.button
-                className="w-full bg-gray-200 text-gray-700 font-medium py-2 rounded hover:bg-gray-300 transition shadow"
-                whileHover={{
-                  scale: 1.06,
-                  backgroundColor: "#f87171",
-                  color: "#fff",
-                }}
+              <motion.a
+                href="#"
+                className="w-full inline-block bg-gradient-to-r from-[#d32f2f] via-[#ffb300] to-[#d32f2f] text-white font-bold py-3 rounded-full shadow-lg text-center text-lg mt-2 transition-all duration-300 hover:scale-105 hover:shadow-2xl focus:outline-none"
+                whileHover={{ scale: 1.07 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 200, damping: 10 }}
               >
                 Tham gia ngay
-              </motion.button>
+              </motion.a>
             </div>
           </motion.div>
         ))}

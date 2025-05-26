@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import HeroCarousel from "../Carousel";
 import TargetSection from "../Target";
 import BenefitsSection from "../Benefits";

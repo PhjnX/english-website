@@ -25,6 +25,7 @@
     "gsap": "^3.13.0",
     "lucide-react": "^0.511.0",
     "message": "^0.0.1",
+    "ogl": "^1.0.11",
     "react": "^19.0.0",
     "react-awesome-reveal": "^4.3.1",
     "react-bits": "^1.0.5",
