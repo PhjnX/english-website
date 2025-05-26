@@ -1,14 +1,21 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Tabs, Progress, Button } from "antd";
-import Split from "react-split";
 import { useNavigate } from "react-router-dom";
 import { parts } from "../../../data/readingTestData";
 import Paragraph from "./Paragraph";
 import Question from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
+import testGif from "../../../assets/testGif.gif";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
 export interface Answers {
   [key: number]: string;
 }
+
+const tabColors = [
+  "from-blue-100 to-blue-50",
+  "from-green-100 to-green-50",
+  "from-yellow-100 to-yellow-50",
+];
 
 const ReadingTestPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60 * 60);
@@ -97,7 +104,6 @@ const ReadingTestPage: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
     const band = convertScoreToBand(score);
-
     navigate("/reading-score", {
       state: {
         answers,
@@ -115,49 +121,124 @@ const ReadingTestPage: React.FC = () => {
     setActiveKey(key);
   };
 
-  return (
-    <div className="p-0 max-w-[1440px] mx-auto h-screen flex flex-col overflow-hidden bg-gradient-to-br from-white to-gray-100 text-gray-800 font-inter">
-      <div className="flex justify-between items-center px-6 py-4 bg-white shadow-md border-b border-gray-200">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-          📘 IELTS Reading Test
-        </h1>
-        <div className="flex items-center gap-4">
-          <Progress
-            type="circle"
-            percent={(timeLeft / (60 * 60)) * 100}
-            format={() => formatTime(timeLeft)}
-            width={70}
-            strokeColor={timeLeft <= 300 ? "#ef4444" : "#3b82f6"}
-            trailColor="#e5e7eb"
-          />
-          <Button
-            onClick={handleSubmit}
-            className="bg-red-500 hover:bg-red-600 text-white font-medium shadow"
-            disabled={isSubmitted}
-          >
-            ✅ Submit
-          </Button>
-        </div>
-      </div>
-
-      <Tabs
-        activeKey={activeKey}
-        onChange={handleTabChange}
-        className="flex-grow overflow-hidden px-6 pt-2"
-        tabBarGutter={24}
-        tabBarStyle={{ fontWeight: 600 }}
-      >
+  // Custom Tab UI
+  const renderTabs = () => {
+    return (
+      <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4">
         {parts.map((part) => (
-          <Tabs.TabPane
-            tab={
-              <span className="text-gray-700">
-                Part {part.partId}: {part.title}
-              </span>
-            }
-            key={part.partId.toString()}
-            className="rounded"
+          <motion.button
+            key={part.partId}
+            onClick={() => handleTabChange(part.partId.toString())}
+            className={`px-4 py-2 rounded-full font-semibold shadow transition-all duration-200 text-base md:text-lg focus:outline-none border-1 cursor-pointer
+              ${
+                activeKey === part.partId.toString()
+                  ? "bg-gradient-to-r from-[#EC6F66] to-[#F3A183] !text-white border-black "
+                  : "bg-gradient-to-r from-gray-100 to-gray-50 !text-gray-700 border-gray-300  hover:border-[#EC6F66]"
+              }
+            `}
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.07 }}
           >
-            <AnimatePresence mode="wait">
+            Part {part.partId}: {part.title}
+          </motion.button>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div className="p-0 w-full  h-screen flex flex-col overflow-hidden bg-gradient-to-br from-white to-orange-50 text-gray-800 font-inter">
+      {/* Header - Modern, pastel orange, glassmorphism, animated */}
+      <motion.header
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, type: "spring", bounce: 0.3 }}
+        className="relative z-10 flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-5 bg-[#FFDCDC] backdrop-blur-md shadow-xl border-b border-orange-200 rounded-b-3xl gap-4 drop-shadow-lg"
+        style={{ boxShadow: "0 8px 32px 0 rgba(255, 183, 94, 0.15)" }}
+      >
+        <div className="flex items-center gap-3">
+          <motion.div
+            initial={{ rotate: -10 }}
+            animate={{ rotate: 0 }}
+            transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
+            className="bg-gradient-to-tr from-[#FFD6A5] to-[#FFB085] rounded-full p-2 shadow-md"
+          >
+            <img
+              src={testGif}
+              alt="Test Icon"
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          </motion.div>
+          <span
+            className="text-2xl md:text-3xl font-extrabold tracking-tight text-orange-700 font-sans select-none"
+            style={{ letterSpacing: "0.02em" }}
+          >
+            IELTS Reading Test
+          </span>
+        </div>
+        <div className="flex items-center gap-5">
+          {/* Timer */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 120 }}
+            className="relative w-16 h-16 flex items-center justify-center"
+          >
+            <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 36 36">
+              <circle
+                cx="18"
+                cy="18"
+                r="16"
+                fill="none"
+                stroke="#ffe5c2"
+                strokeWidth="4"
+              />
+              <motion.circle
+                cx="18"
+                cy="18"
+                r="16"
+                fill="none"
+                stroke={timeLeft <= 300 ? "#cf2411" : "#38b814"}
+                strokeWidth="4"
+                strokeDasharray={100}
+                strokeDashoffset={100 - (timeLeft / (60 * 60)) * 100}
+                initial={false}
+                animate={{
+                  strokeDashoffset: 100 - (timeLeft / (60 * 60)) * 100,
+                }}
+                transition={{ duration: 0.5 }}
+              />
+            </svg>
+            <span
+              className={`absolute text-base font-bold ${
+                timeLeft <= 300 ? "text-orange-500" : "text-gray-800"
+              }`}
+            >
+              {formatTime(timeLeft)}
+            </span>
+          </motion.div>
+          {/* Submit Button */}
+          <motion.button
+            onClick={handleSubmit}
+            className="px-6 py-2 rounded-xl font-semibold shadow transition-all duration-200 text-white bg-gradient-to-r from-[#FFB347] to-[#FFD6A5] hover:from-[#FFA500] hover:to-[#FFD6A5] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed text-lg border-2 border-black backdrop-blur-md cursor-pointer flex items-center gap-2"
+            disabled={isSubmitted}
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.07 }}
+          >
+            <FontAwesomeIcon icon={faCircleCheck} className="text-xl" />
+            <span>Submit</span>
+          </motion.button>
+        </div>
+      </motion.header>
+
+      {/* Tabs */}
+      {renderTabs()}
+
+      {/* Tab Content */}
+      <div className="flex-grow overflow-hidden px-0 md:px-6 pt-2">
+        <AnimatePresence mode="wait">
+          {parts.map((part, idx) =>
+            activeKey === part.partId.toString() ? (
               <motion.div
                 key={activeKey}
                 initial={{
@@ -170,27 +251,18 @@ const ReadingTestPage: React.FC = () => {
                   x: parseInt(prevKey) < parseInt(activeKey) ? -100 : 100,
                 }}
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="h-[calc(100vh-160px)] overflow-hidden rounded"
+                className={`h-[calc(100vh-200px)] md:h-[calc(100vh-180px)] overflow-hidden rounded-xl shadow-lg bg-gradient-to-br ${
+                  tabColors[idx % tabColors.length]
+                } border border-gray-200 flex flex-col`}
               >
-                <Split
-                  className="flex h-full bg-white rounded shadow-md"
-                  sizes={[50, 50]}
-                  minSize={300}
-                  gutterSize={10}
-                  gutter={() => {
-                    const gutter = document.createElement("div");
-                    gutter.className =
-                      "bg-gray-300 hover:bg-blue-400 transition-all duration-200 cursor-col-resize";
-                    return gutter;
-                  }}
-                >
+                <div className="flex flex-col md:flex-row h-full bg-transparent rounded-xl">
                   <motion.div
                     key={`para-${activeKey}`}
                     initial={{ opacity: 0, x: 100 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4 }}
-                    className="overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-blue-300"
+                    className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-blue-200 w-full md:w-1/2"
                   >
                     <Paragraph
                       partId={part.partId}
@@ -211,7 +283,7 @@ const ReadingTestPage: React.FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4 }}
-                    className="overflow-y-auto p-5 scrollbar-thin scrollbar-thumb-green-300"
+                    className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-green-200 w-full md:w-1/2"
                   >
                     <Question
                       questions={part.questions}
@@ -224,12 +296,12 @@ const ReadingTestPage: React.FC = () => {
                       partId={part.partId}
                     />
                   </motion.div>
-                </Split>
+                </div>
               </motion.div>
-            </AnimatePresence>
-          </Tabs.TabPane>
-        ))}
-      </Tabs>
+            ) : null
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
