@@ -1,10 +1,11 @@
 import React from "react";
 import HeroCarousel from "../Carousel";
 import TargetSection from "../Target";
-import BenefitsSection from "../Benefits";
-import ReadingCourses from "../Courses";
 import Header from "../_components/Header";
 import Footer from "../_components/Footer";
+import KeyFeaturesSection from "../KeyFeatures";
+import HowItWorksSection from "../HowItWork";
+import Tips from "../Tips";
 
 const HomePage: React.FC = () => {
   return (
@@ -12,8 +13,9 @@ const HomePage: React.FC = () => {
       <Header />
       <HeroCarousel />
       <TargetSection />
-      <BenefitsSection />
-      <ReadingCourses />
+      <KeyFeaturesSection />
+      <Tips />
+      <HowItWorksSection />
       <Footer />
     </div>
   );
