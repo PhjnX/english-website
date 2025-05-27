@@ -50,12 +50,19 @@ export default function AdminSidebar({ collapsed }: SidebarProps) {
       icon: <SettingOutlined />,
       children: [
         { key: "/admin/assessments", label: "Danh sách bài kiểm tra" },
-        { key: "/admin/test/add-test", label: "Thêm bài kiểm tra" },
+      ],
+    },
+    {
+      key: "sub3",
+      label: "Quản lý bài luyện tập",
+      icon: <SettingOutlined />,
+      children: [
+        { key: "/admin/reading", label: "Danh sách bài luyện tập" },
       ],
     },
     !collapsed ? { label: "Hệ thống", type: "group" } : { type: "divider" },
     {
-      key: "sub3",
+      key: "sub4",
       label: "Tài khoản",
       icon: <UserOutlined />,
       children: [
