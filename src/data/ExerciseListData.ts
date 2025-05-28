@@ -1,5 +1,3 @@
-import { parts as sampleParts } from "./readingTestData";
-
 export const levelData = {
   level1: [
     {
@@ -399,12 +397,15 @@ export const levelData = {
   ],
 };
 
-// Hàm lấy dữ liệu bài test động
+// Helper to get exercise data by level and exercise id
 export function getExerciseData(
   level: string | undefined,
   exercise: string | undefined
 ) {
-  // TODO: Nếu có dữ liệu riêng cho từng bài, lấy theo level/exercise
-  // Hiện tại trả về dữ liệu mẫu (sampleParts)
-  return { parts: sampleParts };
+  if (!level || !exercise) return { parts: [] };
+  const levelKey = `level${level}`;
+  const exercises = (levelData as any)[levelKey] || [];
+  const ex = exercises.find((e: any) => String(e.id) === String(exercise));
+  // If you have parts in your exercise object, return them; otherwise, return empty
+  return ex && ex.parts ? { parts: ex.parts } : { parts: [] };
 }

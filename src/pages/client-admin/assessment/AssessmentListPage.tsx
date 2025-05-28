@@ -49,9 +49,7 @@ export default function AssessmentListPage() {
           <Tooltip title="Quản lý bài test">
             <Button
               type="primary"
-              onClick={() =>
-                navigate(`/admin/assessments/${record.id}/manage`)
-              }
+              onClick={() => navigate(`/admin/assessments/${record.id}/manage`)}
             >
               Quản lý
             </Button>

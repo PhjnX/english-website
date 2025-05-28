@@ -10,7 +10,7 @@ import Confetti from "react-confetti";
 import { Button } from "antd";
 import { FaRedo, FaHome, FaEye, FaRocket } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
-import logo from "../../../assets/images/logo.jpg";
+import logo from "../../../assets/images/logo.png";
 
 const bandMapping = [
   { score: 39, band: 9 },

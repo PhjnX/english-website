@@ -1,4 +1,6 @@
 // src/data/readingTestData.ts
+// File deprecated: All reading test data is now backend-driven. This file is no longer used and can be deleted.
+
 import Part1Img from "../assets/images/Part1.png";
 import Part2Img from "../assets/images/Part2.png";
 import Part3Img from "../assets/images/Part3.jpg";

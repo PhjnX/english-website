@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Avatar, Dropdown, Space, message } from "antd";
+// src/components/_components/Header.tsx
+import React, { useEffect, useState, useRef } from "react";
+import { Avatar, Dropdown, Space, message, MenuProps } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faHouse,
   faBookOpen,
   faClipboardCheck,
   faFileAlt,
@@ -13,13 +13,18 @@ import {
   faUserCircle,
   faBars,
   faTimes,
+  faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import { motion, AnimatePresence } from "framer-motion";
-import logo from "../../../../assets/images/logo.jpg";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
+import siteLogo from "../../../../assets/images/logo.png"; // SỬ DỤNG LOGO CŨ CỦA BẠN
 import { getUserInfo, logout as logoutApi } from "../../../../apis/auth-api";
 
-const menuItems = [
-  { key: "home", icon: faHouse, label: "Trang chủ", href: "/" },
+const mainNavItems = [
   { key: "lessons", icon: faBookOpen, label: "Bài học", href: "/lessons" },
   {
     key: "assessment",
@@ -34,13 +39,83 @@ const menuItems = [
     label: "Tài nguyên",
     href: "/resources",
   },
+];
+
+const userMenuItems = (
+  handleLogoutCallback: () => void,
+  navigateCallback: (path: string) => void
+): MenuProps["items"] => [
   {
     key: "dashboard",
-    icon: faUserGraduate,
-    label: "Lộ trình của tôi",
-    href: "/dashboard",
+    icon: (
+      <FontAwesomeIcon icon={faUserGraduate} className="mr-2 text-purple-600" />
+    ),
+    label: <span className="font-medium text-slate-700">Lộ trình của tôi</span>,
+    onClick: () => navigateCallback("/dashboard"),
+  },
+  { type: "divider" },
+  {
+    key: "logout",
+    icon: <FontAwesomeIcon icon={faSignOutAlt} className="mr-2 text-red-500" />,
+    label: <span className="font-medium text-red-500">Đăng xuất</span>,
+    onClick: handleLogoutCallback,
   },
 ];
+
+// NavLink được cập nhật với hiệu ứng hover mới
+const NavLink: React.FC<{
+  href: string;
+  label: string;
+  selected: boolean;
+  icon?: any;
+  isMobile?: boolean;
+}> = ({ href, label, selected, icon, isMobile }) => {
+  return (
+    <Link
+      to={href}
+      className={`group flex items-center px-4 py-3 rounded-lg font-semibold transition-all duration-200 ease-in-out
+                  ${
+                    isMobile
+                      ? "w-full justify-start text-base"
+                      : "text-sm md:text-base lg:text-lg"
+                  } 
+                  ${
+                    selected
+                      ? "bg-purple-100 text-purple-700 shadow-sm" // Trạng thái được chọn
+                      : "text-slate-600 hover:bg-purple-50 hover:text-purple-700" // Trạng thái mặc định và hover
+                  }`}
+    >
+      {isMobile && icon && (
+        <FontAwesomeIcon
+          icon={icon}
+          className="mr-4 w-5 text-purple-600 text-lg"
+        />
+      )}
+      <span>{label}</span>
+    </Link>
+  );
+};
+
+const ReadifyLogoAndText: React.FC = () => (
+  <Link to="/" className="flex items-center group">
+    <motion.img
+      src={siteLogo} // Sử dụng logo đã import
+      alt="Readify Logo"
+      className="h-12 w-12 md:h-14 md:w-14 rounded-md p-0.5 border-2 border-purple-200 group-hover:border-purple-400 transition-colors duration-300" // Thêm border cho logo
+      whileHover={{ rotate: [0, -5, 5, -5, 0], scale: 1.05 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+    />
+    <motion.span
+      className="ml-3 text-2xl md:text-3xl lg:text-4xl font-extrabold font-be-vietnam-pro group-hover:scale-105 transition-transform duration-300"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
+    >
+      <span className="text-purple-700">Read</span>
+      <span className="text-indigo-500">ify</span>
+    </motion.span>
+  </Link>
+);
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -48,95 +123,95 @@ const Header: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+  const lastYRef = useRef(0);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const difference = latest - lastYRef.current;
+    if (latest < 60) {
+      // Tăng threshold để header không ẩn quá sớm
+      setHidden(false);
+    } else if (difference > 0 && latest > 200) {
+      setHidden(true);
+    } else if (difference < 0) {
+      setHidden(false);
+    }
+    lastYRef.current = latest;
+  });
+
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      setUser(null);
+      return;
+    }
     getUserInfo(token)
       .then((data) => setUser(data))
       .catch(() => {
-        logoutApi();
-        setUser(null);
-        message.warning("Phiên đăng nhập đã hết hạn");
-        navigate("/login");
+        /* Xử lý lỗi nếu cần */
       });
-  }, [navigate]);
+  }, [location.pathname]);
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
   const handleLogout = () => {
     logoutApi();
+    localStorage.removeItem("token");
+    localStorage.removeItem("user_name");
     setUser(null);
-    message.success("Đăng xuất thành công");
+    message.success("Đăng xuất thành công!");
     navigate("/login");
   };
 
   const selectedKey =
-    menuItems.find((item) => item.href === location.pathname)?.key || "home";
-
-  const dropdownMenu = {
-    items: [
-      {
-        key: "logout",
-        icon: <FontAwesomeIcon icon={faSignOutAlt} />,
-        label: "Đăng xuất",
-        onClick: handleLogout,
-      },
-    ],
-  };
+    mainNavItems.find((item) => location.pathname.startsWith(item.href))?.key ||
+    "";
 
   return (
     <motion.header
-      initial={{ y: -60, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="w-full bg-gradient-to-r from-[#f5e9e2] via-[#fff4e6] to-[#e3f2fd] shadow-md fixed top-0 z-50 backdrop-blur-sm"
+      className="w-full bg-white shadow-lg fixed top-0 z-50 border-b border-purple-100/80"
+      animate={{ y: hidden ? "-100%" : "0%" }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-      <div className="w-full mx-auto flex items-center justify-between py-2 px-4 sm:px-5 md:px-6 lg:px-8 xl:px-10 2xl:px-16 max-w-screen-2xl">
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="Vlearn Logo"
-            className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-full bg-white p-1 shadow-md"
-          />
-          <span className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight text-[#5a4032]">
-            Vlearn<span className="text-[#ec8a48]">Reading</span>
-          </span>
-        </Link>
+      {/* Tăng chiều cao Header bằng padding py-5 hoặc py-6 */}
+      <div className="container mx-auto flex items-center justify-between py-5 md:py-6 px-4 sm:px-6 lg:px-8">
+        <ReadifyLogoAndText />
 
-        <div className="hidden lg:flex flex-wrap gap-2 xl:gap-4 bg-white/80 rounded-full px-4 py-2 shadow-sm items-center backdrop-blur-md">
-          {menuItems.map((item) => (
-            <Link
+        <nav className="hidden lg:flex items-center space-x-2 xl:space-x-3">
+          {mainNavItems.map((item) => (
+            <NavLink
               key={item.key}
-              to={item.href}
-              className={`flex items-center gap-2 px-2 py-1 sm:px-3 sm:py-2 rounded-full font-bold transition-all duration-200 text-xs sm:text-sm md:text-base ${
-                selectedKey === item.key
-                  ? "bg-gradient-to-r from-[#ff8a65] to-[#ff7043] text-white shadow"
-                  : "text-gray-700 hover:bg-[#ffe0b2] hover:text-[#ff7043]"
-              }`}
-            >
-              <FontAwesomeIcon icon={item.icon} />
-              {item.label}
-            </Link>
+              href={item.href}
+              label={item.label}
+              selected={selectedKey === item.key}
+            />
           ))}
-        </div>
+        </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center space-x-3 md:space-x-4">
           {user ? (
             <Dropdown
-              menu={dropdownMenu}
-              trigger={["click"]}
+              menu={{ items: userMenuItems(handleLogout, navigate) }}
+              trigger={["hover"]}
               placement="bottomRight"
-              arrow
+              arrow={{ pointAtCenter: true }}
+              overlayClassName="mt-3 shadow-xl rounded-xl border border-gray-100 w-56" // Tùy chỉnh dropdown
             >
-              <Space className="cursor-pointer">
+              <Space className="cursor-pointer group p-1.5 rounded-lg hover:bg-purple-50 transition-colors duration-200">
                 <Avatar
                   icon={<FontAwesomeIcon icon={faUserCircle} />}
-                  className="bg-[#ffe0b2] text-[#6d4c41] border"
-                  size={36}
+                  src={user.avatar_url || undefined}
+                  className="!bg-purple-100 !text-purple-600 border-2 !border-purple-200 group-hover:!border-purple-400 transition-colors"
+                  size={44} // Avatar lớn hơn
                 />
-                <span className="hidden sm:inline text-[#5d4037] font-semibold text-sm sm:text-base">
+                <span className="hidden sm:inline text-slate-700 group-hover:text-purple-700 font-semibold text-base transition-colors">
                   {user.full_name || user.user_name}
                 </span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className="hidden sm:inline text-slate-400 group-hover:text-purple-600 transition-colors text-sm"
+                />
               </Space>
             </Dropdown>
           ) : (
@@ -144,20 +219,26 @@ const Header: React.FC = () => {
               <Link
                 to="/login"
                 state={{ isSignUp: true }}
-                className="hidden sm:inline text-xs sm:text-sm text-[#d32f2f] hover:underline font-semibold"
+                className="hidden sm:block text-base font-semibold text-purple-600 hover:text-purple-800 hover:bg-purple-100/70 px-4 py-2.5 rounded-lg transition-all duration-300"
               >
                 Đăng ký
               </Link>
-              <Link to="/login" className="hidden sm:inline">
-                <button className="text-xs sm:text-sm md:text-base bg-gradient-to-r from-[#ff7043] to-[#d84315] hover:from-[#f4511e] hover:to-[#e9582b] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold shadow-md transition-all duration-300 cursor-pointer transform hover:scale-105">
-                  Đăng nhập
-                </button>
-              </Link>
+              <motion.div
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <Link to="/login">
+                  <button className="text-base bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 text-white px-5 py-2.5 rounded-full font-bold shadow-lg hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300 transform">
+                    Đăng nhập
+                  </button>
+                </Link>
+              </motion.div>
             </>
           )}
           <button
-            className="lg:hidden text-[#d32f2f]"
+            className="lg:hidden text-purple-600 p-2 focus:outline-none rounded-md hover:bg-purple-100"
             onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="Mở menu"
           >
             <FontAwesomeIcon icon={menuOpen ? faTimes : faBars} size="lg" />
           </button>
@@ -167,33 +248,33 @@ const Header: React.FC = () => {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            className="lg:hidden bg-white/90 shadow-inner px-6 pt-2 pb-4 space-y-2 backdrop-blur"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="lg:hidden bg-white shadow-inner border-t border-purple-100 absolute w-full"
           >
-            {menuItems.map((item) => (
-              <Link
-                key={item.key}
-                to={item.href}
-                className={`block rounded-lg px-4 py-2 font-medium text-base transition-all duration-150 ${
-                  selectedKey === item.key
-                    ? "bg-gradient-to-r from-[#ff8a65] to-[#ff7043] text-white"
-                    : "text-gray-800 hover:bg-[#ffe0b2] hover:text-[#d84315]"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-            {!user && (
-              <div className="pt-3 border-t ">
-                <Link to="/login">
-                  <button className="w-full bg-gradient-to-r from-[#ff7043] to-[#d84315] hover:from-[#f4511e] hover:to-[#bf360c] text-white px-4 py-2 rounded-full font-bold shadow-md transition-all duration-300 ">
-                    Đăng nhập
-                  </button>
-                </Link>
-              </div>
-            )}
+            <nav className="flex flex-col px-4 py-4 space-y-1.5">
+              {mainNavItems.map((item) => (
+                <NavLink
+                  key={`mobile-${item.key}`}
+                  href={item.href}
+                  label={item.label}
+                  selected={selectedKey === item.key}
+                  icon={item.icon}
+                  isMobile={true}
+                />
+              ))}
+              {!user && (
+                <div className="pt-4 mt-3 border-t border-purple-100">
+                  <Link to="/login" className="w-full block">
+                    <button className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-4 py-3 rounded-lg font-bold shadow-sm transition-all duration-300 text-base">
+                      Đăng nhập / Đăng ký
+                    </button>
+                  </Link>
+                </div>
+              )}
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>

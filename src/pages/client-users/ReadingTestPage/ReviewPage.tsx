@@ -2,7 +2,6 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Question from "./Question";
 import Paragraph from "./Paragraph";
-import { parts } from "../../../data/readingTestData";
 import { Button } from "antd";
 import {
   FaArrowLeft,
@@ -15,7 +14,12 @@ import { motion, AnimatePresence } from "framer-motion";
 const ReviewPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { answers, isSubmitted, isReviewing } = location.state || {};
+  const {
+    answers,
+    isSubmitted,
+    isReviewing,
+    parts: reviewParts,
+  } = location.state || {};
 
   // State cho highlight
   const [highlightedSentence, setHighlightedSentence] = React.useState<
@@ -25,7 +29,9 @@ const ReviewPage: React.FC = () => {
   const [activePart, setActivePart] = React.useState(1);
   const [prevPart, setPrevPart] = React.useState(1);
 
-  const currentPart = parts.find((p) => p.partId === activePart);
+  // Use backend-driven parts from navigation state
+  const parts = reviewParts || [];
+  const currentPart = parts.find((p: any) => p.partId === activePart);
   if (!currentPart) return null;
 
   const handlePrev = () => {
@@ -102,6 +108,9 @@ const ReviewPage: React.FC = () => {
                 questionEnd={
                   currentPart.questions[currentPart.questions.length - 1]?.id
                 }
+                passage={currentPart.passage}
+                image={currentPart.image}
+                title={currentPart.title}
               />
             </div>
             {/* Question */}

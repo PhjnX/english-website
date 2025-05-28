@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { parts } from "../../../data/readingTestData";
 import Paragraph from "./Paragraph";
 import Question from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
 import testGif from "../../../assets/testGif.gif";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import { getAllAssessments } from "../../../apis/assessment-api";
+
 export interface Answers {
   [key: number]: string;
 }
@@ -27,6 +28,7 @@ const ReadingTestPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeKey, setActiveKey] = useState("1");
   const [prevKey, setPrevKey] = useState("1");
+  const [parts, setParts] = useState<any[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
@@ -55,6 +57,65 @@ const ReadingTestPage: React.FC = () => {
     }
   }, [timeLeft]);
 
+  useEffect(() => {
+    // Fetch assessment data (get all, pick the first)
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const all = await getAllAssessments();
+        // Pick the first assessment (or you can pick by id/criteria)
+        const data = all && all.length > 0 ? all[0] : null;
+        if (data && data.parts) {
+          // Map backend structure to expected frontend structure
+          const mappedParts = data.parts.map((part: any) => ({
+            id: part.id,
+            order: part.order,
+            title: part.title,
+            passage: part.content || part.passage || "",
+            image: part.image,
+            titleDescription: part.titleDescription,
+            headerContent:
+              part.headerContent || part.titleDescription || part.headerTitle || "",
+            groups: (part.groups || []).map((group: any) => ({
+              id: group.id,
+              questionType: group.questionType,
+              heading: group.heading,
+              startNumber: group.startNumber,
+              endNumber: group.endNumber,
+              questions: (group.questions || []).map((q: any) => ({
+                id: q.id,
+                question: q.questionText || q.question || "",
+                questionType:
+                  q.type ||
+                  q.questionType ||
+                  group.questionType ||
+                  "multiple-choice",
+                options: q.options
+                  ? Array.isArray(q.options)
+                    ? q.options
+                    : JSON.parse(q.options)
+                  : [],
+                correctAnswer: q.correctAnswer || "",
+                explanation: q.explanation || "",
+                highlightSentence: q.highlightSentence || "",
+                sectionTitle: q.sectionTitle,
+                subSectionTitle: q.subSectionTitle,
+              })),
+            })),
+          }));
+          setParts(mappedParts);
+          setActiveKey(mappedParts[0]?.id?.toString() || "1");
+        } else {
+          setParts([]);
+        }
+      } catch (err) {
+        setParts([]);
+      }
+      setIsLoading(false);
+    };
+    fetchData();
+  }, []);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -69,16 +130,16 @@ const ReadingTestPage: React.FC = () => {
 
   const calculateScore = () => {
     let score = 0;
-    parts.forEach((part) => {
-      part.questions.forEach((q) => {
-        if (
-          answers[q.id]?.trim().toLowerCase() ===
-          q.correctAnswer.trim().toLowerCase()
-        ) {
-          score++;
-        }
-      });
-    });
+    // parts.forEach((part) => {
+    //   part.questions.forEach((q) => {
+    //     if (
+    //       answers[q.id]?.trim().toLowerCase() ===
+    //       q.correctAnswer.trim().toLowerCase()
+    //     ) {
+    //       score++;
+    //     }
+    //   });
+    // });
     return score;
   };
 
@@ -111,7 +172,7 @@ const ReadingTestPage: React.FC = () => {
         band,
         timeSpent: 60 * 60 - timeLeft,
         isSubmitted: true,
-        questions: parts.flatMap((p) => p.questions),
+        questions: [], // parts.flatMap((p) => p.questions),
       },
     });
   };
@@ -125,13 +186,13 @@ const ReadingTestPage: React.FC = () => {
   const renderTabs = () => {
     return (
       <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4">
-        {parts.map((part) => (
+        {parts.map((part: any) => (
           <motion.button
-            key={part.partId}
-            onClick={() => handleTabChange(part.partId.toString())}
+            key={part.id}
+            onClick={() => handleTabChange(part.id.toString())}
             className={`px-4 py-2 rounded-full font-semibold shadow transition-all duration-200 text-base md:text-lg focus:outline-none border-1 cursor-pointer
               ${
-                activeKey === part.partId.toString()
+                activeKey === part.id.toString()
                   ? "bg-gradient-to-r from-[#EC6F66] to-[#F3A183] !text-white border-black "
                   : "bg-gradient-to-r from-gray-100 to-gray-50 !text-gray-700 border-gray-300  hover:border-[#EC6F66]"
               }
@@ -139,7 +200,7 @@ const ReadingTestPage: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             whileHover={{ scale: 1.07 }}
           >
-            Part {part.partId}: {part.title}
+            Part {part.order || part.id}: {part.title}
           </motion.button>
         ))}
       </div>
@@ -237,8 +298,8 @@ const ReadingTestPage: React.FC = () => {
       {/* Tab Content */}
       <div className="flex-grow overflow-hidden px-0 md:px-6 pt-2">
         <AnimatePresence mode="wait">
-          {parts.map((part, idx) =>
-            activeKey === part.partId.toString() ? (
+          {parts.map((part: any, idx: number) =>
+            activeKey === part.id.toString() ? (
               <motion.div
                 key={activeKey}
                 initial={{
@@ -265,15 +326,27 @@ const ReadingTestPage: React.FC = () => {
                     className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-blue-200 w-full md:w-1/2"
                   >
                     <Paragraph
-                      partId={part.partId}
+                      partId={part.id}
+                      passage={part.passage}
+                      image={part.image}
+                      titleDescription={part.titleDescription}
                       highlightedSentence={
                         isSubmitted ? highlightedSentence : null
                       }
+                      headerContent={part.headerContent}
                       setHighlightedSentence={setHighlightedSentence}
                       isLoading={isLoading}
-                      questionStart={part.questions[0]?.id}
+                      questionStart={part.groups?.[0]?.questions?.[0]?.id}
                       questionEnd={
-                        part.questions[part.questions.length - 1]?.id
+                        part.groups &&
+                        part.groups.length > 0 &&
+                        part.groups[part.groups.length - 1].questions &&
+                        part.groups[part.groups.length - 1].questions.length > 0
+                          ? part.groups[part.groups.length - 1].questions[
+                              part.groups[part.groups.length - 1].questions
+                                .length - 1
+                            ].id
+                          : undefined
                       }
                     />
                   </motion.div>
@@ -286,14 +359,16 @@ const ReadingTestPage: React.FC = () => {
                     className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-green-200 w-full md:w-1/2"
                   >
                     <Question
-                      questions={part.questions}
+                      questions={
+                        part.groups?.flatMap((g: any) => g.questions) || []
+                      }
                       answers={answers}
                       handleAnswer={handleAnswer}
                       isSubmitted={isSubmitted}
                       setHighlightedSentence={setHighlightedSentence}
                       highlightedSentence={highlightedSentence}
                       isLoading={isLoading}
-                      partId={part.partId}
+                      partId={part.id}
                     />
                   </motion.div>
                 </div>
@@ -302,6 +377,19 @@ const ReadingTestPage: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Footer - Modern, pastel orange, glassmorphism, animated */}
+      <motion.footer
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, type: "spring", bounce: 0.3 }}
+        className="relative z-10 flex justify-center items-center px-4 md:px-10 py-5 bg-[#FFDCDC] backdrop-blur-md shadow-xl border-t border-orange-200 rounded-t-3xl gap-4 drop-shadow-lg"
+        style={{ boxShadow: "0 -8px 32px 0 rgba(255, 183, 94, 0.15)" }}
+      >
+        <span className="text-center text-sm md:text-base text-gray-600">
+          &copy; 2023 IELTS Reading Test. All rights reserved.
+        </span>
+      </motion.footer>
     </div>
   );
 };

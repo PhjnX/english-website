@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Header from "../_components/Header";
 import Footer from "../_components/Footer";
-import logo from "../../../assets/images/logo.jpg";
+import logo from "../../../assets/images/logo.png";
 import { loginApi, signupApi, logout } from "../../../apis/auth-api";
 
 const BackgroundShape = ({ className, initial, animate, transition }: any) => (

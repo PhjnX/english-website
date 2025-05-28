@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { parts } from "../../../data/readingTestData";
 
 interface ParagraphProps {
   partId: number;
@@ -9,6 +8,10 @@ interface ParagraphProps {
   isLoading: boolean;
   questionStart: number;
   questionEnd: number;
+  passage: string;
+  image?: string;
+  titleDescription: string;
+  headerContent: string;
 }
 
 const Paragraph: React.FC<ParagraphProps> = ({
@@ -17,14 +20,17 @@ const Paragraph: React.FC<ParagraphProps> = ({
   isLoading,
   questionStart,
   questionEnd,
+  passage,
+  image,
+  titleDescription,
+  headerContent,
 }) => {
-  const currentPart = parts.find((p) => p.partId === partId);
   const lineRefs = useRef<(HTMLParagraphElement | null)[]>([]);
 
   useEffect(() => {
     if (highlightedSentence && lineRefs.current.length > 0) {
       // Tìm dòng chứa highlightSentence
-      const idx = currentPart?.passage
+      const idx = passage
         .split("\n")
         .findIndex((line) => line.includes(highlightedSentence));
       if (idx !== undefined && idx >= 0 && lineRefs.current[idx]) {
@@ -34,17 +40,13 @@ const Paragraph: React.FC<ParagraphProps> = ({
         });
       }
     }
-  }, [highlightedSentence, currentPart]);
-
-  if (!currentPart)
-    return <div className="p-4 text-red-500">Part not found.</div>;
+  }, [highlightedSentence, passage]);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold text-indigo-700 mb-2">
-        PART {currentPart.partId}
+      <h2 className="text-3xl font-extrabold text-gray-900 mb-2 text-center">
+        {titleDescription}
       </h2>
-
       <p className="text-gray-700 italic mb-4">
         You should spend about 20 minutes on{" "}
         <span className="font-semibold">
@@ -52,15 +54,15 @@ const Paragraph: React.FC<ParagraphProps> = ({
         </span>
         , which are based on Reading Passage below.
       </p>
-      {currentPart.image && (
+      {image && (
         <img
-          src={currentPart.image}
+          src={image}
           alt="Illustration"
           className="mb-4 w-full max-h-72 object-cover rounded-3xl shadow"
         />
       )}
       <h2 className="text-3xl font-extrabold text-gray-900 mb-2 text-center">
-        {currentPart.title.toUpperCase()}
+        {headerContent}
       </h2>
       <div className="text-gray-800 text-justify space-y-4 leading-relaxed">
         {isLoading ? (
@@ -71,8 +73,8 @@ const Paragraph: React.FC<ParagraphProps> = ({
                 <div key={idx} className="h-4 bg-gray-300 rounded w-full" />
               ))}
           </div>
-        ) : (
-          currentPart.passage.split("\n").map((line, idx) => {
+        ) : passage ? (
+          passage.split("\n").map((line, idx) => {
             if (
               highlightedSentence &&
               highlightedSentence.length > 0 &&
@@ -118,7 +120,7 @@ const Paragraph: React.FC<ParagraphProps> = ({
               );
             }
           })
-        )}
+        ) : null}
       </div>
     </div>
   );
