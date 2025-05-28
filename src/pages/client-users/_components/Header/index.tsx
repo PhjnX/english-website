@@ -37,7 +37,7 @@ const mainNavItems = [
     key: "resources",
     icon: faFileLines,
     label: "Tài nguyên",
-    href: "/resources",
+    href: "/#resources",
   },
 ];
 
@@ -69,7 +69,8 @@ const NavLink: React.FC<{
   selected: boolean;
   icon?: any;
   isMobile?: boolean;
-}> = ({ href, label, selected, icon, isMobile }) => {
+  onClick?: (e: React.MouseEvent, href: string) => void;
+}> = ({ href, label, selected, icon, isMobile, onClick }) => {
   return (
     <Link
       to={href}
@@ -77,13 +78,15 @@ const NavLink: React.FC<{
                   ${
                     isMobile
                       ? "w-full justify-start text-base"
-                      : "text-sm md:text-base lg:text-lg"
+                      : "text-sm md:text-base lg:text-lg relative overflow-visible"
                   } 
                   ${
                     selected
-                      ? "bg-purple-100 text-purple-700 shadow-sm" // Trạng thái được chọn
-                      : "text-slate-600 hover:bg-purple-50 hover:text-purple-700" // Trạng thái mặc định và hover
+                      ? "text-purple-700 font-bold"
+                      : "text-slate-600 hover:text-purple-700"
                   }`}
+      style={{ position: isMobile ? undefined : "relative" }}
+      onClick={(e) => onClick && onClick(e, href)}
     >
       {isMobile && icon && (
         <FontAwesomeIcon
@@ -91,7 +94,22 @@ const NavLink: React.FC<{
           className="mr-4 w-5 text-purple-600 text-lg"
         />
       )}
-      <span>{label}</span>
+      <span className="relative">
+        {label}
+        {/* Hiệu ứng underline động */}
+        {!isMobile && (
+          <span
+            className={`absolute left-0 -bottom-1 h-[3px] w-full bg-purple-700 rounded transition-all duration-300
+              ${
+                selected
+                  ? "opacity-100 scale-x-100"
+                  : "opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100"
+              }
+            `}
+            style={{ transformOrigin: "left" }}
+          />
+        )}
+      </span>
     </Link>
   );
 };
@@ -107,6 +125,7 @@ const ReadifyLogoAndText: React.FC = () => (
     />
     <motion.span
       className="ml-3 text-2xl md:text-3xl lg:text-4xl font-extrabold font-be-vietnam-pro group-hover:scale-105 transition-transform duration-300"
+      style={{ fontFamily: "Be Vietnam Pro", fontWeight: 800 }}
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
@@ -125,17 +144,21 @@ const Header: React.FC = () => {
 
   const { scrollY } = useScroll();
   const [hidden, setHidden] = useState(false);
+  const [bgOpacity, setBgOpacity] = useState(0); // Thêm state cho opacity
   const lastYRef = useRef(0);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const difference = latest - lastYRef.current;
-    if (latest < 60) {
-      // Tăng threshold để header không ẩn quá sớm
-      setHidden(false);
-    } else if (difference > 0 && latest > 200) {
-      setHidden(true);
+    if (difference > 0 && latest > 0) {
+      setHidden(true); // Ẩn ngay khi cuộn xuống
     } else if (difference < 0) {
-      setHidden(false);
+      setHidden(false); // Hiện lại khi cuộn lên
+    }
+    // Hiệu ứng opacity background
+    if (latest <= 0) {
+      setBgOpacity(0);
+    } else {
+      setBgOpacity(1);
     }
     lastYRef.current = latest;
   });
@@ -164,18 +187,37 @@ const Header: React.FC = () => {
     navigate("/login");
   };
 
+  const handleNavLinkClick = (e: React.MouseEvent, href: string) => {
+    if (href === "/#resources") {
+      if (window.location.pathname === "/") {
+        e.preventDefault();
+        const el = document.getElementById("resources");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }
+  };
+
   const selectedKey =
     mainNavItems.find((item) => location.pathname.startsWith(item.href))?.key ||
     "";
 
   return (
     <motion.header
-      className="w-full bg-white shadow-lg fixed top-0 z-50 border-b border-purple-100/80"
-      animate={{ y: hidden ? "-100%" : "0%" }}
-      transition={{ duration: 0.4, ease: "easeInOut" }}
+      className={`w-full shadow-lg fixed top-0 z-50 transition-colors duration-300 ${
+        bgOpacity === 0
+          ? "border-b-0 shadow-none"
+          : "border-b border-purple-100/80"
+      }`}
+      animate={{
+        y: hidden ? "-100%" : "0%",
+        backgroundColor: `rgba(255,255,255,${bgOpacity})`,
+      }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
     >
       {/* Tăng chiều cao Header bằng padding py-5 hoặc py-6 */}
-      <div className="container mx-auto flex items-center justify-between py-5 md:py-6 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto flex items-center justify-between !py-8 md:py-6 px-4 sm:px-6 lg:px-8">
         <ReadifyLogoAndText />
 
         <nav className="hidden lg:flex items-center space-x-2 xl:space-x-3">
@@ -185,6 +227,7 @@ const Header: React.FC = () => {
               href={item.href}
               label={item.label}
               selected={selectedKey === item.key}
+              onClick={handleNavLinkClick}
             />
           ))}
         </nav>
@@ -228,7 +271,7 @@ const Header: React.FC = () => {
                 whileTap={{ scale: 0.97 }}
               >
                 <Link to="/login">
-                  <button className="text-base bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 text-white px-5 py-2.5 rounded-full font-bold shadow-lg hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300 transform">
+                  <button className="text-base bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 !text-white px-5 py-2.5 rounded-full font-bold shadow-lg hover:shadow-xl hover:shadow-purple-500/40 transition-all duration-300 transform cursor-pointer">
                     Đăng nhập
                   </button>
                 </Link>
@@ -263,6 +306,7 @@ const Header: React.FC = () => {
                   selected={selectedKey === item.key}
                   icon={item.icon}
                   isMobile={true}
+                  onClick={handleNavLinkClick}
                 />
               ))}
               {!user && (

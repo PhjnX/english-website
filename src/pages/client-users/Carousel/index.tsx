@@ -1,411 +1,284 @@
-// src/components/HeroCarousel.tsx
-import React, { useState, useEffect, useRef, useCallback } from "react";
+// src/components/carousels/NewHeroCarousel.tsx
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid"; // Sử dụng Heroicons
+import carousel1 from "../../../assets/images/carousel_1.png";
+import carousel2 from "../../../assets/images/carousel_2.png";
+import carousel3 from "../../../assets/images/carousel_3.png";
 
-// Dữ liệu slide giữ nguyên như phiên bản trước
+// Dữ liệu cho các slide (Tiếng Việt)
 const slidesData = [
   {
     id: 1,
-    title: "Nắm Vững IELTS Reading",
-    subtitle: "Mở khóa cánh cửa du học & định cư",
+    headline: "Chinh Phục IELTS Reading Cùng Readify",
     description:
-      "Khám phá phương pháp đọc hiệu quả, chinh phục mọi dạng bài IELTS Reading với VlearnReading.",
-    // imageUrl: "...", // Đã bỏ qua vì không sử dụng
-    ctaText: "Bắt đầu học ngay!",
-    ctaLink: "/courses",
-    theme: {
-      bgColor: "bg-gradient-to-br from-amber-400 via-orange-500 to-red-500",
-      textColor: "text-white",
-      blob1Color: "rgba(251, 191, 36, 0.3)",
-      blob2Color: "rgba(239, 68, 68, 0.25)",
-      squareColor: "rgba(255, 255, 255, 0.15)",
-      dotColors: ["#fbbf24", "#ef4444", "#f97316"],
-      ctaGradient:
-        "bg-gradient-to-r from-red-500 via-orange-500 to-amber-400 hover:from-red-600 hover:via-orange-600 hover:to-amber-500",
-    },
+      "Lộ trình được cá nhân hóa, kho bài tập đa dạng và những chiến lược làm bài hiệu quả nhất đang chờ bạn khám phá.",
+    ctaText: "Tìm Hiểu Thêm",
+    ctaLink: "/features",
+    imageUrl: carousel1,
+    altText: "Học viên Readify đang học tập",
   },
   {
     id: 2,
-    title: "Tăng Điểm Thần Tốc",
-    subtitle: "Chiến thuật làm bài IELTS Reading",
+    headline: "Từ Vựng Chuyên Sâu, Nền Tảng Vững Chắc",
     description:
-      "Học hỏi từ chuyên gia, rèn luyện kỹ năng Skimming, Scanning và đọc hiểu sâu sắc để đạt điểm cao nhất.",
-    // imageUrl: "...",
-    ctaText: "Xem lộ trình học",
-    ctaLink: "/roadmap",
-    theme: {
-      bgColor: "bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-600",
-      textColor: "text-white",
-      blob1Color: "rgba(14, 165, 233, 0.3)",
-      blob2Color: "rgba(59, 130, 246, 0.25)",
-      squareColor: "rgba(255, 255, 255, 0.15)",
-      dotColors: ["#0ea5e9", "#06b6d4", "#3b82f6"],
-      ctaGradient:
-        "bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-500 hover:from-blue-700 hover:via-cyan-600 hover:to-sky-600",
-    },
+      "Nắm vững từ vựng học thuật cốt lõi qua các bài học tương tác, flashcards thông minh và trò chơi thử thách.",
+    ctaText: "Bắt Đầu Học Từ",
+    ctaLink: "/vocabulary",
+    imageUrl: carousel2,
+    altText: "Flashcards từ vựng Readify",
   },
   {
     id: 3,
-    title: "Thực Hành Không Giới Hạn",
-    subtitle: "Nguồn đề thi IELTS Reading chuẩn quốc tế",
+    headline: "Luyện Đề Như Thi Thật, Tự Tin Tối Đa",
     description:
-      "Truy cập kho đề thi phong phú, đa dạng, được cập nhật liên tục giúp bạn làm quen và tự tin hơn.",
-    // imageUrl: "...",
-    ctaText: "Thử sức ngay!",
-    ctaLink: "/practice",
-    theme: {
-      bgColor: "bg-gradient-to-br from-emerald-500 via-green-500 to-lime-600",
-      textColor: "text-white",
-      blob1Color: "rgba(16, 185, 129, 0.3)",
-      blob2Color: "rgba(101, 163, 13, 0.25)",
-      squareColor: "rgba(255, 255, 255, 0.15)",
-      dotColors: ["#10b981", "#22c55e", "#84cc16"],
-      ctaGradient:
-        "bg-gradient-to-r from-lime-600 via-green-500 to-emerald-500 hover:from-lime-700 hover:via-green-600 hover:to-emerald-600",
-    },
+      "Trải nghiệm các bộ đề thi thử chuẩn format quốc tế, nhận phân tích chi tiết và chiến lược cải thiện điểm số.",
+    ctaText: "Làm Bài Thi Thử",
+    ctaLink: "/mock-tests",
+    imageUrl: carousel3,
+    altText: "Học viên làm bài thi thử trên Readify",
   },
 ];
 
-const HeroCarousel: React.FC = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, align: "start" },
-    [
-      Autoplay({
-        delay: 6000,
-        stopOnInteraction: false,
-        stopOnMouseEnter: true,
-      }),
-    ]
-  );
+// Component cho một chi tiết trang trí nhỏ
+const FloatingShape: React.FC<{
+  className: string;
+  delay?: number;
+  duration?: number;
+  yRange?: string[];
+  rotateRange?: number[];
+}> = ({
+  className,
+  delay = 0,
+  duration = 5,
+  yRange = ["0%", "-8%", "0%"],
+  rotateRange,
+}) => (
+  <motion.div
+    className={`absolute ${className}`}
+    animate={{
+      y: yRange,
+      rotate: rotateRange,
+    }}
+    transition={{
+      delay,
+      duration: duration + Math.random() * 2 - 1, // Thêm chút ngẫu nhiên cho duration
+      ease: "easeInOut",
+      repeat: Infinity,
+      repeatType: "mirror",
+    }}
+  />
+);
+
+const NewHeroCarousel: React.FC = () => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
+    Autoplay({ delay: 7000, stopOnInteraction: false }),
+  ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [previousIndex, setPreviousIndex] = useState(0);
-  const contentRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const animateSlideContent = useCallback((index: number) => {
-    const currentContent = contentRefs.current[index];
-    if (currentContent) {
-      gsap.set(
-        currentContent.querySelectorAll(
-          ".carousel-title, .carousel-subtitle, .carousel-description, .carousel-cta-button"
-        ),
-        { opacity: 0, y: 50, scale: 1 }
-      );
-
-      gsap.to(currentContent.querySelectorAll(".carousel-title"), {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        delay: 0.3,
-      });
-      gsap.to(currentContent.querySelectorAll(".carousel-subtitle"), {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        delay: 0.5,
-      });
-      gsap.to(currentContent.querySelectorAll(".carousel-description"), {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power3.out",
-        delay: 0.7,
-      });
-      gsap.to(currentContent.querySelectorAll(".carousel-cta-button"), {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.7,
-        ease: "back.out(1.7)",
-        delay: 0.9,
-      });
-    }
-  }, []);
+  const scrollPrev = useCallback(
+    () => emblaApi && emblaApi.scrollPrev(),
+    [emblaApi]
+  );
+  const scrollNext = useCallback(
+    () => emblaApi && emblaApi.scrollNext(),
+    [emblaApi]
+  );
 
   useEffect(() => {
     if (!emblaApi) return;
-
-    const onSelectHandler = () => {
-      const newIndex = emblaApi.selectedScrollSnap();
-      setPreviousIndex(selectedIndex);
-      setSelectedIndex(newIndex);
-      animateSlideContent(newIndex);
-    };
-
-    emblaApi.on("select", onSelectHandler);
-    emblaApi.on("init", onSelectHandler);
-
+    const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect);
+    onSelect(); // Set initial selected index
     return () => {
-      emblaApi.off("select", onSelectHandler);
-      emblaApi.off("init", onSelectHandler);
+      emblaApi.off("select", onSelect);
     };
-  }, [emblaApi, selectedIndex, animateSlideContent]);
+  }, [emblaApi]);
 
-  const currentSlideTheme = slidesData[selectedIndex]?.theme;
+  const textContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.15, delayChildren: i * 0.1 },
+    }),
+  };
+
+  const textItemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
+  };
+
+  const imageVariants = {
+    initial: { scale: 0.8, opacity: 0, y: 50 },
+    animate: {
+      scale: 1,
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: [0.6, -0.05, 0.01, 0.99], delay: 0.2 },
+    },
+    float: {
+      // Kết hợp hiệu ứng float vào đây nếu muốn icon chính cũng float
+      y: ["0%", "-3%", "0%"],
+      transition: {
+        delay: 0.8,
+        duration: 4,
+        ease: [0.42, 0, 0.58, 1], // cubic-bezier for easeInOut
+        repeat: Infinity,
+        repeatType: "mirror" as "mirror",
+      },
+    },
+  };
+
+  const combinedImageAnimate = (index: number) => {
+    if (selectedIndex === index) {
+      return ["animate", "float"]; // Chạy cả hai animation
+    }
+    return "initial";
+  };
 
   return (
-    <div className="relative w-full overflow-hidden min-h-[500px] sm:min-h-[580px] md:min-h-[620px] lg:min-h-[680px] bg-neutral-50 pt-10">
-      <AnimatePresence initial={false}>
-        <motion.div
-          key={selectedIndex}
-          className={`absolute inset-0 z-0 ${
-            currentSlideTheme?.bgColor || "bg-gray-200"
-          }`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.2 }} // Lớp nền mờ tổng thể
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.0, ease: "easeInOut" }}
-        />
-      </AnimatePresence>
-
-      <div className="embla__viewport" ref={emblaRef}>
-        <div className="embla__container flex">
+    <div className="relative w-full bg-gradient-to-br from-purple-50 via-fuchsia-50 to-indigo-100 overflow-hidden">
+      <div className="embla_new" ref={emblaRef}>
+        <div className="embla__container_new flex">
           {slidesData.map((slide, index) => (
-            <motion.div
+            <div
+              className="embla__slide_new flex-[0_0_100%] min-h-[80vh] md:min-h-[90vh] lg:min-h-screen relative p-8 md:p-16 flex items-center"
               key={slide.id}
-              className="embla__slide relative flex-[0_0_100%] flex items-center justify-center min-h-[460px] sm:min-h-[540px] md:min-h-[580px] lg:min-h-[640px] p-4 sm:p-8 lg:p-12 overflow-hidden"
             >
-              {/* ĐÃ BỎ RENDER HÌNH ẢNH <motion.img ... /> */}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-100/80 via-white to-fuchsia-100/70 opacity-80"></div>
 
-              {/* Gradient nền cho từng slide, tăng opacity khi không có ảnh */}
-              <motion.div
-                className={`absolute inset-0 ${slide.theme.bgColor}`}
-                style={{ zIndex: 2 }} // zIndex này giờ là nền chính của slide
-                initial={{ opacity: 0 }}
-                animate={{ opacity: selectedIndex === index ? 0.9 : 0 }} // Tăng opacity để gradient rõ hơn
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+              {/* Các chi tiết trang trí */}
+              <FloatingShape
+                className="w-16 h-16 bg-purple-300/50 rounded-full top-[15%] left-[10%] "
+                delay={0.2}
+                yRange={["0%", "-10%", "0%"]}
+              />
+              <FloatingShape
+                className="w-8 h-8 bg-indigo-300/50 rounded-lg top-[20%] right-[15%] "
+                delay={0.5}
+                duration={7}
+                rotateRange={[0, 90, 0]}
+              />
+              <FloatingShape
+                className="w-12 h-12 border-2 border-purple-400/60 rounded-full bottom-[15%] left-[20%]"
+                delay={0.8}
+                yRange={["0%", "12%", "0%"]}
+              />
+              <FloatingShape
+                className="w-10 h-10 bg-fuchsia-300/50 rounded-xl bottom-[25%] right-[10%]"
+                delay={0.4}
+                duration={6}
+                rotateRange={[0, -80, 0]}
+              />
+              <FloatingShape
+                className="hidden md:block w-24 h-1 bg-purple-400/70 top-[50%] left-[5%]"
+                delay={1}
+                yRange={["0%", "5%", "0%"]}
+              />
+              <FloatingShape
+                className="hidden md:block w-1 h-20 bg-indigo-400/70 bottom-[10%] right-[5%]"
+                delay={0.6}
+                yRange={["0%", "-7%", "0%"]}
               />
 
-              {/* Các element SVG trang trí */}
-              {selectedIndex === index && (
-                <>
-                  <motion.svg /* Blob 1 */
-                    width="250"
-                    height="250"
-                    viewBox="0 0 250 250"
-                    fill="none"
-                    className="absolute left-[-80px] top-[-80px] opacity-80"
-                    style={{ zIndex: 3 }}
-                    animate={{
-                      y: [0, -20, 10, 0],
-                      rotate: [0, 10, -5, 0],
-                      scale: [1, 1.05, 0.95, 1],
-                    }}
-                    transition={{
-                      duration: 12,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
+              <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-8 md:gap-12 relative z-10">
+                {/* Cột Text */}
+                <motion.div
+                  className="text-center lg:text-left"
+                  key={`text-${slide.id}`} // Key để AnimatePresence hoạt động đúng khi slide thay đổi
+                  variants={textContainerVariants}
+                  initial="hidden"
+                  animate={selectedIndex === index ? "visible" : "hidden"}
+                >
+                  <motion.h1
+                    variants={textItemVariants}
+                    className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-purple-800 mb-6 font-be-vietnam-pro leading-tight"
+                    style={{ fontFamily: "Be Vietnam Pro", fontWeight: 800 }}
                   >
-                    <ellipse
-                      cx="125"
-                      cy="125"
-                      rx="110"
-                      ry="90"
-                      fill={slide.theme.blob1Color}
-                    />
-                  </motion.svg>
-                  <motion.svg /* Blob 2 */
-                    width="150"
-                    height="150"
-                    viewBox="0 0 150 150"
-                    fill="none"
-                    className="absolute right-[-50px] bottom-[-50px] opacity-70"
-                    style={{ zIndex: 3 }}
-                    animate={{
-                      y: [0, 25, -10, 0],
-                      rotate: [0, -12, 8, 0],
-                      scale: [1, 0.9, 1.1, 1],
-                    }}
-                    transition={{
-                      duration: 10,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 0.5,
-                    }}
+                    {slide.headline}
+                  </motion.h1>
+                  <motion.p
+                    variants={textItemVariants}
+                    className="text-lg md:text-xl text-purple-700/90 mb-8 font-inter leading-relaxed"
                   >
-                    <circle
-                      cx="75"
-                      cy="75"
-                      r="70"
-                      fill={slide.theme.blob2Color}
-                    />
-                  </motion.svg>
-                  <motion.div /* Square shape */
-                    className="absolute left-1/2 top-16 -translate-x-1/2 w-20 h-20 rounded-2xl opacity-50"
-                    style={{
-                      zIndex: 3,
-                      backgroundColor: slide.theme.squareColor,
-                    }}
-                    animate={{
-                      x: [0, 10, -10, 0],
-                      rotate: [0, 90, 180, 270, 360],
-                    }}
-                    transition={{
-                      duration: 15,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  />
-                  <motion.div /* Animated Dots */
-                    className="absolute right-8 sm:right-12 top-10 sm:top-12 flex flex-col gap-2.5 opacity-70"
-                    style={{ zIndex: 3 }}
-                    initial={{ y: -20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.8, ease: "easeOut", delay: 1.2 }}
-                  >
-                    <span
-                      className="block w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: slide.theme.dotColors[0] }}
-                    />
-                    <span
-                      className="block w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: slide.theme.dotColors[1] }}
-                    />
-                    <span
-                      className="block w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: slide.theme.dotColors[2] }}
-                    />
+                    {slide.description}
+                  </motion.p>
+                  <motion.div variants={textItemVariants}>
+                    <motion.a
+                      href={slide.ctaLink}
+                      className="inline-block px-8 py-3.5 md:px-10 md:py-4 text-base md:text-lg font-semibold text-white bg-gradient-to-r from-purple-600 via-indigo-500 to-fuchsia-500 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                      whileHover={{
+                        y: -3,
+                        boxShadow: "0px 10px 20px rgba(128, 90, 213, 0.3)",
+                      }} // Thêm hiệu ứng đổ bóng khi hover
+                    >
+                      {slide.ctaText}
+                    </motion.a>
                   </motion.div>
-                </>
-              )}
+                </motion.div>
 
-              {/* Content */}
-              <div
-                className={`relative z-10 max-w-xl lg:max-w-3xl text-center ${slide.theme.textColor} flex flex-col items-center justify-center font-inter`}
-                ref={(el) => {
-                  contentRefs.current[index] = el;
-                }}
-              >
-                <h1 className="carousel-title text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-4 drop-shadow-xl font-be-vietnam-pro">
-                  {slide.title}
-                </h1>
-                <h2 className="carousel-subtitle text-xl sm:text-2xl lg:text-3xl font-semibold mb-6 drop-shadow-lg font-be-vietnam-pro">
-                  {slide.subtitle}
-                </h2>
-                <p className="carousel-description text-base sm:text-lg lg:text-xl mb-10 leading-relaxed max-w-md lg:max-w-xl drop-shadow-md">
-                  {slide.description}
-                </p>
-                <div className="carousel-cta-button">
-                  <a
-                    href={slide.ctaLink}
-                    className={`inline-flex items-center justify-center h-14 sm:h-16 px-8 sm:px-10 text-lg sm:text-xl font-bold rounded-full shadow-lg 
-                                 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-opacity-50
-                                 border-none text-white relative overflow-hidden group
-                                 ${slide.theme.ctaGradient} focus:ring-white/50`}
-                    style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.3)" }}
-                  >
-                    <span className="relative z-10">{slide.ctaText}</span>
-                    <span className="absolute inset-0 block bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-full" />
-                    <span className="absolute inset-0 block bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 -translate-x-full group-hover:animate-shine rounded-full" />
-                  </a>
-                </div>
+                {/* Cột Hình Ảnh */}
+                <motion.div
+                  className="flex justify-center items-center"
+                  key={`image-container-${slide.id}`} // Key riêng cho container ảnh
+                >
+                  <motion.img
+                    key={`image-${slide.id}`} // Key để Framer Motion nhận diện thay đổi ảnh
+                    src={slide.imageUrl}
+                    alt={slide.altText}
+                    className="w-full max-w-lg rounded-3xl shadow-2xl object-cover h-[300px] md:h-[400px] lg:h-[500px]"
+                    variants={imageVariants}
+                    initial="initial"
+                    animate={combinedImageAnimate(index)} // Kết hợp animate và float
+                    exit="initial" // Để ảnh cũ biến mất khi chuyển slide
+                  />
+                </motion.div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Navigation Buttons */}
+      {/* Nút điều hướng */}
       <button
-        onClick={useCallback(
-          () => emblaApi && emblaApi.scrollPrev(),
-          [emblaApi]
-        )}
-        className="absolute top-1/2 left-3 sm:left-4 transform -translate-y-1/2 z-20 hidden sm:flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full
-                   bg-white/25 backdrop-blur-md text-white shadow-xl
-                   hover:bg-white/35 hover:scale-110 hover:shadow-2xl transition-all duration-300 border-none focus:outline-none group cursor-pointer"
-        aria-label="Previous slide"
-        type="button"
+        onClick={scrollPrev}
+        className="absolute top-1/2 left-4 md:left-8 transform -translate-y-1/2 z-20 p-3 bg-white/70 hover:bg-white rounded-full shadow-lg transition-all duration-300 focus:outline-none group cursor-pointer"
+        aria-label="Slide trước"
       >
-        <svg
-          width="28"
-          height="28"
-          fill="none"
-          viewBox="0 0 24 24"
-          className="group-hover:animate-bounce-x-left"
-        >
-          <path
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
+        <ChevronLeftIcon className="w-6 h-6 text-purple-600 group-hover:text-purple-800" />
       </button>
       <button
-        onClick={useCallback(
-          () => emblaApi && emblaApi.scrollNext(),
-          [emblaApi]
-        )}
-        className="absolute top-1/2 right-3 sm:right-4 transform -translate-y-1/2 z-20 hidden sm:flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full
-                   bg-white/25 backdrop-blur-md text-white shadow-xl
-                   hover:bg-white/35 hover:scale-110 hover:shadow-2xl transition-all duration-300 border-none focus:outline-none group cursor-pointer"
-        aria-label="Next slide"
-        type="button"
+        onClick={scrollNext}
+        className="absolute top-1/2 right-4 md:right-8 transform -translate-y-1/2 z-20 p-3 bg-white/70 hover:bg-white rounded-full shadow-lg transition-all duration-300 focus:outline-none group cursor-pointer"
+        aria-label="Slide tiếp theo"
       >
-        <svg
-          width="28"
-          height="28"
-          fill="none"
-          viewBox="0 0 24 24"
-          className="group-hover:animate-bounce-x-right"
-        >
-          <path
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
+        <ChevronRightIcon className="w-6 h-6 text-purple-600 group-hover:text-purple-800" />
       </button>
 
-      {/* Dots Navigation - sử dụng !mx-3 cho từng button */}
-      <div className="absolute bottom-6 sm:bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex">
+      {/* Chấm điều hướng */}
+      <div className="absolute bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-20 flex !space-x-5">
         {slidesData.map((_, index) => (
           <button
             key={index}
-            className={`w-3 h-3 !mx-3 rounded-full transition-all duration-300 ease-out cursor-pointer shadow-md
+            onClick={() => emblaApi && emblaApi.scrollTo(index)}
+            className={`w-3 h-3 rounded-full transition-all duration-300 ease-out shadow-md
                         ${
                           index === selectedIndex
-                            ? "bg-white scale-125 ring-2 ring-white/50"
-                            : "bg-white/60 hover:bg-white/80"
+                            ? "bg-purple-600 scale-125"
+                            : "bg-purple-300/70 hover:bg-purple-400"
                         }`}
-            onClick={() => emblaApi && emblaApi.scrollTo(index)}
-            aria-label={`Go to slide ${index + 1}`}
+            aria-label={`Đi đến slide ${index + 1}`}
           />
         ))}
       </div>
-
-      <style>{`
-        @keyframes shine {
-          0% { transform: translateX(-120%) skewX(-20deg); opacity: 0.5; }
-          30% { transform: translateX(-100%) skewX(-20deg); opacity: 0.7; }
-          100% { transform: translateX(120%) skewX(-20deg); opacity: 0; }
-        }
-        .group:hover .animate-shine { animation: shine 1.0s forwards ease-in-out; }
-
-        @keyframes bounce-x-left {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(-6px); }
-        }
-        @keyframes bounce-x-right {
-          0%, 100% { transform: translateX(0); }
-          50% { transform: translateX(6px); }
-        }
-        .group-hover\\:animate-bounce-x-left { animation: bounce-x-left 0.7s ease-in-out infinite alternate; }
-        .group-hover\\:animate-bounce-x-right { animation: bounce-x-right 0.7s ease-in-out infinite alternate; }
-        
-        /* Nhắc nhở: Đảm bảo bạn đã định nghĩa font-be-vietnam-pro và font-inter trong tailwind.config.js và import chúng. */
-      `}</style>
     </div>
   );
 };
 
-export default HeroCarousel;
+export default NewHeroCarousel;

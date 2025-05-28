@@ -483,7 +483,7 @@ const QuestionList: React.FC<QuestionProps> = ({
   const groupedQuestions = questions.reduce<Record<string, Question[]>>(
     (acc, q) => {
       // Defensive: handle missing or invalid questionType
-      const type = (q.questionType ? q.questionType.toLowerCase() : "unknown");
+      const type = q.questionType ? q.questionType.toLowerCase() : "unknown";
       if (!acc[type]) acc[type] = [];
       acc[type].push(q);
       return acc;
@@ -626,7 +626,11 @@ const QuestionList: React.FC<QuestionProps> = ({
               <div key={type} className="space-y-4">
                 {questionInstructions[type]}
                 {group
-                  .filter((q) => typeof q.question === "string" && q.question.trim() !== "{{paragraph}}")
+                  .filter(
+                    (q) =>
+                      typeof q.question === "string" &&
+                      q.question.trim() !== "{{paragraph}}"
+                  )
                   .map((q) => (
                     <motion.div
                       key={q.id}

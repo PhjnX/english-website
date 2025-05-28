@@ -75,7 +75,10 @@ const ReadingTestPage: React.FC = () => {
             image: part.image,
             titleDescription: part.titleDescription,
             headerContent:
-              part.headerContent || part.titleDescription || part.headerTitle || "",
+              part.headerContent ||
+              part.titleDescription ||
+              part.headerTitle ||
+              "",
             groups: (part.groups || []).map((group: any) => ({
               id: group.id,
               questionType: group.questionType,

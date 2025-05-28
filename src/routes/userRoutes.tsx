@@ -10,7 +10,6 @@ import ExercisePage from "../pages/client-users/Exercise";
 
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
-const AboutPage = lazy(() => import("../pages/client-users/AboutPage"));
 const PracticePage = lazy(() => import("../pages/client-users/Lessons"));
 
 export const userRoutes = [
@@ -19,7 +18,6 @@ export const userRoutes = [
     element: ClientUserLayout,
     children: [
       { path: "", element: HomePage },
-      { path: "about", element: AboutPage },
       {
         path: "assessment",
         element: ProtectedRoute,

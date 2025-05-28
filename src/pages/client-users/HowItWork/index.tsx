@@ -1,161 +1,308 @@
 // src/components/sections/HowItWorksSection.tsx
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import {
   UserPlusIcon,
-  DocumentMagnifyingGlassIcon,
-  AdjustmentsHorizontalIcon,
+  ClipboardDocumentCheckIcon,
+  AcademicCapIcon,
   PencilSquareIcon,
-  CheckCircleIcon,
+  CheckBadgeIcon,
 } from "@heroicons/react/24/outline";
 
-interface StepItemProps {
-  stepNumber: string;
+interface StepItem {
   icon: React.ElementType;
   title: string;
   description: string;
-  isLast?: boolean;
-  index: number;
 }
 
-const stepsData: Omit<StepItemProps, "index" | "isLast">[] = [
+const stepsData: StepItem[] = [
   {
-    stepNumber: "01",
     icon: UserPlusIcon,
-    title: "Đăng Ký Nhanh Chóng",
+    title: "Đăng Ký Tài Khoản",
     description:
-      "Tạo tài khoản miễn phí chỉ trong vài bước đơn giản để bắt đầu hành trình chinh phục IELTS.",
+      "Tạo tài khoản Readify miễn phí chỉ trong vài giây để mở khóa toàn bộ tài nguyên học tập.",
   },
   {
-    stepNumber: "02",
-    icon: DocumentMagnifyingGlassIcon,
+    icon: ClipboardDocumentCheckIcon,
     title: "Kiểm Tra Trình Độ",
     description:
-      "Thực hiện bài kiểm tra đầu vào để hệ thống đánh giá năng lực và xây dựng lộ trình phù hợp.",
+      "Hoàn thành bài kiểm tra đầu vào để hệ thống phân tích và đề xuất lộ trình phù hợp nhất với bạn.",
   },
   {
-    stepNumber: "03",
-    icon: AdjustmentsHorizontalIcon,
+    icon: AcademicCapIcon,
     title: "Học Theo Lộ Trình",
     description:
-      "Tiếp cận các bài học, bài tập được cá nhân hóa, tập trung vào điểm yếu cần cải thiện.",
+      "Theo sát kế hoạch học tập được cá nhân hóa, bao gồm bài giảng, từ vựng và các dạng bài tập trọng tâm.",
   },
   {
-    stepNumber: "04",
     icon: PencilSquareIcon,
     title: "Luyện Tập Chuyên Sâu",
     description:
-      "Thực hành không giới hạn với kho đề thi đa dạng và các dạng bài tập kỹ năng phong phú.",
+      "Thực hành không giới hạn với kho đề thi thử và bài tập đa dạng, bám sát cấu trúc thi thật.",
   },
   {
-    stepNumber: "05",
-    icon: CheckCircleIcon,
+    icon: CheckBadgeIcon,
     title: "Chinh Phục Mục Tiêu",
     description:
-      "Theo dõi sát sao tiến độ, nhận phản hồi chi tiết và tự tin đạt điểm số IELTS Reading mơ ước.",
+      "Theo dõi tiến độ, nhận phản hồi chi tiết và tự tin đạt được điểm số IELTS Reading bạn mơ ước.",
   },
 ];
 
-const stepVariants = {
-  hidden: { opacity: 0, x: -50 },
-  visible: (index: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: {
-      delay: index * 0.2,
-      duration: 0.7,
-      ease: "easeOut",
-    },
-  }),
+const FloatingShape: React.FC<{
+  className: string;
+  initial?: object;
+  animate?: object;
+  transition?: object;
+  sizeClass: string;
+}> = ({ className, initial, animate, transition, sizeClass }) => {
+  const { scrollYProgress } = useScroll();
+  const y = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ["0%", `${(Math.random() - 0.5) * 100}%`]
+  );
+
+  return (
+    <motion.div
+      className={`absolute rounded-full filter blur-3xl opacity-20 md:opacity-30 ${sizeClass} ${className}`}
+      initial={{ ...initial, opacity: 0, scale: 0.5 }}
+      animate={{
+        ...animate,
+        opacity: 1,
+        scale: 1,
+        transition: { duration: 1.5, ...transition },
+      }}
+      style={{ y }}
+    />
+  );
 };
 
-const StepCard: React.FC<StepItemProps> = ({
-  stepNumber,
+const StepCard: React.FC<StepItem & { index: number; totalSteps: number }> = ({
   icon: Icon,
   title,
   description,
-  isLast,
   index,
+  totalSteps,
 }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: cardRef,
+    offset: ["start end", "center center"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1.05, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7], [0, 1, 1]);
+  const y = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
+
   return (
     <motion.div
-      className="flex items-start group"
-      variants={stepVariants}
-      custom={index}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.4 }}
+      ref={cardRef}
+      className="flex items-start space-x-4 md:space-x-6 group"
+      style={{ scale, opacity, y }}
     >
-      <div className="flex flex-col items-center mr-6 md:mr-8">
-        <div className="relative z-10 w-14 h-14 md:w-16 md:h-16 flex items-center justify-center bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold text-xl md:text-2xl rounded-full shadow-lg group-hover:scale-110 transition-transform duration-300">
-          {stepNumber}
-        </div>
-        {!isLast && (
-          <div className="mt-2 w-1 h-24 md:h-32 bg-gradient-to-b from-red-500/50 via-orange-400/30 to-amber-300/10 rounded-full" />
+      <div className="flex flex-col items-center">
+        <motion.div
+          className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-gradient-to-br from-purple-600 via-indigo-500 to-fuchsia-500 text-white font-bold text-xl md:text-2xl rounded-full shadow-lg 
+                       group-hover:scale-110 group-hover:shadow-purple-500/40 transition-all duration-300"
+          whileHover={{ boxShadow: "0 0 20px rgba(192, 132, 252, 0.7)" }}
+        >
+          {index + 1}
+        </motion.div>
+        {index < totalSteps - 1 && (
+          <motion.div
+            className="mt-3 w-1 flex-grow bg-gradient-to-b from-purple-300/70 via-indigo-300/50 to-transparent"
+            style={{ minHeight: "80px" }}
+            initial={{ height: 0 }}
+            animate={
+              scrollYProgress && scrollYProgress.get() > 0.2
+                ? { height: "100%" }
+                : { height: 0 }
+            }
+            transition={{ duration: 0.5, ease: "circOut", delay: 0.2 }}
+          />
         )}
       </div>
-      <div className="pt-1 md:pt-2 group-hover:bg-white/30 p-4 rounded-lg transition-colors duration-300 backdrop-blur-sm group-hover:shadow-lg">
-        <div className="flex items-center mb-2">
-          <Icon className="w-6 h-6 text-orange-600 mr-3 group-hover:text-red-600 transition-colors duration-300" />
-          <h3 className="text-lg md:text-xl font-bold text-gray-800 font-be-vietnam-pro">
+      <motion.div
+        className="flex-1 bg-white/80 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-purple-200/50 
+                   group-hover:shadow-2xl group-hover:border-purple-300 transition-all duration-300"
+        whileHover={{ y: -5, backgroundColor: "rgba(255,255,255,0.95)" }}
+        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      >
+        <div className="flex items-center mb-3">
+          <Icon className="w-7 h-7 md:w-8 md:h-8 text-purple-600 mr-3 group-hover:text-indigo-600 transition-colors" />
+          {/* SỬA FONT TRỰC TIẾP CHO TIÊU ĐỀ CARD */}
+          <h3
+            className="text-lg md:text-xl font-bold text-purple-800"
+            style={{ fontFamily: '"Be Vietnam Pro", sans-serif' }} // Áp dụng font trực tiếp
+          >
             {title}
           </h3>
         </div>
-        <p className="text-sm md:text-base text-gray-600 font-inter leading-relaxed">
+        {/* SỬA FONT TRỰC TIẾP CHO MÔ TẢ CARD */}
+        <p
+          className="text-sm md:text-base text-slate-600 leading-relaxed"
+          style={{ fontFamily: '"Inter", sans-serif' }} // Áp dụng font trực tiếp
+        >
           {description}
         </p>
-      </div>
+      </motion.div>
     </motion.div>
   );
 };
 
 const HowItWorksSection: React.FC = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const titleContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    },
+  };
+  const titleWordVariants = {
+    hidden: { opacity: 0, y: -20, filter: "blur(5px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { type: "spring", damping: 15, stiffness: 100 },
+    },
+  };
+
+  // Định nghĩa font family cho các phần tử text cần sửa
+  const beVietnamProFont = { fontFamily: '"Be Vietnam Pro", sans-serif' };
+  const interFont = { fontFamily: '"Inter", sans-serif' };
+
   return (
-    <section className="py-16 md:py-24 bg-white relative overflow-hidden">
-      {/* Subtle background decorative shapes */}
-      <div
-        className="absolute top-0 left-0 w-64 h-64 bg-amber-100/30 rounded-full blur-3xl opacity-50 -translate-x-1/2 -translate-y-1/2"
-        aria-hidden="true"
-      ></div>
-      <div
-        className="absolute bottom-0 right-0 w-72 h-72 bg-red-100/30 rounded-full blur-3xl opacity-50 translate-x-1/2 translate-y-1/2"
-        aria-hidden="true"
-      ></div>
+    <section
+      ref={sectionRef}
+      className="py-16 md:py-24 bg-gradient-to-b from-indigo-50 via-purple-50 to-white relative overflow-hidden"
+    >
+      <FloatingShape
+        className="bg-purple-300/80 -top-1/4 -left-1/4 animate-pulse-slower"
+        sizeClass="w-[400px] h-[400px] md:w-[600px] md:h-[600px]"
+        transition={{ duration: 40, repeat: Infinity, repeatType: "mirror" }}
+      />
+      <FloatingShape
+        className="bg-indigo-300/70 -bottom-1/3 -right-1/4 animate-pulse-slow"
+        sizeClass="w-[350px] h-[350px] md:w-[550px] md:h-[550px]"
+        transition={{
+          duration: 50,
+          repeat: Infinity,
+          repeatType: "mirror",
+          delay: 2,
+        }}
+      />
+      <FloatingShape
+        className="hidden lg:block bg-fuchsia-300/60 top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2"
+        sizeClass="w-[300px] h-[300px] md:w-[450px] md:h-[450px]"
+        transition={{
+          duration: 45,
+          repeat: Infinity,
+          repeatType: "mirror",
+          delay: 1,
+        }}
+      />
+      <FloatingShape
+        className="hidden md:block bg-purple-200/50 bottom-1/4 left-1/3 -translate-x-1/2 translate-y-1/2"
+        sizeClass="w-[250px] h-[250px] md:w-[400px] md:h-[400px]"
+        transition={{
+          duration: 55,
+          repeat: Infinity,
+          repeatType: "mirror",
+          delay: 3,
+        }}
+      />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          className="text-center mb-16 md:mb-20 lg:mb-24"
+          initial="hidden"
+          whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          variants={titleContainerVariants}
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-center mb-4 text-gray-800 font-be-vietnam-pro">
-            Bắt Đầu{" "}
-            <span className="bg-gradient-to-r from-red-600 via-orange-500 to-amber-500 bg-clip-text text-transparent">
-              Hành Trình
-            </span>{" "}
-            Của Bạn
-          </h2>
-          <p className="text-base sm:text-lg text-center text-gray-600 font-inter max-w-2xl mx-auto mb-12 md:mb-16 lg:mb-20">
-            Chỉ với vài bước đơn giản, bạn đã sẵn sàng để nâng cao kỹ năng đọc
-            hiểu IELTS và tiến gần hơn đến mục tiêu của mình.
-          </p>
+          <div className="inline-block">
+            {"5 Bước Đơn Giản Để".split(" ").map((word, index) => (
+              <motion.span
+                key={index}
+                variants={titleWordVariants}
+                className="inline-block mr-2 md:mr-3 text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-800"
+                style={beVietnamProFont}
+              >
+                {word}
+              </motion.span>
+            ))}
+          </div>
+          <br />
+          <div className="inline-block mt-1 md:mt-2">
+            {"Chinh Phục IELTS Reading".split(" ").map((word, index) => (
+              <motion.span
+                key={index}
+                variants={titleWordVariants}
+                className={`inline-block mr-2 md:mr-3 text-4xl md:text-5xl lg:text-6xl font-extrabold \
+        ${
+          ["IELTS", "Reading"].includes(word)
+            ? "bg-gradient-to-r from-purple-600 via-indigo-500 to-fuchsia-500 bg-clip-text text-transparent"
+            : "text-slate-800"
+        }`}
+                style={beVietnamProFont}
+              >
+                {word}
+              </motion.span>
+            ))}
+          </div>
+          <motion.p
+            className="!mt-5 text-lg md:text-xl text-slate-600 max-w-xl mx-auto"
+            style={interFont}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.7 }}
+          >
+            Tại Readify, chúng tôi đơn giản hóa lộ trình học của bạn qua các
+            bước hiệu quả, dễ dàng theo dõi và thực hiện.
+          </motion.p>
         </motion.div>
 
-        <div className="max-w-2xl lg:max-w-3xl mx-auto space-y-10 md:space-y-12">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto space-y-8 md:space-y-10">
           {stepsData.map((step, index) => (
             <StepCard
-              key={step.stepNumber}
-              stepNumber={step.stepNumber}
-              icon={step.icon}
-              title={step.title}
-              description={step.description}
-              isLast={index === stepsData.length - 1}
+              key={step.title}
+              {...step}
               index={index}
+              totalSteps={stepsData.length}
             />
           ))}
         </div>
       </div>
+      <style>{`
+        // Bỏ comment style này nếu bạn dùng animate-pulse-... từ Tailwind, nếu không thì không cần
+        @keyframes pulse-slow {
+          0%,
+          100% {
+            opacity: 0.6;
+            transform: scale(1) rotate(0deg);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.1) rotate(8deg);
+          }
+        }
+        // .animate-pulse-slow { animation: pulse-slow 20s infinite alternate; } // Nếu không dùng class này thì có thể xóa
+
+        @keyframes pulse-slower {
+          0%,
+          100% {
+            opacity: 0.5;
+            transform: scale(1) rotate(0deg);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.15) rotate(-8deg);
+          }
+        }
+        // .animate-pulse-slower { animation: pulse-slower 25s infinite alternate; animation-delay: 2.5s;} // Nếu không dùng class này thì có thể xóa
+      `}</style>
     </section>
   );
 };
