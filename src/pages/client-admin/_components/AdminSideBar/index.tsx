@@ -66,7 +66,6 @@ export default function AdminSidebar({ collapsed }: SidebarProps) {
       label: "Tài khoản",
       icon: <UserOutlined />,
       children: [
-        { key: "/admin/your-course", label: "Khoá học đã tạo" },
         { key: "/admin/profile", label: "Thông tin cá nhân" },
         { key: "/admin/password", label: "Cập nhật mật khẩu" },
       ],
@@ -98,12 +97,12 @@ export default function AdminSidebar({ collapsed }: SidebarProps) {
     >
       <div className="relative px-4">
         <div className="h-16 flex items-center justify-center">
-          <img
-            src={logo}
-            alt="Logo"
-            className={`transition-all duration-300 object-contain 
-              ${collapsed ? "w-10 h-10" : "w-24 md:w-28 lg:w-32"}`}
-          />
+        <img
+  src={logo}
+  alt="Logo"
+  className={`transition-all duration-300 object-contain 
+    max-h-20 ${collapsed ? "max-w-[48px]" : "max-w-[160px]"}`}
+/>
         </div>
       </div>
 

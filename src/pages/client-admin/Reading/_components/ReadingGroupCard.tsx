@@ -5,9 +5,10 @@ import ReadingQuestionTable from "./ReadingQuestionTable";
 
 interface Question {
   id: number;
-  questionText: string;
-  correctAnswer?: string;
-  explanation?: string;
+  question_text: string;
+  correct_answer: string;
+  explanation: string;
+  order_num?: number;
 }
 
 interface Group {
@@ -65,7 +66,8 @@ const ReadingGroupCard: React.FC<Props> = ({
           <Button
             type="link"
             icon={<PlusOutlined />}
-            onClick={() => onAddQuestion(group.id, type)}
+            // !!! Sửa tại đây: ép id thành số !!!
+            onClick={() => onAddQuestion(Number(group.id), type)}
           >
             Thêm câu
           </Button>

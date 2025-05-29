@@ -3,20 +3,24 @@ import { Card, Button, Popconfirm, Space } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import ReadingGroupCard from "./ReadingGroupCard";
 
+// Interface Question và Group giữ nguyên như bạn đã cung cấp
 interface Question {
   id: number;
-  questionText: string;
-  correctAnswer: string;
+  question_text: string;
+  correct_answer: string;
   explanation: string;
+  order_num?: number;
+  [key: string]: any; // Cho phép các thuộc tính khác nếu cần
 }
 
 interface Group {
   id: number;
   heading: string;
   type: string;
-  startNumber: number;
-  endNumber: number;
+  startNumber: number; // Đảm bảo kiểu dữ liệu là number
+  endNumber: number;   // Đảm bảo kiểu dữ liệu là number
   questions: Question[];
+  [key: string]: any; // Cho phép các thuộc tính khác nếu cần
 }
 
 interface Part {
@@ -31,10 +35,8 @@ interface Props {
   onEditPart: (part: Part) => void;
   onDeletePart: (partId: number) => void;
   onAddGroup: (partId: number) => void;
-
   onEditGroup: (group: Group) => void;
   onDeleteGroup: (groupId: number) => void;
-
   onAddQuestion: (groupId: number, type: string) => void;
   onEditQuestion: (question: Question, type: string) => void;
   onDeleteQuestion: (questionId: number) => void;
@@ -51,16 +53,23 @@ const ReadingPartCard: React.FC<Props> = ({
   onEditQuestion,
   onDeleteQuestion,
 }) => {
-  // Map reading_group sang groups chuẩn hóa field thành "type"
-  const groups = part.reading_group
+  const groups: Group[] = part.reading_group
     ? part.reading_group
-        .filter((g: any) => !!g && (!!g.type || !!g.question_type))
+        .filter((g: any) => {
+          if (!g) return false;
+          // Chấp nhận một trong các tên trường: type, question_type (snake_case), hoặc questionType (camelCase)
+          return !!(g.type || g.question_type || g.questionType);
+        })
         .map((g: any) => ({
+          // Giữ lại các trường gốc từ g, nhưng ưu tiên các trường đã được chuẩn hóa bên dưới
           ...g,
-          type: g.type || g.question_type,
-          startNumber: g.start_number,
-          endNumber: g.end_number,
-          questions: g.reading_question,
+          id: g.id,
+          heading: g.heading,
+          // Chuẩn hóa tên trường và kiểu dữ liệu
+          type: String(g.type || g.question_type || g.questionType || "-"),
+          startNumber: Number(g.start_number || g.startNumber || 0), // Chuyển đổi sang Number, mặc định là 0 nếu không có
+          endNumber: Number(g.end_number || g.endNumber || 0),     // Chuyển đổi sang Number, mặc định là 0 nếu không có
+          questions: (g.reading_question || g.questions || []) as Question[],
         }))
     : [];
 
