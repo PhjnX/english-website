@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Paragraph from "./Paragraph";
-import Question from "./Question";
+import QuestionList from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
 import testGif from "../../../assets/testGif.gif";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
 import { getAllAssessments } from "../../../apis/assessment-api";
+import { Assessment, Part, Group } from "./reading";
 
 export interface Answers {
   [key: number]: string;
@@ -20,7 +21,7 @@ const tabColors = [
 
 const ReadingTestPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60 * 60);
-  const [answers, setAnswers] = useState<Answers>({});
+  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [highlightedSentence, setHighlightedSentence] = useState<string | null>(
     null
@@ -28,13 +29,22 @@ const ReadingTestPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeKey, setActiveKey] = useState("1");
   const [prevKey, setPrevKey] = useState("1");
-  const [parts, setParts] = useState<any[]>([]);
+  const [parts, setParts] = useState<Part[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadData = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(loadData);
+    setIsLoading(true);
+    getAllAssessments().then((all: Assessment[]) => {
+      const data = all && all.length > 0 ? all[0] : null;
+      if (data && data.parts) {
+        setParts(data.parts);
+        setActiveKey(data.parts[0]?.id?.toString() || "1");
+      } else {
+        setParts([]);
+      }
+      setIsLoading(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -57,92 +67,36 @@ const ReadingTestPage: React.FC = () => {
     }
   }, [timeLeft]);
 
-  useEffect(() => {
-    // Fetch assessment data (get all, pick the first)
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const all = await getAllAssessments();
-        // Pick the first assessment (or you can pick by id/criteria)
-        const data = all && all.length > 0 ? all[0] : null;
-        if (data && data.parts) {
-          // Map backend structure to expected frontend structure
-          const mappedParts = data.parts.map((part: any) => ({
-            id: part.id,
-            order: part.order,
-            title: part.title,
-            passage: part.content || part.passage || "",
-            image: part.image,
-            titleDescription: part.titleDescription,
-            headerContent:
-              part.headerContent ||
-              part.titleDescription ||
-              part.headerTitle ||
-              "",
-            groups: (part.groups || []).map((group: any) => ({
-              id: group.id,
-              questionType: group.questionType,
-              heading: group.heading,
-              startNumber: group.startNumber,
-              endNumber: group.endNumber,
-              questions: (group.questions || []).map((q: any) => ({
-                id: q.id,
-                question: q.questionText || q.question || "",
-                questionType:
-                  q.type ||
-                  q.questionType ||
-                  group.questionType ||
-                  "multiple-choice",
-                options: q.options
-                  ? Array.isArray(q.options)
-                    ? q.options
-                    : JSON.parse(q.options)
-                  : [],
-                correctAnswer: q.correctAnswer || "",
-                explanation: q.explanation || "",
-                highlightSentence: q.highlightSentence || "",
-                sectionTitle: q.sectionTitle,
-                subSectionTitle: q.subSectionTitle,
-              })),
-            })),
-          }));
-          setParts(mappedParts);
-          setActiveKey(mappedParts[0]?.id?.toString() || "1");
-        } else {
-          setParts([]);
-        }
-      } catch (err) {
-        setParts([]);
-      }
-      setIsLoading(false);
-    };
-    fetchData();
-  }, []);
-
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s < 10 ? `0${s}` : s}`;
   };
 
-  const handleAnswer = (questionId: number, option: string) => {
-    if (!isSubmitted) {
-      setAnswers((prev) => ({ ...prev, [questionId]: option }));
-    }
+  const handleAnswer = (id: number, answer: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [id]: answer,
+    }));
   };
 
   const calculateScore = () => {
     let score = 0;
-    // parts.forEach((part) => {
-    //   part.questions.forEach((q) => {
-    //     if (
-    //       answers[q.id]?.trim().toLowerCase() ===
-    //       q.correctAnswer.trim().toLowerCase()
-    //     ) {
-    //       score++;
-    //     }
-    //   });
-    // });
+    parts.forEach((part) => {
+      part.groups.forEach((group) => {
+        group.questions.forEach((q) => {
+          const correctAnswers = Array.isArray(q.correctAnswer)
+            ? q.correctAnswer.map((a) => a.trim().toLowerCase())
+            : [q.correctAnswer.trim().toLowerCase()];
+          if (
+            answers[q.id] &&
+            correctAnswers.includes(answers[q.id].trim().toLowerCase())
+          ) {
+            score++;
+          }
+        });
+      });
+    });
     return score;
   };
 
@@ -175,7 +129,7 @@ const ReadingTestPage: React.FC = () => {
         band,
         timeSpent: 60 * 60 - timeLeft,
         isSubmitted: true,
-        questions: [], // parts.flatMap((p) => p.questions),
+        questions: [],
       },
     });
   };
@@ -186,33 +140,31 @@ const ReadingTestPage: React.FC = () => {
   };
 
   // Custom Tab UI
-  const renderTabs = () => {
-    return (
-      <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4">
-        {parts.map((part: any) => (
-          <motion.button
-            key={part.id}
-            onClick={() => handleTabChange(part.id.toString())}
-            className={`px-4 py-2 rounded-full font-semibold shadow transition-all duration-200 text-base md:text-lg focus:outline-none border-1 cursor-pointer
-              ${
-                activeKey === part.id.toString()
-                  ? "bg-gradient-to-r from-[#EC6F66] to-[#F3A183] !text-white border-black "
-                  : "bg-gradient-to-r from-gray-100 to-gray-50 !text-gray-700 border-gray-300  hover:border-[#EC6F66]"
-              }
-            `}
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.07 }}
-          >
-            Part {part.order || part.id}: {part.title}
-          </motion.button>
-        ))}
-      </div>
-    );
-  };
+  const renderTabs = () => (
+    <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4">
+      {parts.map((part: Part) => (
+        <motion.button
+          key={part.id}
+          onClick={() => handleTabChange(part.id.toString())}
+          className={`px-4 py-2 rounded-full font-semibold shadow transition-all duration-200 text-base md:text-lg focus:outline-none border-1 cursor-pointer
+            ${
+              activeKey === part.id.toString()
+                ? "bg-gradient-to-r from-[#EC6F66] to-[#F3A183] !text-white border-black "
+                : "bg-gradient-to-r from-gray-100 to-gray-50 !text-gray-700 border-gray-300  hover:border-[#EC6F66]"
+            }
+          `}
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.07 }}
+        >
+          Part {part.order || part.id}: {part.title}
+        </motion.button>
+      ))}
+    </div>
+  );
 
   return (
     <div className="p-0 w-full  h-screen flex flex-col overflow-hidden bg-gradient-to-br from-white to-orange-50 text-gray-800 font-inter">
-      {/* Header - Modern, pastel orange, glassmorphism, animated */}
+      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -301,7 +253,7 @@ const ReadingTestPage: React.FC = () => {
       {/* Tab Content */}
       <div className="flex-grow overflow-hidden px-0 md:px-6 pt-2">
         <AnimatePresence mode="wait">
-          {parts.map((part: any, idx: number) =>
+          {parts.map((part: Part, idx: number) =>
             activeKey === part.id.toString() ? (
               <motion.div
                 key={activeKey}
@@ -329,17 +281,18 @@ const ReadingTestPage: React.FC = () => {
                     className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-blue-200 w-full md:w-1/2"
                   >
                     <Paragraph
+                      title={part.title}
                       partId={part.id}
-                      passage={part.passage}
-                      image={part.image}
-                      titleDescription={part.titleDescription}
+                      passage={part.content || ""}
+                      image={undefined}
+                      titleDescription={part.titleDescription ?? ""}
                       highlightedSentence={
                         isSubmitted ? highlightedSentence : null
                       }
-                      headerContent={part.headerContent}
+                      headerContent={part.headerContent ?? ""}
                       setHighlightedSentence={setHighlightedSentence}
                       isLoading={isLoading}
-                      questionStart={part.groups?.[0]?.questions?.[0]?.id}
+                      questionStart={part.groups?.[0]?.questions?.[0]?.id || 0}
                       questionEnd={
                         part.groups &&
                         part.groups.length > 0 &&
@@ -349,7 +302,7 @@ const ReadingTestPage: React.FC = () => {
                               part.groups[part.groups.length - 1].questions
                                 .length - 1
                             ].id
-                          : undefined
+                          : 0
                       }
                     />
                   </motion.div>
@@ -361,18 +314,30 @@ const ReadingTestPage: React.FC = () => {
                     transition={{ duration: 0.4 }}
                     className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-green-200 w-full md:w-1/2"
                   >
-                    <Question
-                      questions={
-                        part.groups?.flatMap((g: any) => g.questions) || []
-                      }
-                      answers={answers}
-                      handleAnswer={handleAnswer}
-                      isSubmitted={isSubmitted}
-                      setHighlightedSentence={setHighlightedSentence}
-                      highlightedSentence={highlightedSentence}
-                      isLoading={isLoading}
-                      partId={part.id}
-                    />
+                    {/* Đặt log ở đây */}
+                    {(() => {
+                      const questionsOfPart =
+                        part.groups?.flatMap((g: any) => g.questions) || [];
+                      console.log(
+                        `Part "${part.title}" (id: ${part.id}) - Số câu hỏi: ${questionsOfPart.length}`,
+                        questionsOfPart
+                      );
+                      return (
+                        <QuestionList
+                          questions={
+                            part.groups?.flatMap((g: any) => g.questions) || []
+                          }
+                          answers={answers}
+                          handleAnswer={handleAnswer}
+                          isSubmitted={isSubmitted}
+                          setHighlightedSentence={setHighlightedSentence}
+                          highlightedSentence={highlightedSentence}
+                          isLoading={isLoading}
+                          partId={part.id}
+                          // groups={part.groups}
+                        />
+                      );
+                    })()}
                   </motion.div>
                 </div>
               </motion.div>
@@ -380,19 +345,6 @@ const ReadingTestPage: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Footer - Modern, pastel orange, glassmorphism, animated */}
-      <motion.footer
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, type: "spring", bounce: 0.3 }}
-        className="relative z-10 flex justify-center items-center px-4 md:px-10 py-5 bg-[#FFDCDC] backdrop-blur-md shadow-xl border-t border-orange-200 rounded-t-3xl gap-4 drop-shadow-lg"
-        style={{ boxShadow: "0 -8px 32px 0 rgba(255, 183, 94, 0.15)" }}
-      >
-        <span className="text-center text-sm md:text-base text-gray-600">
-          &copy; 2023 IELTS Reading Test. All rights reserved.
-        </span>
-      </motion.footer>
     </div>
   );
 };

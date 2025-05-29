@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 interface ParagraphProps {
+  title: string;
   partId: number;
   highlightedSentence: string | null;
   setHighlightedSentence: (text: string | null) => void;
@@ -14,7 +15,10 @@ interface ParagraphProps {
   headerContent: string;
 }
 
+
+
 const Paragraph: React.FC<ParagraphProps> = ({
+  title,
   partId,
   highlightedSentence,
   isLoading,
@@ -45,15 +49,9 @@ const Paragraph: React.FC<ParagraphProps> = ({
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-3xl font-extrabold text-gray-900 mb-2 text-center">
-        {titleDescription}
+        {title}
       </h2>
-      <p className="text-gray-700 italic mb-4">
-        You should spend about 20 minutes on{" "}
-        <span className="font-semibold">
-          Questions {questionStart}-{questionEnd}
-        </span>
-        , which are based on Reading Passage below.
-      </p>
+      <p className="text-gray-700 italic mb-4">{titleDescription}</p>
       {image && (
         <img
           src={image}
