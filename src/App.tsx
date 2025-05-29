@@ -1,5 +1,4 @@
-// src/App.tsx
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { BrowserRouter, Routes } from "react-router-dom";
 import { renderRoutes } from "./routes/renderRoutes";
 import { ToastContainer } from 'react-toastify';
@@ -9,7 +8,7 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<div>Đang tải trang...</div>}>
         <Routes>{renderRoutes()}</Routes>
-              <ToastContainer position="top-right" autoClose={3000} />
+              <ToastContainer position="top-right" autoClose={1800} />
       </Suspense>
     </BrowserRouter>
   );

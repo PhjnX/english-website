@@ -8,24 +8,38 @@ import {
   Modal,
   Form,
   Input,
+  Select,
 } from "antd";
 import {
-  getAllAssessments,
-  deleteAssessment,
-  createAssessment,
-  updateAssessment,
-} from "../../../apis/assessment-api";
+  getAllReadingTests,
+  deleteReadingTest,
+  createReadingTest,
+  updateReadingTest,
+} from "../../../apis/reading-api";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
-export default function AssessmentListPage() {
+const LEVEL_OPTIONS = [
+  { value: 1, label: "Level 1 (IELTS 3.0)" },
+  { value: 2, label: "Level 2 (IELTS 3.5)" },
+  { value: 3, label: "Level 3 (IELTS 4.0)" },
+  { value: 4, label: "Level 4 (IELTS 4.5)" },
+  { value: 5, label: "Level 5 (IELTS 5.0)" },
+  { value: 6, label: "Level 6 (IELTS 6.0)" },
+];
+
+export default function ReadingTestListPage() {
   const [data, setData] = useState<any[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
   const [currentEdit, setCurrentEdit] = useState<any>(null);
+  const [levelFilter, setLevelFilter] = useState<number | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -33,43 +47,43 @@ export default function AssessmentListPage() {
 
   const fetchData = async () => {
     try {
-      const res = await getAllAssessments();
+      const res = await getAllReadingTests();
       setData(res);
     } catch (err) {
-      toast.error("Lỗi khi lấy danh sách bài test!");
+      toast.error("Lỗi khi lấy danh sách bài reading!");
     }
   };
 
-  // Xoá bài test
+  // Xoá bài lesson
   const handleDelete = async (id: number) => {
     try {
-      await deleteAssessment(id);
+      await deleteReadingTest(id);
       setData((prev) => prev.filter((item) => item.id !== id));
-      toast.success("Đã xoá bài test!");
+      toast.success("Đã xoá bài lesson!");
     } catch (err) {
-      toast.error("Xoá bài test thất bại!");
+      toast.error("Xoá bài lesson thất bại!");
     }
   };
 
-  // Thêm bài test
+  // Thêm bài lesson
   const handleCreate = async (values: any) => {
     try {
-      await createAssessment(values);
-      toast.success("✅ Tạo bài test thành công!");
+      await createReadingTest(values);
+      toast.success("✅ Tạo bài lesson thành công!");
       setIsAddModalOpen(false);
       form.resetFields();
       fetchData();
     } catch (err) {
-      toast.error("❌ Lỗi khi tạo bài test");
+      toast.error("❌ Lỗi khi tạo bài lesson");
     }
   };
 
-  // Sửa bài test
+  // Sửa bài lesson
   const handleEditClick = (record: any) => {
     setCurrentEdit(record);
     setIsEditModalOpen(true);
     editForm.setFieldsValue({
-      name: record.name,
+      title: record.title,
       level: record.level,
       time: record.time,
       description: record.description,
@@ -79,27 +93,36 @@ export default function AssessmentListPage() {
   const handleUpdate = async (values: any) => {
     if (!currentEdit) return;
     try {
-      await updateAssessment(currentEdit.id, values);
-      toast.success("✅ Cập nhật bài test thành công!");
+      await updateReadingTest(currentEdit.id, values);
+      toast.success("✅ Cập nhật bài lesson thành công!");
       setIsEditModalOpen(false);
       setCurrentEdit(null);
       editForm.resetFields();
       fetchData();
     } catch (err) {
-      toast.error("❌ Lỗi khi cập nhật bài test");
+      toast.error("❌ Lỗi khi cập nhật bài lesson");
     }
   };
 
+  // Lọc theo level
+  const filteredData = levelFilter
+    ? data.filter((d) => Number(d.level) === levelFilter)
+    : data;
+
   const columns = [
     {
-      title: "Tên bài test",
-      dataIndex: "name",
-      key: "name",
+      title: "Tên bài lesson",
+      dataIndex: "title",  // <-- SỬA lại thành "title"
+      key: "title",
     },
     {
-      title: "Trình độ",
+      title: "Level",
       dataIndex: "level",
       key: "level",
+      render: (val: number) =>
+        LEVEL_OPTIONS.find((o) => o.value === Number(val))?.label || val,
+      filters: LEVEL_OPTIONS.map((o) => ({ text: o.label, value: o.value })),
+      onFilter: (value: any, record: any) => Number(record.level) === value,
     },
     {
       title: "Thời gian (phút)",
@@ -116,12 +139,10 @@ export default function AssessmentListPage() {
       key: "action",
       render: (_: any, record: any) => (
         <Space>
-          <Tooltip title="Quản lý bài test">
+          <Tooltip title="Quản lý chi tiết">
             <Button
               type="primary"
-              onClick={() =>
-                (window.location.href = `/admin/assessments/${record.id}/manage`)
-              }
+              onClick={() => navigate(`/admin/reading/${record.id}/manage`)}
             >
               Quản lý
             </Button>
@@ -133,7 +154,7 @@ export default function AssessmentListPage() {
             />
           </Tooltip>
           <Popconfirm
-            title="Bạn có chắc muốn xoá bài test này?"
+            title="Bạn có chắc muốn xoá bài lesson này?"
             okText="Xoá"
             cancelText="Huỷ"
             onConfirm={() => handleDelete(record.id)}
@@ -148,20 +169,41 @@ export default function AssessmentListPage() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Danh sách bài test</h2>
+        <h2 className="text-xl font-bold">Danh sách bài Reading Lesson</h2>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setIsAddModalOpen(true)}
         >
-          Tạo bài test mới
+          Tạo bài lesson mới
         </Button>
       </div>
-      <Table rowKey="id" columns={columns} dataSource={data} />
 
-      {/* Modal thêm bài test */}
+      <div className="mb-3 flex items-center gap-3">
+        <span>Lọc theo Level: </span>
+        <Select
+          allowClear
+          placeholder="Chọn level"
+          style={{ width: 180 }}
+          options={LEVEL_OPTIONS}
+          value={levelFilter ?? undefined}
+          onChange={(val) => setLevelFilter(val ?? null)}
+        />
+        {levelFilter && (
+          <Button onClick={() => setLevelFilter(null)}>Bỏ lọc</Button>
+        )}
+      </div>
+
+      <Table
+        rowKey="id"
+        columns={columns}
+        dataSource={filteredData}
+        bordered
+      />
+
+      {/* Modal thêm bài lesson */}
       <Modal
-        title="Tạo bài test mới"
+        title="Tạo bài Reading Lesson mới"
         open={isAddModalOpen}
         onCancel={() => setIsAddModalOpen(false)}
         onOk={() => form.submit()}
@@ -170,27 +212,23 @@ export default function AssessmentListPage() {
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>
           <Form.Item
-            name="name"
-            label="Tên bài test"
+            name="title"   // <-- SỬA lại thành "title"
+            label="Tên bài lesson"
             rules={[{ required: true, message: "Không được bỏ trống tên!" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="level"
-            label="Trình độ (A1, A2, B1...)"
-            rules={[
-              { required: true, message: "Không được bỏ trống trình độ!" },
-            ]}
+            label="Level"
+            rules={[{ required: true, message: "Không được bỏ trống level!" }]}
           >
-            <Input />
+            <Select options={LEVEL_OPTIONS} placeholder="Chọn level" />
           </Form.Item>
           <Form.Item
             name="time"
             label="Thời gian làm bài (phút)"
-            rules={[
-              { required: true, message: "Không được bỏ trống thời gian!" },
-            ]}
+            rules={[{ required: true, message: "Không được bỏ trống thời gian!" }]}
           >
             <Input type="number" min={1} />
           </Form.Item>
@@ -200,9 +238,9 @@ export default function AssessmentListPage() {
         </Form>
       </Modal>
 
-      {/* Modal chỉnh sửa bài test */}
+      {/* Modal chỉnh sửa bài lesson */}
       <Modal
-        title="Chỉnh sửa bài test"
+        title="Chỉnh sửa bài lesson"
         open={isEditModalOpen}
         onCancel={() => {
           setIsEditModalOpen(false);
@@ -212,29 +250,29 @@ export default function AssessmentListPage() {
         okText="Lưu"
         cancelText="Huỷ"
       >
-        <Form form={editForm} layout="vertical" onFinish={handleUpdate}>
+        <Form
+          form={editForm}
+          layout="vertical"
+          onFinish={handleUpdate}
+        >
           <Form.Item
-            name="name"
-            label="Tên bài test"
+            name="title"   // <-- SỬA lại thành "title"
+            label="Tên bài lesson"
             rules={[{ required: true, message: "Không được bỏ trống tên!" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             name="level"
-            label="Trình độ (A1, A2, B1...)"
-            rules={[
-              { required: true, message: "Không được bỏ trống trình độ!" },
-            ]}
+            label="Level"
+            rules={[{ required: true, message: "Không được bỏ trống level!" }]}
           >
-            <Input />
+            <Select options={LEVEL_OPTIONS} placeholder="Chọn level" />
           </Form.Item>
           <Form.Item
             name="time"
             label="Thời gian làm bài (phút)"
-            rules={[
-              { required: true, message: "Không được bỏ trống thời gian!" },
-            ]}
+            rules={[{ required: true, message: "Không được bỏ trống thời gian!" }]}
           >
             <Input type="number" min={1} />
           </Form.Item>

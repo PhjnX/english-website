@@ -1,7 +1,7 @@
-// src/pages/client-admin/assessment/CreateAssessmentPage.tsx
-import React from "react";
-import { Button, Form, Input, message } from "antd";
+import { Button, Form, Input } from "antd";
 import { createAssessment } from "../../../apis/assessment-api";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CreateAssessmentPage() {
   const [form] = Form.useForm();
@@ -9,10 +9,10 @@ export default function CreateAssessmentPage() {
   const handleSubmit = async (values: any) => {
     try {
       await createAssessment(values);
-      message.success("✅ Tạo bài test thành công!");
+      toast.success("✅ Tạo bài test thành công!");
       form.resetFields();
     } catch (err) {
-      message.error("❌ Lỗi khi tạo bài test");
+      toast.error("❌ Lỗi khi tạo bài test");
     }
   };
 
@@ -52,6 +52,7 @@ export default function CreateAssessmentPage() {
           Tạo bài test
         </Button>
       </Form>
+      <ToastContainer position="top-right" autoClose={1800} />
     </div>
   );
 }
