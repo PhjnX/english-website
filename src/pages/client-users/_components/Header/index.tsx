@@ -99,10 +99,10 @@ const NavLink: React.FC<{
         {/* Hiệu ứng underline động */}
         {!isMobile && (
           <span
-            className={`absolute left-0 -bottom-1 h-[3px] w-full bg-purple-700 rounded transition-all duration-300
+            className={`absolute left-0 -bottom-1 h-[4px] w-full bg-purple-700 rounded transition-all duration-300
               ${
                 selected
-                  ? "opacity-100 scale-x-100"
+                  ? "opacity-100 scale-x-100 "
                   : "opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100"
               }
             `}

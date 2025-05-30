@@ -217,7 +217,7 @@ const ResourceSection: React.FC = () => {
 
   return (
     <section
-      id="resources-section"
+      id="resources"
       className="py-16 md:py-24 bg-gradient-to-b from-white via-purple-50/70 to-indigo-100/80 relative overflow-hidden"
     >
       <AnimatedShape
