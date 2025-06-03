@@ -1,13 +1,12 @@
 import React from "react";
-import { Card, Button, Select, Input, Radio } from "antd";
+import { Card, Button, Select, Radio } from "antd";
 import { motion } from "framer-motion";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import { Question } from "./reading";
-
+import { Group } from "./reading";
 const { Option } = Select;
 
 interface QuestionProps {
-  questions: Question[];
+  groups: Group[]; // Thay vì questions: Question[]
   answers: { [key: number]: string };
   handleAnswer: (id: number, answer: string) => void;
   highlightedSentence: string | null;
@@ -19,81 +18,12 @@ interface QuestionProps {
 }
 
 const QuestionList: React.FC<QuestionProps> = ({
-  questions,
+  groups,
   answers,
   handleAnswer,
-  highlightedSentence,
-  setHighlightedSentence,
   isSubmitted,
-  isLoading,
   isReviewing = false,
-  partId,
 }) => {
-  // Nhóm câu hỏi theo type
-  const groupedQuestions = questions.reduce<Record<string, Question[]>>(
-    (acc, q) => {
-      const type = q.type ? q.type.toLowerCase() : "unknown";
-      if (!acc[type]) acc[type] = [];
-      acc[type].push(q);
-      return acc;
-    },
-    {}
-  );
-
-  // Xác định số thứ tự câu hỏi tiếp theo cho các dạng fill
-  let globalQuestionNumber =
-    Math.min(...questions.map((q) => q.id).filter(Boolean)) || 1;
-
-  // Instructions cho từng dạng (giữ lại nếu muốn)
-  const questionInstructions: Record<string, React.ReactNode> = {
-    "multiple-choice": (
-      <div className="mb-2">
-        <b>Choose the correct answer.</b>
-      </div>
-    ),
-    "true-false-notgiven": (
-      <div className="mb-2">
-        <b>
-          Do the following statements agree with the information given in the
-          Reading Passage?
-        </b>
-      </div>
-    ),
-    paragraph: (
-      <div className="mb-2">
-        <b>
-          Complete the summary below.{" "}
-          <span className="text-red-500">ONE WORD ONLY</span> for each answer.
-        </b>
-      </div>
-    ),
-    "gap-fill": (
-      <div className="mb-2">
-        <b>
-          Complete the sentences below.{" "}
-          <span className="text-red-500">ONE WORD ONLY</span> for each answer.
-        </b>
-      </div>
-    ),
-    matching: (
-      <div className="mb-2">
-        <b>Match each statement with the correct option.</b>
-      </div>
-    ),
-  };
-
-  // Hàm tìm tất cả vị trí blank ___ trong chuỗi (trả về index array)
-  function getAllBlankIndexes(text: string) {
-    // Dấu ___ hoặc {n}
-    const regex = /_{2,}/g;
-    let match;
-    let indexes: number[] = [];
-    while ((match = regex.exec(text)) !== null) {
-      indexes.push(match.index);
-    }
-    return indexes;
-  }
-
   // Hàm để parse options nếu là string dạng JSON
   function parseOptions(options?: string | string[] | null): string[] {
     if (!options) return [];
@@ -111,17 +41,17 @@ const QuestionList: React.FC<QuestionProps> = ({
   // Render từng group câu hỏi theo loại
   return (
     <div className="p-4 h-full overflow-y-auto bg-white rounded space-y-8">
-      {Object.entries(groupedQuestions)
-        .sort(([, aGroup], [, bGroup]) => {
-          const aStart = aGroup?.[0]?.id ?? Infinity;
-          const bStart = bGroup?.[0]?.id ?? Infinity;
-          return aStart - bStart;
-        })
-        .map(([type, group]) => (
-          <div key={type} className="space-y-4">
-            {questionInstructions[type]}
-            {group.map((q, qidx) => {
-              // Xác định có render số thứ tự không
+      {groups.map((group) => {
+        const startNumber = group.startNumber ?? 1;
+        return (
+          <div key={group.id} className="space-y-4">
+            {group.heading && (
+              <div className="text-base font-semibold text-gray-800 mb-1">
+                {group.heading}
+              </div>
+            )}
+            {group.questions.map((q, qidx) => {
+              const questionNumber = startNumber + qidx;
               const showNumber = ![
                 "paragraph",
                 "matching",
@@ -136,13 +66,15 @@ const QuestionList: React.FC<QuestionProps> = ({
                     <Card className="shadow">
                       <div className="font-semibold mb-2">
                         {showNumber && (
-                          <span className="text-blue-600">{q.id}. </span>
+                          <span className="text-blue-600">
+                            {questionNumber}.{" "}
+                          </span>
                         )}
                         {q.questionText}
                       </div>
                       <div className="flex flex-col gap-2">
                         {options.map((option: string, idx: number) => {
-                          const isSelected = answers[q.id] === option;
+                          const isSelected = answers[questionNumber] === option;
                           const correctAnswers = Array.isArray(q.correctAnswer)
                             ? q.correctAnswer.map((a: string) =>
                                 a.trim().toLowerCase()
@@ -181,7 +113,9 @@ const QuestionList: React.FC<QuestionProps> = ({
                                 minHeight: 48,
                                 fontSize: 16,
                               }}
-                              onClick={() => handleAnswer(q.id, option)}
+                              onClick={() =>
+                                handleAnswer(questionNumber, option)
+                              }
                               disabled={isSubmitted && !isReviewing}
                             >
                               <span className="inline-block w-full">
@@ -204,16 +138,12 @@ const QuestionList: React.FC<QuestionProps> = ({
 
               // Paragraph fill hoặc gap-fill
               if (q.type === "paragraph" || q.type === "gap-fill") {
-                // Split by ___ và render input tương ứng, label input là số thứ tự tăng dần (VD: Đáp án 4, 5, 6...)
                 const blanks = q.questionText.split(/_{2,}/g);
                 const numBlanks = blanks.length - 1;
-                const firstId = q.id; // id đầu tiên cho ô input
                 return (
                   <motion.div key={q.id}>
                     <Card className="shadow">
                       <div className="mb-2 font-semibold">
-                        {/* KHÔNG render số thứ tự đầu câu */}
-                        {/* Đoạn văn bản với input */}
                         <span className="block">
                           {blanks.map((part, idx) => (
                             <React.Fragment key={idx}>
@@ -224,11 +154,14 @@ const QuestionList: React.FC<QuestionProps> = ({
                                 <input
                                   type="text"
                                   className="mx-1 px-3 py-2 min-w-[110px] border border-gray-400 rounded shadow-sm inline-block"
-                                  value={answers[firstId + idx] || ""}
+                                  value={answers[questionNumber + idx] || ""}
                                   onChange={(e) =>
-                                    handleAnswer(firstId + idx, e.target.value)
+                                    handleAnswer(
+                                      questionNumber + idx,
+                                      e.target.value
+                                    )
                                   }
-                                  placeholder={`${firstId + idx}`}
+                                  placeholder={`${questionNumber + idx}`}
                                   disabled={isSubmitted && !isReviewing}
                                   style={{
                                     verticalAlign: "middle",
@@ -247,9 +180,7 @@ const QuestionList: React.FC<QuestionProps> = ({
 
               // Matching (liệt kê statement, mỗi statement 1 dropdown hoặc input)
               if (q.type === "matching") {
-                // parse option (A. Name, B. Name ...)
                 const options = parseOptions(q.options);
-                // Mỗi dòng statement là 1 dòng trong questionText, mỗi dòng là 1 câu hỏi (id liên tục)
                 const statements = q.questionText
                   .split(/\n/)
                   .filter((s) => s.trim());
@@ -257,7 +188,6 @@ const QuestionList: React.FC<QuestionProps> = ({
                   <motion.div key={q.id}>
                     <Card className="shadow">
                       <div className="mb-2 font-semibold">
-                        {/* Không render số đầu dòng */}
                         <div className="flex flex-col gap-2">
                           {statements.map((stmt, idx) => (
                             <div key={idx} className="flex items-center gap-2">
@@ -268,14 +198,15 @@ const QuestionList: React.FC<QuestionProps> = ({
                                   fontWeight: 600,
                                 }}
                               >
-                                {/* Số câu hỏi tăng liên tục theo id */}
-                                {q.id + idx}
+                                {questionNumber + idx}
                               </span>
                               <span className="flex-1">{stmt}</span>
                               <Select
-                                value={answers[q.id + idx] || undefined}
+                                value={
+                                  answers[questionNumber + idx] || undefined
+                                }
                                 onChange={(value) =>
-                                  handleAnswer(q.id + idx, value)
+                                  handleAnswer(questionNumber + idx, value)
                                 }
                                 className="min-w-[80px]"
                                 placeholder="Chọn"
@@ -304,13 +235,17 @@ const QuestionList: React.FC<QuestionProps> = ({
                     <Card className="shadow">
                       <div className="font-semibold mb-2">
                         {showNumber && (
-                          <span className="text-blue-600">{q.id}. </span>
+                          <span className="text-blue-600">
+                            {questionNumber}.{" "}
+                          </span>
                         )}
                         {q.questionText}
                       </div>
                       <Radio.Group
-                        onChange={(e) => handleAnswer(q.id, e.target.value)}
-                        value={answers[q.id]}
+                        onChange={(e) =>
+                          handleAnswer(questionNumber, e.target.value)
+                        }
+                        value={answers[questionNumber]}
                         className="mt-2 !flex !flex-row !gap-4"
                         disabled={isSubmitted && !isReviewing}
                       >
@@ -329,11 +264,11 @@ const QuestionList: React.FC<QuestionProps> = ({
                 );
               }
 
-              // Trường hợp không xác định
               return null;
             })}
           </div>
-        ))}
+        );
+      })}
     </div>
   );
 };

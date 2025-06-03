@@ -7,7 +7,7 @@ import testGif from "../../../assets/testGif.gif";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
 import { getAllAssessments } from "../../../apis/assessment-api";
-import { Assessment, Part, Group } from "./reading";
+import { Assessment, Part } from "./reading";
 
 export interface Answers {
   [key: number]: string;
@@ -324,9 +324,7 @@ const ReadingTestPage: React.FC = () => {
                       );
                       return (
                         <QuestionList
-                          questions={
-                            part.groups?.flatMap((g: any) => g.questions) || []
-                          }
+                          groups={part.groups || []}
                           answers={answers}
                           handleAnswer={handleAnswer}
                           isSubmitted={isSubmitted}
@@ -334,7 +332,6 @@ const ReadingTestPage: React.FC = () => {
                           highlightedSentence={highlightedSentence}
                           isLoading={isLoading}
                           partId={part.id}
-                          // groups={part.groups}
                         />
                       );
                     })()}

@@ -15,15 +15,10 @@ interface ParagraphProps {
   headerContent: string;
 }
 
-
-
 const Paragraph: React.FC<ParagraphProps> = ({
   title,
-  partId,
   highlightedSentence,
   isLoading,
-  questionStart,
-  questionEnd,
   passage,
   image,
   titleDescription,
