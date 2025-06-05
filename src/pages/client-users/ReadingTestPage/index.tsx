@@ -4,20 +4,13 @@ import Paragraph from "./Paragraph";
 import QuestionList from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
 import testGif from "../../../assets/testGif.gif";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import hourglassgif from "../../../assets/hourglass.gif";
 import { getAllAssessments } from "../../../apis/assessment-api";
 import { Assessment, Part } from "./reading";
 
 export interface Answers {
   [key: number]: string;
 }
-
-const tabColors = [
-  "from-blue-100 to-blue-50",
-  "from-green-100 to-green-50",
-  "from-yellow-100 to-yellow-50",
-];
 
 const ReadingTestPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60 * 60);
@@ -85,13 +78,27 @@ const ReadingTestPage: React.FC = () => {
     parts.forEach((part) => {
       part.groups.forEach((group) => {
         group.questions.forEach((q) => {
-          const correctAnswers = Array.isArray(q.correctAnswer)
-            ? q.correctAnswer.map((a) => a.trim().toLowerCase())
-            : [q.correctAnswer.trim().toLowerCase()];
-          if (
-            answers[q.id] &&
-            correctAnswers.includes(answers[q.id].trim().toLowerCase())
-          ) {
+          // Parse correctAnswer nếu là JSON string
+          let correctAnswers: string[] = [];
+          if (Array.isArray(q.correctAnswer)) {
+            correctAnswers = q.correctAnswer.map((a: string) =>
+              a.trim().toLowerCase()
+            );
+          } else if (typeof q.correctAnswer === "string") {
+            try {
+              // Nếu là JSON string dạng '["C"]'
+              const arr = JSON.parse(q.correctAnswer);
+              if (Array.isArray(arr)) {
+                correctAnswers = arr.map((a: string) => a.trim().toLowerCase());
+              } else {
+                correctAnswers = [q.correctAnswer.trim().toLowerCase()];
+              }
+            } catch {
+              correctAnswers = [q.correctAnswer.trim().toLowerCase()];
+            }
+          }
+          const userAnswer = answers[q.id]?.trim().toLowerCase();
+          if (userAnswer && correctAnswers.includes(userAnswer)) {
             score++;
           }
         });
@@ -121,6 +128,7 @@ const ReadingTestPage: React.FC = () => {
     setIsSubmitted(true);
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
+    console.log("Score:", score); // Log score when submit
     const band = convertScoreToBand(score);
     navigate("/reading-score", {
       state: {
@@ -141,111 +149,129 @@ const ReadingTestPage: React.FC = () => {
 
   // Custom Tab UI
   const renderTabs = () => (
-    <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4">
+    <div
+      className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4"
+      style={{ fontFamily: "beVietnamProFont, sans-serif" }}
+    >
       {parts.map((part: Part) => (
         <motion.button
           key={part.id}
           onClick={() => handleTabChange(part.id.toString())}
-          className={`px-4 py-2 rounded-full font-semibold shadow transition-all duration-200 text-base md:text-lg focus:outline-none border-1 cursor-pointer
+          className={`px-4 py-2 rounded-full font-semibold shadow transition-all duration-200 text-base md:text-lg focus:outline-none border-2 cursor-pointer
             ${
               activeKey === part.id.toString()
-                ? "bg-gradient-to-r from-[#EC6F66] to-[#F3A183] !text-white border-black "
-                : "bg-gradient-to-r from-gray-100 to-gray-50 !text-gray-700 border-gray-300  hover:border-[#EC6F66]"
+                ? "bg-gradient-to-r from-[#c471f5] to-[#fa71cd] !text-black border-black !shadow-2xl"
+                : "bg-gradient-to-r from-white to-[#f3e8ff] text-black border-gray-200 hover:border-[#eb82a7]"
             }
           `}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.07 }}
         >
-          Part {part.order || part.id}: {part.title}
+          {part.title}
         </motion.button>
       ))}
     </div>
   );
 
   return (
-    <div className="p-0 w-full  h-screen flex flex-col overflow-hidden bg-gradient-to-br from-white to-orange-50 text-gray-800 font-inter">
+    <div
+      className="p-0 w-full h-screen flex flex-col overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#f3e8ff] to-[#e0e7ef] text-black font-inter"
+      style={{ fontFamily: "beVietnamProFont, sans-serif" }}
+    >
       {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, type: "spring", bounce: 0.3 }}
-        className="relative z-10 flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-5 bg-[#FFDCDC] backdrop-blur-md shadow-xl border-b border-orange-200 rounded-b-3xl gap-4 drop-shadow-lg"
-        style={{ boxShadow: "0 8px 32px 0 rgba(255, 183, 94, 0.15)" }}
+      <header
+        className="relative z-10 flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-6 bg-gradient-to-r from-[#fad0c4] to-[#ffd1ff] shadow-xl border-b border-gray-200 rounded-b-3xl gap-4 drop-shadow-lg"
+        style={{ fontFamily: "beVietnamProFont, sans-serif" }}
       >
         <div className="flex items-center gap-3">
-          <motion.div
-            initial={{ rotate: -10 }}
-            animate={{ rotate: 0 }}
-            transition={{ type: "spring", stiffness: 120, delay: 0.2 }}
-            className="bg-gradient-to-tr from-[#FFD6A5] to-[#FFB085] rounded-full p-2 shadow-md"
-          >
+          <div className="bg-gradient-to-tr from-purple-400 via-purple-200 to-white rounded-full p-2 shadow-md">
             <img
               src={testGif}
               alt="Test Icon"
               className="w-12 h-12 rounded-full object-cover"
             />
-          </motion.div>
+          </div>
           <span
-            className="text-2xl md:text-3xl font-extrabold tracking-tight text-orange-700 font-sans select-none"
-            style={{ letterSpacing: "0.02em" }}
+            className="text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-700 via-fuchsia-500 to-pink-500 font-sans select-none drop-shadow-md"
+            style={{
+              letterSpacing: "0.02em",
+              fontFamily: "beVietnamProFont, sans-serif",
+            }}
           >
-            IELTS Reading Test
+            Reading Test
           </span>
         </div>
         <div className="flex items-center gap-5">
+          <img
+            src={hourglassgif}
+            alt="Test Icon"
+            className="w-12 h-12 rounded-full object-cover"
+          />
           {/* Timer */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 120 }}
-            className="relative w-16 h-16 flex items-center justify-center"
-          >
+          <div className="relative w-16 h-16 flex items-center justify-center">
             <svg className="w-full h-full rotate-[-90deg]" viewBox="0 0 36 36">
               <circle
                 cx="18"
                 cy="18"
                 r="16"
                 fill="none"
-                stroke="#ffe5c2"
+                stroke="#a3a3a3"
                 strokeWidth="4"
               />
-              <motion.circle
+              <circle
                 cx="18"
                 cy="18"
                 r="16"
                 fill="none"
-                stroke={timeLeft <= 300 ? "#cf2411" : "#38b814"}
+                stroke={timeLeft <= 300 ? "#b0260e" : "#0dba3c"}
                 strokeWidth="4"
                 strokeDasharray={100}
                 strokeDashoffset={100 - (timeLeft / (60 * 60)) * 100}
-                initial={false}
-                animate={{
-                  strokeDashoffset: 100 - (timeLeft / (60 * 60)) * 100,
-                }}
-                transition={{ duration: 0.5 }}
               />
             </svg>
             <span
               className={`absolute text-base font-bold ${
-                timeLeft <= 300 ? "text-orange-500" : "text-gray-800"
+                timeLeft <= 300 ? "text-red-500" : "text-black"
               }`}
             >
               {formatTime(timeLeft)}
             </span>
-          </motion.div>
+          </div>
           {/* Submit Button */}
-          <motion.button
+          <button
             onClick={handleSubmit}
-            className="px-6 py-2 rounded-xl font-semibold shadow transition-all duration-200 text-white bg-gradient-to-r from-[#FFB347] to-[#FFD6A5] hover:from-[#FFA500] hover:to-[#FFD6A5] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed text-lg border-2 border-black backdrop-blur-md cursor-pointer flex items-center gap-2"
             disabled={isSubmitted}
-            whileTap={{ scale: 0.97 }}
-            whileHover={{ scale: 1.07 }}
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, #FEAC5E 0%, #C779D0 51%, #FEAC5E 100%)",
+              margin: "10px",
+              padding: "15px 45px",
+              textAlign: "center",
+              fontSize: "1.2rem",
+              fontWeight: "bold",
+              textTransform: "uppercase",
+              transition: "background-position 0.5s, color 0.5s",
+              backgroundSize: "200% auto",
+              color: "white",
+              boxShadow: "0 0 20px #eee",
+              borderRadius: "10px",
+              display: "block",
+              border: "none",
+              backgroundPosition: isSubmitted ? "right center" : "left center", // Ban đầu
+              cursor: isSubmitted ? "not-allowed" : "pointer",
+              opacity: isSubmitted ? 0.6 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isSubmitted)
+                e.currentTarget.style.backgroundPosition = "right center";
+            }}
+            onMouseLeave={(e) => {
+              if (!isSubmitted)
+                e.currentTarget.style.backgroundPosition = "left center";
+            }}
           >
-            <FontAwesomeIcon icon={faCircleCheck} className="text-xl" />
-            <span>Submit</span>
-          </motion.button>
+            Submit
+          </button>
         </div>
-      </motion.header>
+      </header>
 
       {/* Tabs */}
       {renderTabs()}
@@ -253,7 +279,7 @@ const ReadingTestPage: React.FC = () => {
       {/* Tab Content */}
       <div className="flex-grow overflow-hidden px-0 md:px-6 pt-2">
         <AnimatePresence mode="wait">
-          {parts.map((part: Part, idx: number) =>
+          {parts.map((part: Part) =>
             activeKey === part.id.toString() ? (
               <motion.div
                 key={activeKey}
@@ -267,9 +293,7 @@ const ReadingTestPage: React.FC = () => {
                   x: parseInt(prevKey) < parseInt(activeKey) ? -100 : 100,
                 }}
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className={`h-[calc(100vh-200px)] md:h-[calc(100vh-180px)] overflow-hidden rounded-xl shadow-lg bg-gradient-to-br ${
-                  tabColors[idx % tabColors.length]
-                } border border-gray-200 flex flex-col`}
+                className={`h-[calc(100vh-200px)] md:h-[calc(100vh-180px)] overflow-hidden rounded-xl shadow-lg bg-gradient-to-br from-white via-purple-50 to-purple-100 border border-purple-200 flex flex-col`}
               >
                 <div className="flex flex-col md:flex-row h-full bg-transparent rounded-xl">
                   <motion.div
@@ -278,7 +302,7 @@ const ReadingTestPage: React.FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4 }}
-                    className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-blue-200 w-full md:w-1/2"
+                    className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-purple-200 w-full md:w-1/2"
                   >
                     <Paragraph
                       title={part.title}
@@ -312,16 +336,9 @@ const ReadingTestPage: React.FC = () => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4 }}
-                    className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-green-200 w-full md:w-1/2"
+                    className="overflow-y-auto p-4 md:p-6 scrollbar-thin scrollbar-thumb-purple-200 w-full md:w-1/2"
                   >
-                    {/* Đặt log ở đây */}
                     {(() => {
-                      const questionsOfPart =
-                        part.groups?.flatMap((g: any) => g.questions) || [];
-                      console.log(
-                        `Part "${part.title}" (id: ${part.id}) - Số câu hỏi: ${questionsOfPart.length}`,
-                        questionsOfPart
-                      );
                       return (
                         <QuestionList
                           groups={part.groups || []}
