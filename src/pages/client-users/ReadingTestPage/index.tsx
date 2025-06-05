@@ -77,8 +77,8 @@ const ReadingTestPage: React.FC = () => {
     let score = 0;
     parts.forEach((part) => {
       part.groups.forEach((group) => {
-        group.questions.forEach((q) => {
-          // Parse correctAnswer nếu là JSON string
+        group.questions.forEach((q, qidx) => {
+          // Parse correctAnswer nếu là JSON string hoặc mảng
           let correctAnswers: string[] = [];
           if (Array.isArray(q.correctAnswer)) {
             correctAnswers = q.correctAnswer.map((a: string) =>
@@ -86,7 +86,6 @@ const ReadingTestPage: React.FC = () => {
             );
           } else if (typeof q.correctAnswer === "string") {
             try {
-              // Nếu là JSON string dạng '["C"]'
               const arr = JSON.parse(q.correctAnswer);
               if (Array.isArray(arr)) {
                 correctAnswers = arr.map((a: string) => a.trim().toLowerCase());
@@ -97,6 +96,7 @@ const ReadingTestPage: React.FC = () => {
               correctAnswers = [q.correctAnswer.trim().toLowerCase()];
             }
           }
+          // Xác định key của answers: q.id (luôn là id thực tế của câu hỏi)
           const userAnswer = answers[q.id]?.trim().toLowerCase();
           if (userAnswer && correctAnswers.includes(userAnswer)) {
             score++;
