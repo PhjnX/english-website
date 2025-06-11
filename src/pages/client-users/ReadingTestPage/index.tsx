@@ -77,7 +77,7 @@ const ReadingTestPage: React.FC = () => {
     let score = 0;
     parts.forEach((part) => {
       part.groups.forEach((group) => {
-        group.questions.forEach((q, qidx) => {
+        group.questions.forEach((q) => {
           // Parse correctAnswer nếu là JSON string hoặc mảng
           let correctAnswers: string[] = [];
           if (Array.isArray(q.correctAnswer)) {
@@ -124,12 +124,33 @@ const ReadingTestPage: React.FC = () => {
     return "Below 3.0";
   };
 
+  // Hàm chuyển band sang level đúng như hình
+  const bandToLevel = (band: number | string) => {
+    if (typeof band !== "number") return null;
+    if (band >= 6.0) return 6; // Level 6: 6.0 trở lên
+    if (band >= 5.0) return 5; // Level 5: 5.0 - 5.5
+    if (band >= 4.5) return 4; // Level 4: 4.5
+    if (band >= 4.0) return 3; // Level 3: 4.0
+    if (band >= 3.5) return 2; // Level 2: 3.5
+    if (band >= 3.0) return 1; // Level 1: 3.0
+    return null;
+  };
+
   const handleSubmit = () => {
     setIsSubmitted(true);
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
-    console.log("Score:", score); // Log score when submit
     const band = convertScoreToBand(score);
+    // Gửi band và score lên API user
+    const user_name = localStorage.getItem("user_name");
+    if (user_name && typeof band === "number") {
+      const level = bandToLevel(band);
+      fetch(`/api/users/update-band-score`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_name, band, score, level }),
+      });
+    }
     navigate("/reading-score", {
       state: {
         answers,
@@ -138,6 +159,7 @@ const ReadingTestPage: React.FC = () => {
         timeSpent: 60 * 60 - timeLeft,
         isSubmitted: true,
         questions: [],
+        parts,
       },
     });
   };
@@ -173,7 +195,7 @@ const ReadingTestPage: React.FC = () => {
 
   return (
     <div
-      className="p-0 w-full h-screen flex flex-col overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#f3e8ff] to-[#e0e7ef] text-black font-inter"
+      className="p-0 w-full h-screen flex flex-col !overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#f3e8ff] to-[#e0e7ef] text-black font-inter"
       style={{ fontFamily: "beVietnamProFont, sans-serif" }}
     >
       {/* Header */}
