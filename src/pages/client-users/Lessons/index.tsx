@@ -3,11 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaBookOpen,
   FaCrown,
-  FaCheck,
-  FaLock,
   FaBullseye,
   FaUserGraduate,
-  FaStar,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Header from "../_components/Header"; // Assuming path is correct

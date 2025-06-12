@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  motion,
-  AnimatePresence,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { motion, useSpring, useTransform } from "framer-motion";
 import {
   FaBook,
-  FaChartLine,
   FaRedo,
   FaRocket,
-  FaUserGraduate,
   FaExclamationCircle,
   FaCrown,
   FaCheckCircle,
-  FaHourglassHalf,
 } from "react-icons/fa";
 
 // --- TYPE DEFINITIONS (Giả lập cấu trúc dữ liệu) ---
@@ -227,25 +219,6 @@ const DashboardPage: React.FC = () => {
       }
     }
   }, [user, completed, allLevels]);
-
-  // Framer Motion Variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { duration: 0.5, staggerChildren: 0.15 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
 
   if (isLoading) {
     return (
