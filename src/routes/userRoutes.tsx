@@ -6,7 +6,6 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import LoginPage from "../pages/client-users/Login";
 import ReviewPage from "../pages/client-users/ReadingTestPage/ReviewPage";
 import LevelPage from "../pages/client-users/Lessons/LevelPage";
-import ExercisePage from "../pages/client-users/Exercise";
 import Dashboard from "../pages/client-users/Dashboard/Dashboard";
 
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
@@ -30,10 +29,6 @@ export const userRoutes = [
       {
         path: "lessons/:level",
         element: LevelPage,
-      },
-      {
-        path: "lessons/:level/exercise/:exercise",
-        element: ExercisePage,
       },
       {
         path: "dashboard",

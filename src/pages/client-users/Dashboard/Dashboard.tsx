@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import {
   FaBook,
   FaChartLine,
@@ -8,8 +13,10 @@ import {
   FaRocket,
   FaUserGraduate,
   FaExclamationCircle,
+  FaCrown,
+  FaCheckCircle,
+  FaHourglassHalf,
 } from "react-icons/fa";
-import { IoIosArrowForward } from "react-icons/io";
 
 // --- TYPE DEFINITIONS (Giả lập cấu trúc dữ liệu) ---
 interface UserData {
@@ -50,9 +57,9 @@ const fetchUserData = async (): Promise<UserData> => {
         user_name: "phongx2003",
         full_name: "Lê Văn Phong",
         email: "phong@gmail.com",
-        level: 2, // Người dùng đang ở Level 2
-        band: 3.5,
-        picture: null,
+        level: 3, // Người dùng đang ở Level 3
+        band: 4.0,
+        picture: "https://placehold.co/100x100/A78BFA/FFFFFF?text=P",
       });
     }, 800);
   });
@@ -84,9 +91,25 @@ const fetchCompletedExercises = async (): Promise<CompletedExercise[]> => {
           id: "read005",
           title: "The Life of a Honeybee",
           level: 2,
-          score: 7,
+          score: 12,
           totalQuestions: 14,
           dateCompleted: "2024-06-12",
+        },
+        {
+          id: "read008",
+          title: "Exploring the Deep Sea",
+          level: 2,
+          score: 10,
+          totalQuestions: 14,
+          dateCompleted: "2024-06-14",
+        },
+        {
+          id: "read012",
+          title: "The Art of Storytelling",
+          level: 3,
+          score: 8,
+          totalQuestions: 15,
+          dateCompleted: "2024-06-15",
         },
       ]);
     }, 1200);
@@ -130,6 +153,18 @@ const fetchAllLevels = async (): Promise<LevelInfo[]> => {
   });
 };
 
+// Animated Counter Component
+const AnimatedCounter = ({ value }: { value: number }) => {
+  const spring = useSpring(0, { mass: 0.8, stiffness: 100, damping: 15 });
+  const display = useTransform(spring, (current) => current.toFixed(1));
+
+  useEffect(() => {
+    spring.set(value);
+  }, [spring, value]);
+
+  return <motion.span>{display}</motion.span>;
+};
+
 // --- DASHBOARD PAGE COMPONENT ---
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -147,7 +182,6 @@ const DashboardPage: React.FC = () => {
       console.log("No token found, redirecting to login.");
       navigate("/login", { state: { from: "/dashboard" } });
     } else {
-      // Fetch all data if token exists
       const loadDashboardData = async () => {
         try {
           const [userData, completedData, levelsData] = await Promise.all([
@@ -170,21 +204,24 @@ const DashboardPage: React.FC = () => {
 
   // Calculate Progress Logic
   useEffect(() => {
-    if (user && user.level && allLevels.length > 0 && completed.length > 0) {
+    if (user && user.level && allLevels.length > 0) {
       const relevantLevels = allLevels.filter((l) => l.level >= user.level!);
-
+      if (relevantLevels.length === 0) {
+        setProgress(100); // User is at the highest level
+        return;
+      }
       const totalExercisesInPath = relevantLevels.reduce(
         (sum, level) => sum + level.totalExercises,
         0
       );
-
       const completedExercisesInPath = completed.filter((c) =>
         relevantLevels.some((l) => l.level === c.level)
       ).length;
 
       if (totalExercisesInPath > 0) {
-        const calculatedProgress = Math.round(
-          (completedExercisesInPath / totalExercisesInPath) * 100
+        const calculatedProgress = Math.min(
+          100,
+          Math.round((completedExercisesInPath / totalExercisesInPath) * 100)
         );
         setProgress(calculatedProgress);
       }
@@ -193,56 +230,58 @@ const DashboardPage: React.FC = () => {
 
   // Framer Motion Variants
   const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, staggerChildren: 0.1 },
+      transition: { duration: 0.5, staggerChildren: 0.15 },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 30, scale: 0.98 },
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       transition: { duration: 0.5, ease: "easeOut" },
     },
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 border-4 border-t-purple-500 border-purple-200 rounded-full"
-        />
+      <div className="min-h-screen w-full flex items-center justify-center bg-gray-900">
+        <div className="flex flex-col items-center gap-4">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 border-4 border-t-purple-500 border-indigo-500/30 rounded-full"
+          />
+          <p className="text-purple-300 font-medium">Loading your path...</p>
+        </div>
       </div>
     );
   }
 
-  // Handle case where user hasn't taken the initial test
   if (user && user.level === null) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
+      <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-indigo-900 to-gray-900 p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-xl p-8 max-w-lg text-center"
+          className="bg-white/10 backdrop-blur-lg border border-purple-500/30 rounded-2xl shadow-xl p-8 max-w-lg text-center text-white"
         >
-          <FaExclamationCircle className="text-5xl text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-purple-800 mb-2">
+          <FaExclamationCircle className="text-6xl text-yellow-400 mx-auto mb-5" />
+          <h2 className="text-3xl font-bold mb-3">
             Bắt đầu hành trình của bạn!
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-purple-200/80 mb-8">
             Bạn cần hoàn thành bài kiểm tra đầu vào để chúng tôi có thể xây dựng
             lộ trình học tập phù hợp nhất cho bạn.
           </p>
           <motion.button
-            onClick={() => navigate("/assessment-confirm")} // Navigate to confirmation page before test
-            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            onClick={() => navigate("/assessment-confirm")}
+            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-500/40 transition-all duration-300"
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -254,147 +293,209 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-purple-50 via-white to-indigo-100 text-gray-800 font-inter">
+    <div className="min-h-screen w-full bg-gradient-to-b from-gray-900 via-indigo-900 to-purple-900 text-gray-200 font-inter">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Header */}
-          <motion.div variants={itemVariants} className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-purple-800">
-              Chào mừng trở lại, {user?.full_name}!
-            </h1>
-            <p className="text-lg text-gray-600 mt-1">
-              Đây là lộ trình học tập được cá nhân hóa cho bạn.
-            </p>
-          </motion.div>
-
-          {/* Main Info Card */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-gradient-to-r from-purple-600 via-indigo-600 to-fuchsia-500 rounded-2xl shadow-xl p-8 mb-8 text-white flex flex-col md:flex-row items-center justify-between gap-8"
-          >
-            <div className="text-center md:text-left">
-              <p className="text-purple-200 text-lg">
-                Bạn đã hoàn thành bài test đầu vào. Kết quả của bạn là:
-              </p>
-              <div className="flex items-baseline justify-center md:justify-start gap-4 mt-2">
-                <p className="text-5xl font-bold">{user?.band}</p>
-                <p className="text-2xl text-purple-200">IELTS Band</p>
-              </div>
-              <p className="mt-4 text-purple-100 text-xl">
-                Lộ trình của bạn sẽ bắt đầu từ{" "}
-                <strong className="font-bold text-white underline">
-                  Level {user?.level}
-                </strong>
-                .
+        {/* Remove framer-motion container/page entrance animation */}
+        <div>
+          <div className="mb-10 flex items-center gap-4">
+            <img
+              src={
+                user?.picture ||
+                `https://placehold.co/100x100/A78BFA/FFFFFF?text=${user?.full_name?.charAt(
+                  0
+                )}`
+              }
+              alt="User Avatar"
+              className="w-16 h-16 rounded-full border-2 border-purple-400"
+            />
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
+                Chào mừng trở lại, {user?.full_name}!
+              </h1>
+              <p className="text-lg text-purple-300 mt-1">
+                Đây là lộ trình học tập được cá nhân hóa cho bạn.
               </p>
             </div>
-            <motion.button
-              onClick={() => navigate(`/assessment/level/${user?.level}`)} // Navigate to the recommended level
-              className="flex-shrink-0 flex items-center gap-3 px-8 py-4 bg-white text-purple-700 font-bold rounded-xl shadow-lg transform hover:scale-105 transition-transform duration-300"
-              whileHover={{ y: -3 }}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+            {/* Main Goal Card */}
+            <motion.div
+              className="lg:col-span-2 bg-white/5 backdrop-blur-md border border-purple-500/20 rounded-2xl shadow-2xl p-8 flex flex-col justify-between"
+              whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
             >
-              <FaRocket />
-              Bắt đầu ôn luyện
-            </motion.button>
-          </motion.div>
+              <div>
+                <p className="text-purple-300 text-lg">
+                  Mục tiêu hiện tại của bạn:
+                </p>
+                <div className="flex items-baseline gap-4 mt-2">
+                  <p className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    Band{" "}
+                    {user && user.band ? (
+                      <AnimatedCounter value={user.band} />
+                    ) : (
+                      "N/A"
+                    )}
+                  </p>
+                </div>
+                <p className="mt-4 text-purple-200 text-xl">
+                  Lộ trình của bạn đang ở{" "}
+                  <strong className="font-bold text-white underline">
+                    Level {user?.level}
+                  </strong>
+                  .
+                </p>
+              </div>
+              <motion.button
+                onClick={() => navigate(`/assessment/level/${user?.level}`)}
+                className="w-full mt-8 flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300"
+                whileHover={{ y: -3 }}
+              >
+                <FaRocket />
+                Tiếp tục ôn luyện
+              </motion.button>
+            </motion.div>
 
-          {/* Progress Section */}
-          <motion.div
-            variants={itemVariants}
-            className="bg-white rounded-2xl shadow-lg p-8 mb-8"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-2xl font-bold text-purple-800">
-                Tiến độ Lộ trình
-              </h2>
-              <span className="text-2xl font-bold text-indigo-600">
-                {progress}%
-              </span>
+            {/* Progress Donut Chart */}
+            <motion.div className="flex items-center justify-center bg-white/5 backdrop-blur-md border border-purple-500/20 rounded-2xl shadow-2xl p-8">
+              <div className="relative w-48 h-48">
+                <svg className="w-full h-full" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="42"
+                    strokeWidth="10"
+                    className="stroke-purple-500/10 fill-none"
+                  />
+                  <motion.circle
+                    cx="50"
+                    cy="50"
+                    r="42"
+                    strokeWidth="10"
+                    className="stroke-purple-400 fill-none"
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)"
+                    strokeDasharray={2 * Math.PI * 42}
+                    initial={{ strokeDashoffset: 2 * Math.PI * 42 }}
+                    animate={{
+                      strokeDashoffset: 2 * Math.PI * 42 * (1 - progress / 100),
+                    }}
+                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  <span className="text-4xl font-bold text-white">
+                    {progress}%
+                  </span>
+                  <span className="text-sm text-purple-300">Hoàn thành</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Learning Path */}
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-6">
+              Lộ trình của bạn
+            </h2>
+            <div className="relative grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {allLevels.map((level) => {
+                const isCompleted = user?.level! > level.level;
+                const isCurrent = user?.level === level.level;
+                return (
+                  <motion.div
+                    key={level.level}
+                    className={`relative p-5 rounded-xl border-2 transition-all duration-300 ${
+                      isCompleted
+                        ? "bg-green-500/20 border-green-500"
+                        : isCurrent
+                        ? "bg-purple-500/30 border-purple-400 shadow-purple-500/50 shadow-lg"
+                        : "bg-gray-700/50 border-gray-600"
+                    }`}
+                    whileHover={{ y: -5, scale: 1.03 }}
+                  >
+                    {isCompleted && (
+                      <FaCheckCircle className="absolute -top-2 -right-2 text-2xl text-green-400 bg-gray-800 rounded-full" />
+                    )}
+                    {isCurrent && (
+                      <FaCrown className="absolute -top-3 -right-3 text-3xl text-yellow-400 rotate-12" />
+                    )}
+
+                    <p className="font-bold text-2xl text-white">
+                      {level.level}
+                    </p>
+                    <p
+                      className={`font-semibold ${
+                        isCurrent ? "text-purple-200" : "text-gray-400"
+                      }`}
+                    >
+                      Band {level.band.toFixed(1)}
+                    </p>
+                    <p
+                      className={`text-sm mt-2 ${
+                        isCurrent ? "text-purple-300" : "text-gray-500"
+                      }`}
+                    >
+                      {level.title}
+                    </p>
+                  </motion.div>
+                );
+              })}
             </div>
-            <p className="text-gray-600 mb-4">
-              Phần trăm bài tập đã hoàn thành từ Level {user?.level} trở lên.
-            </p>
-            <div className="w-full bg-gray-200 rounded-full h-4">
-              <motion.div
-                className="bg-gradient-to-r from-purple-500 to-indigo-500 h-4 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 1, ease: "easeInOut" }}
-              />
-            </div>
-          </motion.div>
+          </div>
 
           {/* Completed Exercises Section */}
-          <motion.div variants={itemVariants}>
-            <h2 className="text-2xl font-bold text-purple-800 mb-4">
+          <div className="mt-12">
+            <h2 className="text-3xl font-bold text-white mb-6">
               Lịch sử làm bài
             </h2>
-            <AnimatePresence>
-              {completed.length > 0 ? (
-                <motion.div className="space-y-4">
-                  {completed.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      layout
-                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{
-                        opacity: 0,
-                        y: -20,
-                        transition: { duration: 0.2 },
-                      }}
-                      transition={{
-                        delay: index * 0.05,
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 25,
-                      }}
-                      className="bg-white rounded-xl shadow-md p-5 flex flex-col sm:flex-row items-center justify-between gap-4 hover:shadow-lg hover:border-purple-400 border border-transparent transition-all duration-300"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-purple-100 text-purple-600 rounded-lg text-2xl">
-                          <FaBook />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-lg text-gray-800">
-                            {item.title}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            Level: {item.level} | Score: {item.score}/
-                            {item.totalQuestions}
-                          </p>
-                        </div>
+            {/* Remove AnimatePresence and framer-motion entrance/exit for completed exercises */}
+            {completed.length > 0 ? (
+              <div className="space-y-4">
+                {completed.map((item) => (
+                  <motion.div
+                    key={item.id}
+                    className="bg-white/5 backdrop-blur-md border border-purple-500/20 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 hover:bg-white/10 hover:border-purple-400/50 transition-all duration-300"
+                    initial={false}
+                    animate={false}
+                  >
+                    <div className="flex items-center gap-5 w-full">
+                      <div className="p-4 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-lg text-2xl shadow-lg">
+                        <FaBook />
                       </div>
-                      <motion.button
-                        onClick={() =>
-                          navigate(`/assessment/exercise/${item.id}`)
-                        } // Navigate to the specific exercise
-                        className="flex items-center gap-2 px-5 py-2.5 bg-purple-50 text-purple-700 font-semibold rounded-lg hover:bg-purple-100 transition-colors duration-200"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <FaRedo />
-                        Làm lại
-                      </motion.button>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center bg-white p-8 rounded-xl shadow-md text-gray-500"
-                >
-                  Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu ngay!
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </motion.div>
+                      <div className="flex-grow">
+                        <h3 className="font-bold text-lg text-gray-100">
+                          {item.title}
+                        </h3>
+                        <p className="text-sm text-purple-300/80">
+                          Level: {item.level} | Score: {item.score}/
+                          {item.totalQuestions}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <motion.button
+                          onClick={() =>
+                            navigate(`/assessment/exercise/${item.id}`)
+                          }
+                          className="flex items-center gap-2 px-5 py-2.5 bg-purple-500/20 text-purple-200 font-semibold rounded-lg hover:bg-purple-500/40 hover:text-white transition-colors duration-200"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <FaRedo />
+                          <span>Làm lại</span>
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center bg-white/5 backdrop-blur-md p-8 rounded-xl border border-purple-500/20 text-purple-300">
+                Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu ngay!
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

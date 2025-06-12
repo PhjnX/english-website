@@ -124,7 +124,6 @@ const ReadingTestPage: React.FC = () => {
     return "Below 3.0";
   };
 
-  // Hàm chuyển band sang level đúng như hình
   const bandToLevel = (band: number | string) => {
     if (typeof band !== "number") return null;
     if (band >= 6.0) return 6; // Level 6: 6.0 trở lên
@@ -172,7 +171,7 @@ const ReadingTestPage: React.FC = () => {
   // Custom Tab UI
   const renderTabs = () => (
     <div
-      className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-4"
+      className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-3 pb-1"
       style={{ fontFamily: "beVietnamProFont, sans-serif" }}
     >
       {parts.map((part: Part) => (
@@ -195,12 +194,12 @@ const ReadingTestPage: React.FC = () => {
 
   return (
     <div
-      className="p-0 w-full h-screen flex flex-col !overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#f3e8ff] to-[#e0e7ef] text-black font-inter"
+      className="h-screen w-screen flex flex-col overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#f3e8ff] to-[#e0e7ef] text-black font-inter"
       style={{ fontFamily: "beVietnamProFont, sans-serif" }}
     >
       {/* Header */}
       <header
-        className="relative z-10 flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-6 bg-gradient-to-r from-[#fad0c4] to-[#ffd1ff] shadow-xl border-b border-gray-200 rounded-b-3xl gap-4 drop-shadow-lg"
+        className="relative z-10 flex flex-col md:flex-row justify-between items-center px-4 md:px-10 py-5 bg-gradient-to-r from-[#fad0c4] to-[#ffd1ff] shadow-xl border-b border-gray-200 rounded-b-3xl gap-4 drop-shadow-lg"
         style={{ fontFamily: "beVietnamProFont, sans-serif" }}
       >
         <div className="flex items-center gap-3">
@@ -299,7 +298,7 @@ const ReadingTestPage: React.FC = () => {
       {renderTabs()}
 
       {/* Tab Content */}
-      <div className="flex-grow overflow-hidden px-0 md:px-6 pt-2">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <AnimatePresence mode="wait">
           {parts.map((part: Part) =>
             activeKey === part.id.toString() ? (
@@ -315,9 +314,11 @@ const ReadingTestPage: React.FC = () => {
                   x: parseInt(prevKey) < parseInt(activeKey) ? -100 : 100,
                 }}
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className={`h-[calc(100vh-200px)] md:h-[calc(100vh-180px)] overflow-hidden rounded-xl shadow-lg bg-gradient-to-br from-white via-purple-50 to-purple-100 border border-purple-200 flex flex-col`}
+                className={
+                  "flex-1 flex flex-col overflow-hidden rounded-xl shadow-lg bg-gradient-to-br from-white via-purple-50 to-purple-100 border border-purple-200 my-0"
+                }
               >
-                <div className="flex flex-col md:flex-row h-full bg-transparent rounded-xl">
+                <div className="flex flex-col md:flex-row flex-1 h-full bg-transparent rounded-xl overflow-hidden">
                   <motion.div
                     key={`para-${activeKey}`}
                     initial={{ opacity: 0, x: 100 }}
