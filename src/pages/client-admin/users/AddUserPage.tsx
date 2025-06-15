@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Select,
-  Card,
-  Row,
-  Col,
-} from "antd";
+import { Form, Input, Button, Select, Card, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -21,16 +13,19 @@ const AddUserPage = () => {
   const onFinish = async (values: any) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8000/user", values, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.post(
+        "https://nestjs-english-website-production.up.railway.app/user",
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       toast.success("🎉 Thêm người dùng thành công!");
       navigate("/admin/users");
     } catch (error: any) {
-      const msg =
-        error.response?.data?.message || "Lỗi khi thêm người dùng!";
+      const msg = error.response?.data?.message || "Lỗi khi thêm người dùng!";
       toast.error(`❌ ${msg}`);
     }
   };
@@ -58,7 +53,13 @@ const AddUserPage = () => {
               <Form.Item
                 name="email"
                 label="Email"
-                rules={[{ required: true, type: "email", message: "Email không hợp lệ" }]}
+                rules={[
+                  {
+                    required: true,
+                    type: "email",
+                    message: "Email không hợp lệ",
+                  },
+                ]}
               >
                 <Input placeholder="example@email.com" autoComplete="off" />
               </Form.Item>
@@ -70,7 +71,10 @@ const AddUserPage = () => {
                 label="Mật khẩu"
                 rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
               >
-                <Input.Password placeholder="••••••••" autoComplete="new-password" />
+                <Input.Password
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                />
               </Form.Item>
             </Col>
 
@@ -87,7 +91,8 @@ const AddUserPage = () => {
                 rules={[
                   {
                     pattern: /^(0\d{9,10})$/,
-                    message: "Số điện thoại phải bắt đầu bằng 0 và có 10 hoặc 11 chữ số",
+                    message:
+                      "Số điện thoại phải bắt đầu bằng 0 và có 10 hoặc 11 chữ số",
                   },
                 ]}
               >

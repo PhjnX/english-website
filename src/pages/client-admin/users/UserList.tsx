@@ -81,18 +81,18 @@ export default function UserList() {
     setFilteredUsers(result);
   }, [searchValue, selectedRole, users]);
 
-const handleDelete = async (userId: number) => {
-  try {
-    await deleteUserApi(userId);
-    toast.success("🗑 Xoá người dùng thành công!");
-    const updated = users.filter((u) => u.user_id !== userId);
-    setUsers(updated);
-    setFilteredUsers(updated);
-  } catch (err) {
-    toast.error("❌ Lỗi khi xoá người dùng!");
-    console.error(err);
-  }
-};
+  const handleDelete = async (userId: number) => {
+    try {
+      await deleteUserApi(userId);
+      toast.success("🗑 Xoá người dùng thành công!");
+      const updated = users.filter((u) => u.user_id !== userId);
+      setUsers(updated);
+      setFilteredUsers(updated);
+    } catch (err) {
+      toast.error("❌ Lỗi khi xoá người dùng!");
+      console.error(err);
+    }
+  };
 
   const handleUpdate = (user: User) => {
     setEditInitialValues(user);
@@ -103,7 +103,7 @@ const handleDelete = async (userId: number) => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:8000/user/${editInitialValues.user_id}`,
+        `https://nestjs-english-website-production.up.railway.app/user/${editInitialValues.user_id}`,
         values,
         {
           headers: { Authorization: `Bearer ${token}` },

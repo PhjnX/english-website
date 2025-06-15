@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Nếu cần, chỉnh lại baseURL cho API của bạn
-const BASE_URL = "http://localhost:8000"; // Sửa thành endpoint backend của bạn nếu khác
+const BASE_URL = "https://nestjs-english-website-production.up.railway.app"; // Sửa thành endpoint backend của bạn nếu khác
 
 // Helper function cho mọi request
 const http = axios.create({

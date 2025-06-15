@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://nestjs-english-website-production.up.railway.app";
 
 const token = () => localStorage.getItem("token");
 
