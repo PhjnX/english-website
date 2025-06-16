@@ -5,9 +5,10 @@ import Paragraph from "./Paragraph";
 import { Part } from "./reading";
 
 function normalize(val: any) {
+  if (val === undefined || val === null) return "";
   // Nếu là mảng, chỉ lấy phần tử đầu tiên
   if (Array.isArray(val) && val.length === 1) val = val[0];
-  // Nếu là chuỗi dạng ["c"], parse JSON thành "c"
+  // Nếu là chuỗi dạng mảng JSON, parse ra
   if (
     typeof val === "string" &&
     val.trim().startsWith("[") &&
@@ -18,11 +19,27 @@ function normalize(val: any) {
       if (Array.isArray(arr) && arr.length > 0) val = arr[0];
     } catch {}
   }
-  // Loại bỏ mọi dấu nháy thừa
+  // Nếu vẫn còn dạng '"B"' (nháy kép), bỏ tiếp nháy kép
   return String(val)
-    .replace(/^["']+|["']+$/g, "")
+    .replace(/^['"]+|['"]+$/g, "")
     .trim()
     .toLowerCase();
+}
+
+function normalizeTFNG(val: any) {
+  if (!val) return "";
+  return String(val)
+    .trim()
+    .toLowerCase()
+    .replace(/\s|_/g, "") // bỏ hết khoảng trắng và _
+    .replace(/^t$/, "true")
+    .replace(/^f$/, "false")
+    .replace(/^ng$/, "notgiven"); // nếu chọn nhanh gõ ng
+}
+
+function getOptionKey(option: string) {
+  const match = option.trim().match(/^([A-Z])/i);
+  return match ? match[1].toUpperCase() : option.trim();
 }
 
 const ReviewPage: React.FC = () => {
@@ -76,7 +93,7 @@ const ReviewPage: React.FC = () => {
     const startNumber = group.startNumber ?? 1;
     return group.questions.map((q: any, idx: number) => {
       const questionNumber = startNumber + idx;
-      const userAnswer = answers[q.id];
+      const userAnswer = normalize(answers[q.id]);
 
       // Multiple choice
       if (q.type === "multiple-choice") {
@@ -86,20 +103,31 @@ const ReviewPage: React.FC = () => {
           ? JSON.parse(q.options)
           : [];
         const userAnswer = normalize(answers[q.id]);
-        let correctAnswers: string[] = [];
-        if (Array.isArray(q.correctAnswer)) {
-          correctAnswers = q.correctAnswer.map(normalize);
-        } else if (typeof q.correctAnswer === "string") {
+        let correct: string[] = [];
+        if (
+          typeof q.correctAnswer === "string" &&
+          q.correctAnswer.trim().startsWith("[") &&
+          q.correctAnswer.trim().endsWith("]")
+        ) {
           try {
             const arr = JSON.parse(q.correctAnswer);
-            if (Array.isArray(arr)) correctAnswers = arr.map(normalize);
-            else correctAnswers = [normalize(q.correctAnswer)];
+            correct = arr.map(normalize);
           } catch {
-            correctAnswers = [normalize(q.correctAnswer)];
+            correct = [normalize(q.correctAnswer)];
           }
+        } else if (Array.isArray(q.correctAnswer)) {
+          correct = q.correctAnswer.map(normalize);
         } else {
-          correctAnswers = [normalize(q.correctAnswer)];
+          correct = [normalize(q.correctAnswer)];
         }
+        console.log("ReviewPage MC:", {
+          qid: q.id,
+          options,
+          userAnswer: answers[q.id],
+          normUserAnswer: normalize(answers[q.id]),
+          correct,
+        });
+
         return (
           <div
             key={q.id}
@@ -113,35 +141,48 @@ const ReviewPage: React.FC = () => {
             </div>
             <div className="flex flex-col gap-2">
               {options.map((option: string, idx2: number) => {
-                const isCorrect = correctAnswers.includes(normalize(option));
-                const isSelected = normalize(userAnswer) === normalize(option);
+                const optionKey = getOptionKey(option); // "A", "B", ...
+                const isCorrect = correct.includes(optionKey.toLowerCase());
+                const isSelected = userAnswer === optionKey.toLowerCase();
+
                 return (
-                  <div
+                  <button
                     key={idx2}
-                    className={`
-                      px-4 py-2 rounded-lg border flex items-center gap-2 font-medium
-                      ${
-                        isSelected
-                          ? isCorrect
-                            ? "bg-green-200 border-green-500"
-                            : "bg-red-200 border-red-500"
-                          : isCorrect
-                          ? "bg-green-50 border-green-400"
-                          : "bg-white border-gray-300"
-                      }
-                    `}
+                    type="button"
+                    className={`w-full text-left whitespace-normal break-words px-4 py-2 rounded-xl flex items-center gap-2 border-2 transition-colors duration-150 font-medium text-base md:text-lg
+        ${
+          isSelected && isCorrect
+            ? "bg-green-600 !text-white border-black shadow"
+            : isSelected && !isCorrect
+            ? "bg-red-400 text-white border-black shadow"
+            : !isSelected && isCorrect
+            ? "bg-green-100 text-green-900 border-green-400"
+            : "bg-white text-black border-gray-300"
+        }
+      `}
+                    style={{ minHeight: 48, fontSize: 16 }}
+                    disabled
                   >
-                    <span>{String.fromCharCode(65 + idx2)}.</span> {option}
+                    <span className="inline-block w-5">{optionKey}.</span>
+                    <span className="inline-block w-full">
+                      {option.replace(/^[A-Z]\.\s*/, "")}
+                    </span>
                     {isSelected && isCorrect && (
-                      <span className="ml-2 text-green-700 font-bold">✓</span>
+                      <span className="ml-2 text-white font-bold text-xl">
+                        ✓
+                      </span>
                     )}
                     {isSelected && !isCorrect && (
-                      <span className="ml-2 text-red-700 font-bold">✗</span>
+                      <span className="ml-2 text-white font-bold text-xl">
+                        ✗
+                      </span>
                     )}
                     {!isSelected && isCorrect && (
-                      <span className="ml-2 text-green-600">Đáp án đúng</span>
+                      <span className="ml-2 text-green-700 text-lg font-bold">
+                        ✓
+                      </span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -210,8 +251,9 @@ const ReviewPage: React.FC = () => {
       if (q.type === "true-false-notgiven") {
         const options = ["True", "False", "Not Given"];
         const correct = Array.isArray(q.correctAnswer)
-          ? q.correctAnswer.map((a: string) => a.trim().toLowerCase())
-          : [q.correctAnswer?.trim()?.toLowerCase()];
+          ? q.correctAnswer.map(normalizeTFNG)
+          : [normalizeTFNG(q.correctAnswer)];
+        const userAnswer = normalizeTFNG(answers[q.id]);
         return (
           <div
             key={q.id}
@@ -224,36 +266,46 @@ const ReviewPage: React.FC = () => {
               {q.questionText}
             </div>
             <div className="flex flex-row gap-3 mt-2">
-              {options.map((option, idx2) => {
-                const isCorrect = correct.includes(option.trim().toLowerCase());
-                const isSelected = userAnswer === option;
+              {options.map((option) => {
+                // Normalize để so sánh cho chắc chắn (cả hai đều lowercase)
+                const isCorrect = correct.includes(normalizeTFNG(option));
+                const isSelected = userAnswer === normalizeTFNG(option);
+
                 return (
-                  <div
+                  <button
                     key={option}
-                    className={`
-                      px-4 py-2 rounded-lg border flex items-center gap-2 font-medium
-                      ${
-                        isSelected
-                          ? isCorrect
-                            ? "bg-green-200 border-green-500"
-                            : "bg-red-200 border-red-500"
-                          : isCorrect
-                          ? "bg-green-50 border-green-400"
-                          : "bg-white border-gray-300"
-                      }
-                    `}
+                    type="button"
+                    disabled
+                    className={`flex-1 px-0 py-0 rounded-2xl border-2 text-base md:text-lg font-bold transition-colors duration-150 h-12 flex items-center justify-center
+                ${
+                  isSelected && isCorrect
+                    ? "bg-green-600 !text-white border-black shadow"
+                    : isSelected && !isCorrect
+                    ? "bg-red-400 border-black shadow"
+                    : !isSelected && isCorrect
+                    ? "bg-green-100 text-green-900 border-green-400"
+                    : "bg-white text-purple-700 border-purple-200"
+                }
+              `}
+                    style={{ minWidth: 110 }}
                   >
                     {option}
                     {isSelected && isCorrect && (
-                      <span className="ml-2 text-green-700 font-bold">✓</span>
+                      <span className="ml-2 text-white font-bold text-xl">
+                        ✓
+                      </span>
                     )}
                     {isSelected && !isCorrect && (
-                      <span className="ml-2 text-red-700 font-bold">✗</span>
+                      <span className="ml-2 text-white font-bold text-xl">
+                        ✗
+                      </span>
                     )}
                     {!isSelected && isCorrect && (
-                      <span className="ml-2 text-green-600">Đáp án đúng</span>
+                      <span className="ml-2 text-green-700 text-lg font-bold">
+                        ✓
+                      </span>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>

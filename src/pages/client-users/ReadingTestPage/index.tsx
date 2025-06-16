@@ -76,8 +76,9 @@ const ReadingTestPage: React.FC = () => {
   // Hàm normalize CHUẨN cho mọi so sánh đáp án
   function normalize(val: any) {
     if (val === undefined || val === null) return "";
+    // Nếu là mảng, chỉ lấy phần tử đầu tiên
     if (Array.isArray(val) && val.length === 1) val = val[0];
-    // Nếu là chuỗi dạng ["c"], parse tiếp ra
+    // Nếu là chuỗi dạng mảng JSON, parse ra
     if (
       typeof val === "string" &&
       val.trim().startsWith("[") &&
@@ -88,10 +89,22 @@ const ReadingTestPage: React.FC = () => {
         if (Array.isArray(arr) && arr.length > 0) val = arr[0];
       } catch {}
     }
+    // Nếu vẫn còn dạng '"B"' (nháy kép), bỏ tiếp nháy kép
     return String(val)
-      .replace(/^["']+|["']+$/g, "")
+      .replace(/^['"]+|['"]+$/g, "")
       .trim()
       .toLowerCase();
+  }
+
+  function normalizeTFNG(val: any) {
+    if (!val) return "";
+    return String(val)
+      .trim()
+      .toLowerCase()
+      .replace(/\s|_/g, "") // bỏ hết khoảng trắng và _
+      .replace(/^t$/, "true")
+      .replace(/^f$/, "false")
+      .replace(/^ng$/, "notgiven"); // nếu chọn nhanh gõ ng
   }
 
   const calculateScore = () => {
@@ -99,33 +112,58 @@ const ReadingTestPage: React.FC = () => {
     parts.forEach((part) => {
       part.groups.forEach((group) => {
         group.questions.forEach((q) => {
-          // MULTIPLE CHOICE & TRUE/FALSE/NOTGIVEN
-          if (
-            q.type === "multiple-choice" ||
-            q.type === "true-false-notgiven"
-          ) {
-            let correctAnswers: string[] = [];
-            if (Array.isArray(q.correctAnswer)) {
-              correctAnswers = q.correctAnswer.map(normalize);
-            } else if (typeof q.correctAnswer === "string") {
+          // MULTIPLE CHOICE
+          if (q.type === "multiple-choice") {
+            let correctAnswers = [];
+            if (
+              typeof q.correctAnswer === "string" &&
+              q.correctAnswer.trim().startsWith("[") &&
+              q.correctAnswer.trim().endsWith("]")
+            ) {
               try {
                 const arr = JSON.parse(q.correctAnswer);
-                if (Array.isArray(arr)) correctAnswers = arr.map(normalize);
-                else correctAnswers = [normalize(q.correctAnswer)];
+                correctAnswers = arr.map(normalize);
               } catch {
                 correctAnswers = [normalize(q.correctAnswer)];
               }
+            } else if (Array.isArray(q.correctAnswer)) {
+              correctAnswers = q.correctAnswer.map(normalize);
             } else {
               correctAnswers = [normalize(q.correctAnswer)];
             }
+
             const userAnswer = normalize(answers[q.id]);
             if (userAnswer && correctAnswers.includes(userAnswer)) {
               score++;
             }
           }
+
+          // TRUE/FALSE/NOTGIVEN
+          else if (q.type === "true-false-notgiven") {
+            let correctAnswers = [];
+            if (Array.isArray(q.correctAnswer)) {
+              correctAnswers = q.correctAnswer.map(normalizeTFNG);
+            } else if (typeof q.correctAnswer === "string") {
+              correctAnswers = [normalizeTFNG(q.correctAnswer)];
+            } else {
+              correctAnswers = [normalizeTFNG(q.correctAnswer)];
+            }
+
+            const userAnswer = normalizeTFNG(answers[q.id]);
+            console.log({
+              userRaw: answers[q.id],
+              user: normalizeTFNG(answers[q.id]),
+              correctRaw: q.correctAnswer,
+              correct: correctAnswers,
+            });
+            if (userAnswer && correctAnswers.includes(userAnswer)) {
+              score++;
+            }
+          }
+
           // GAP-FILL / PARAGRAPH
           else if (q.type === "gap-fill" || q.type === "paragraph") {
-            let corrects: string[] = [];
+            let corrects = [];
             if (Array.isArray(q.correctAnswer)) {
               corrects = q.correctAnswer.map(normalize);
             } else if (typeof q.correctAnswer === "string") {
@@ -147,9 +185,10 @@ const ReadingTestPage: React.FC = () => {
               }
             }
           }
+
           // MATCHING
           else if (q.type === "matching") {
-            let corrects: string[] = [];
+            let corrects = [];
             if (Array.isArray(q.correctAnswer)) {
               corrects = q.correctAnswer.map(normalize);
             } else if (typeof q.correctAnswer === "string") {

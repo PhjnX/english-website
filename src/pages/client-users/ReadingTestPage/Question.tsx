@@ -38,10 +38,17 @@ const QuestionList: React.FC<QuestionProps> = ({
     }
   }
 
+  function getOptionKey(option: string) {
+    // Nếu option là "C. ..." thì sẽ trả về "C"
+    const match = option.trim().match(/^([A-Z])/i);
+    return match ? match[1].toUpperCase() : option.trim();
+  }
+
   function normalize(val: any) {
+    if (val === undefined || val === null) return "";
     // Nếu là mảng, chỉ lấy phần tử đầu tiên
     if (Array.isArray(val) && val.length === 1) val = val[0];
-    // Nếu là chuỗi dạng ["c"], parse JSON thành "c"
+    // Nếu là chuỗi dạng mảng JSON, parse ra
     if (
       typeof val === "string" &&
       val.trim().startsWith("[") &&
@@ -52,9 +59,9 @@ const QuestionList: React.FC<QuestionProps> = ({
         if (Array.isArray(arr) && arr.length > 0) val = arr[0];
       } catch {}
     }
-    // Loại bỏ mọi dấu nháy thừa
+    // Nếu vẫn còn dạng '"B"' (nháy kép), bỏ tiếp nháy kép
     return String(val)
-      .replace(/^["']+|["']+$/g, "")
+      .replace(/^['"]+|['"]+$/g, "")
       .trim()
       .toLowerCase();
   }
@@ -90,19 +97,30 @@ const QuestionList: React.FC<QuestionProps> = ({
                 const options = parseOptions(q.options);
                 const userAnswer = normalize(answers[q.id]);
                 let correctAnswers: string[] = [];
-                if (Array.isArray(q.correctAnswer)) {
-                  correctAnswers = q.correctAnswer.map(normalize);
-                } else if (typeof q.correctAnswer === "string") {
+                if (
+                  typeof q.correctAnswer === "string" &&
+                  q.correctAnswer.trim().startsWith("[") &&
+                  q.correctAnswer.trim().endsWith("]")
+                ) {
                   try {
                     const arr = JSON.parse(q.correctAnswer);
-                    if (Array.isArray(arr)) correctAnswers = arr.map(normalize);
-                    else correctAnswers = [normalize(q.correctAnswer)];
+                    correctAnswers = arr.map(normalize);
                   } catch {
                     correctAnswers = [normalize(q.correctAnswer)];
                   }
+                } else if (Array.isArray(q.correctAnswer)) {
+                  correctAnswers = q.correctAnswer.map(normalize);
                 } else {
                   correctAnswers = [normalize(q.correctAnswer)];
                 }
+                // console.log("Question.tsx MC:", {
+                //   qid: q.id,
+                //   options,
+                //   userAnswer: answers[q.id],
+                //   normUserAnswer: normalize(answers[q.id]),
+                //   correctAnswers,
+                // });
+
                 return (
                   <motion.div
                     key={q.id}
@@ -129,51 +147,33 @@ const QuestionList: React.FC<QuestionProps> = ({
                       </div>
                       <div className="flex flex-col gap-2">
                         {options.map((option: string, idx: number) => {
-                          const isSelected =
-                            normalize(userAnswer) === normalize(option);
-                          const isCorrect = correctAnswers.includes(
-                            normalize(option)
-                          );
+                          const optionKey = getOptionKey(option); // "A"/"B"/"C"/"D"
+                          const isSelected = answers[q.id] === optionKey;
+                          const isCorrect = correctAnswers.includes(optionKey); // correctAnswers đã normalize đúng
+                          const showWrong =
+                            isSubmitted && isSelected && !isCorrect;
                           const showCorrect =
                             isSubmitted &&
-                            isReviewing &&
                             isCorrect &&
-                            isSelected;
-                          const showWrong =
-                            isSubmitted &&
-                            isReviewing &&
-                            isSelected &&
-                            !isCorrect;
+                            (isReviewing || isSelected);
+
                           return (
                             <button
                               key={idx}
                               type="button"
                               className={`w-full text-left whitespace-normal break-words px-4 py-2 rounded-xl flex items-center gap-2 border-2 transition-colors duration-150 font-medium text-base md:text-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 cursor-pointer
-                                ${
-                                  isSelected
-                                    ? "bg-gradient-to-br from-[#f093fb] to-[#e5576c] !text-black border-none shadow-lg"
-                                    : "bg-white text-black border-gray-200 hover:border-black hover:bg-purple-50"
-                                }
-                                ${
-                                  showWrong
-                                    ? "!bg-red-500 !text-white !border-red-500"
-                                    : ""
-                                }
-                                ${
-                                  showCorrect
-                                    ? "!bg-green-500 !text-white !border-green-500"
-                                    : ""
-                                }
-                                ${
-                                  isSubmitted && !isReviewing
-                                    ? "opacity-60 cursor-not-allowed"
-                                    : ""
-                                }`}
+    ${
+      isSelected
+        ? "bg-gradient-to-br from-[#f093fb] to-[#e5576c] !text-black border-none shadow-lg"
+        : "bg-white text-black border-gray-200 hover:border-black hover:bg-purple-50"
+    }
+    ${showWrong ? "!bg-red-500 !text-white !border-red-500" : ""}
+    ${showCorrect ? "!bg-green-500 !text-white !border-green-500" : ""}
+    ${isSubmitted && !isReviewing ? "opacity-60 cursor-not-allowed" : ""}
+  `}
                               style={{ minHeight: 48, fontSize: 16 }}
                               onClick={() =>
-                                !isSubmitted &&
-                                !isSubmitted &&
-                                handleAnswer(q.id, option)
+                                !isSubmitted && handleAnswer(q.id, optionKey)
                               }
                               disabled={isSubmitted && !isReviewing}
                             >
@@ -334,7 +334,7 @@ const QuestionList: React.FC<QuestionProps> = ({
                       </div>
                       <div className="flex flex-row gap-3 mt-2">
                         {options.map((option) => {
-                          const isSelected = answers[questionNumber] === option;
+                          const isSelected = answers[q.id] === option;
                           return (
                             <button
                               key={option}
@@ -352,8 +352,7 @@ const QuestionList: React.FC<QuestionProps> = ({
                                 }`}
                               style={{ minWidth: 110 }}
                               onClick={() =>
-                                !isSubmitted &&
-                                handleAnswer(questionNumber, option)
+                                !isSubmitted && handleAnswer(q.id, option)
                               }
                               disabled={isSubmitted && !isReviewing}
                             >
