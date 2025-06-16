@@ -150,12 +150,12 @@ const ReadingTestPage: React.FC = () => {
             }
 
             const userAnswer = normalizeTFNG(answers[q.id]);
-            console.log({
-              userRaw: answers[q.id],
-              user: normalizeTFNG(answers[q.id]),
-              correctRaw: q.correctAnswer,
-              correct: correctAnswers,
-            });
+            // console.log({
+            //   userRaw: answers[q.id],
+            //   user: normalizeTFNG(answers[q.id]),
+            //   correctRaw: q.correctAnswer,
+            //   correct: correctAnswers,
+            // });
             if (userAnswer && correctAnswers.includes(userAnswer)) {
               score++;
             }

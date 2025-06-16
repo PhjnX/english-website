@@ -6,9 +6,7 @@ import { Part } from "./reading";
 
 function normalize(val: any) {
   if (val === undefined || val === null) return "";
-  // Nếu là mảng, chỉ lấy phần tử đầu tiên
   if (Array.isArray(val) && val.length === 1) val = val[0];
-  // Nếu là chuỗi dạng mảng JSON, parse ra
   if (
     typeof val === "string" &&
     val.trim().startsWith("[") &&
@@ -16,14 +14,10 @@ function normalize(val: any) {
   ) {
     try {
       const arr = JSON.parse(val);
-      if (Array.isArray(arr) && arr.length > 0) val = arr[0];
+      if (Array.isArray(arr) && arr.length > 0) val = arr;
     } catch {}
   }
-  // Nếu vẫn còn dạng '"B"' (nháy kép), bỏ tiếp nháy kép
-  return String(val)
-    .replace(/^['"]+|['"]+$/g, "")
-    .trim()
-    .toLowerCase();
+  return val;
 }
 
 function normalizeTFNG(val: any) {
@@ -72,28 +66,99 @@ const ReviewPage: React.FC = () => {
   };
 
   // UI render cho đáp án đúng + giải thích
-  const renderAnswerExplain = (q: any) => (
-    <div className="mt-2 text-[15px]">
-      <div className="font-semibold text-green-700">
-        Đáp án đúng:{" "}
-        {Array.isArray(q.correctAnswer)
-          ? q.correctAnswer.join(", ")
-          : q.correctAnswer}
-      </div>
-      {q.explanation && (
-        <div className="text-gray-700 mt-1 italic">
-          Giải thích: {q.explanation}
+  const renderAnswerExplain = (q: any, idxStart = 1) => {
+    // MULTIPLE CHOICE
+    if (q.type === "multiple-choice") {
+      let correct = normalize(q.correctAnswer);
+      if (Array.isArray(correct)) correct = correct[0];
+      // Tìm chỉ số của đáp án đúng (A, B, C, D)
+      let optionIndex = -1;
+      if (q.options) {
+        const options = Array.isArray(q.options)
+          ? q.options
+          : JSON.parse(q.options);
+        optionIndex = options.findIndex(
+          (o: string) =>
+            o.trim().toLowerCase() === correct.toString().trim().toLowerCase()
+        );
+      }
+      return (
+        <div className="mt-2 !text-[18px] font-semibold text-green-700">
+          Đáp án đúng:{" "}
+          {optionIndex !== -1
+            ? String.fromCharCode(65 + optionIndex)
+            : (correct || "").toUpperCase()}
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+
+    // PARAGRAPH
+    if (q.type === "paragraph") {
+      let corrects = normalize(q.correctAnswer) as string[];
+      if (!Array.isArray(corrects)) corrects = [corrects];
+      return (
+        <div className="mt-2 text-[18px] font-semibold text-green-700">
+          Đáp án đúng:
+          <div className="pl-2 mt-1">
+            {corrects.map((ans, idx) => (
+              <div key={idx}>
+                {idxStart + idx}. {String(ans).replace(/^['"]+|['"]+$/g, "")}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // GAP-FILL
+    if (q.type === "gap-fill") {
+      let corrects = normalize(q.correctAnswer) as string[];
+      if (!Array.isArray(corrects)) corrects = [corrects];
+      return (
+        <div className="mt-2 text-[18px] font-semibold text-green-700">
+          Đáp án đúng: {corrects || ""}
+        </div>
+      );
+    }
+
+    // MATCHING
+    if (q.type === "matching") {
+      let corrects = normalize(q.correctAnswer) as string[];
+      if (!Array.isArray(corrects)) corrects = [corrects];
+      return (
+        <div className="mt-2 text-[18px] font-semibold text-green-700">
+          Đáp án đúng:
+          <div className="pl-2 mt-1">
+            {corrects.map((ans, idx) => (
+              <div key={idx}>
+                {String.fromCharCode(65 + idx)}.{" "}
+                {String(ans).replace(/^['"]+|['"]+$/g, "")}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // TRUE/FALSE/NOT GIVEN: (giữ nguyên nếu bạn muốn)
+    if (q.type === "true-false-notgiven") {
+      let correct = normalize(q.correctAnswer);
+      if (Array.isArray(correct)) correct = correct[0];
+      return (
+        <div className="mt-2 text-[18px] font-semibold text-green-700">
+          Đáp án đúng: {(correct || "").toUpperCase()}
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   // UI câu hỏi (tối ưu cho tất cả loại)
   const renderQuestion = (group: any, answers: any) => {
     const startNumber = group.startNumber ?? 1;
     return group.questions.map((q: any, idx: number) => {
       const questionNumber = startNumber + idx;
-      const userAnswer = normalize(answers[q.id]);
 
       // Multiple choice
       if (q.type === "multiple-choice") {
@@ -141,27 +206,39 @@ const ReviewPage: React.FC = () => {
             </div>
             <div className="flex flex-col gap-2">
               {options.map((option: string, idx2: number) => {
-                const optionKey = getOptionKey(option); // "A", "B", ...
-                const isCorrect = correct.includes(optionKey.toLowerCase());
-                const isSelected = userAnswer === optionKey.toLowerCase();
+                // Lấy ký tự đáp án (A/B/C/D...)
+                const optionKey = String.fromCharCode(65 + idx2); // "A", "B", ...
+                // Lấy đáp án đúng (có thể là "A", "B", ...)
+                const correctKey = Array.isArray(correct)
+                  ? correct[0]
+                  : correct; // (ví dụ: "C")
+                // Đáp án người dùng chọn (giả sử là "C")
+                const userKey =
+                  typeof userAnswer === "string"
+                    ? userAnswer.toUpperCase()
+                    : "";
+
+                // Xác định trạng thái
+                const isCorrect = optionKey === correctKey.toUpperCase();
+                const isSelected = optionKey === userKey;
 
                 return (
                   <button
                     key={idx2}
                     type="button"
+                    disabled
                     className={`w-full text-left whitespace-normal break-words px-4 py-2 rounded-xl flex items-center gap-2 border-2 transition-colors duration-150 font-medium text-base md:text-lg
         ${
           isSelected && isCorrect
             ? "bg-green-600 !text-white border-black shadow"
             : isSelected && !isCorrect
-            ? "bg-red-400 text-white border-black shadow"
+            ? "bg-red-400 border-black shadow"
             : !isSelected && isCorrect
             ? "bg-green-100 text-green-900 border-green-400"
             : "bg-white text-black border-gray-300"
         }
       `}
                     style={{ minHeight: 48, fontSize: 16 }}
-                    disabled
                   >
                     <span className="inline-block w-5">{optionKey}.</span>
                     <span className="inline-block w-full">
@@ -212,7 +289,7 @@ const ReviewPage: React.FC = () => {
                 </React.Fragment>
               ))}
             </p>
-            {renderAnswerExplain(q)}
+            {renderAnswerExplain(q, questionNumber)}
           </div>
         );
       }
@@ -281,7 +358,7 @@ const ReviewPage: React.FC = () => {
                   isSelected && isCorrect
                     ? "bg-green-600 !text-white border-black shadow"
                     : isSelected && !isCorrect
-                    ? "bg-red-400 border-black shadow"
+                    ? "bg-red-400 !text-white border-black shadow"
                     : !isSelected && isCorrect
                     ? "bg-green-100 text-green-900 border-green-400"
                     : "bg-white text-purple-700 border-purple-200"
