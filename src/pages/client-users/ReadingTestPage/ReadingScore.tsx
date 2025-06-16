@@ -17,6 +17,7 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
+import { Part, Group, Question } from "./reading";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -53,6 +54,12 @@ const ReadingScore = () => {
     answers = {},
     questions = [],
     parts = [],
+  }: {
+    score?: number;
+    timeSpent?: number;
+    answers?: { [key: string]: string };
+    questions?: any[];
+    parts?: Part[];
   } = location.state || {};
 
   const band = getBand(score);
@@ -89,24 +96,34 @@ const ReadingScore = () => {
     });
   };
 
+  // Đếm chính xác số câu hỏi của tất cả dạng
+  const countQuestions = (parts: Part[]): number => {
+    let total = 0;
+    parts.forEach((part: Part) => {
+      part.groups.forEach((group: Group) => {
+        group.questions.forEach((q: Question) => {
+          if (q.type === "gap-fill" || q.type === "paragraph") {
+            // Mỗi chỗ ___ là 1 câu hỏi
+            const numBlanks = (q.questionText.match(/_{2,}/g) || []).length;
+            total += numBlanks;
+          } else if (q.type === "matching") {
+            // Mỗi statement là 1 câu hỏi
+            const numStatements = q.questionText
+              .split(/\n/)
+              .filter((s: string) => s.trim()).length;
+            total += numStatements;
+          } else {
+            // multiple-choice, true-false-notgiven: mỗi object là 1 câu hỏi
+            total += 1;
+          }
+        });
+      });
+    });
+    return total;
+  };
+
   const totalQuestions =
-    Array.isArray(parts) && parts.length > 0
-      ? parts.reduce(
-          (acc: number, part: any) =>
-            acc +
-            (part && Array.isArray(part.groups)
-              ? part.groups.reduce(
-                  (gAcc: number, group: any) =>
-                    gAcc +
-                    (group && Array.isArray(group.questions)
-                      ? group.questions.length
-                      : 0),
-                  0
-                )
-              : 0),
-          0
-        )
-      : 40;
+    Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 40;
 
   // Gradient màu động cho progressbar
   const progressColor = (percent: number) =>

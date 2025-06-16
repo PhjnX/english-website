@@ -7,8 +7,8 @@ const { Option } = Select;
 
 interface QuestionProps {
   groups: Group[]; // Thay vì questions: Question[]
-  answers: { [key: number]: string };
-  handleAnswer: (id: number, answer: string) => void;
+  answers: { [key: string]: string }; // Allow string keys for answers
+  handleAnswer: (id: number | string, answer: string) => void;
   highlightedSentence: string | null;
   setHighlightedSentence: (text: string | null) => void;
   isSubmitted: boolean;
@@ -36,6 +36,27 @@ const QuestionList: React.FC<QuestionProps> = ({
       // fallback tách theo dấu ; hoặc ,
       return options.split(/;|,/).map((s) => s.trim());
     }
+  }
+
+  function normalize(val: any) {
+    // Nếu là mảng, chỉ lấy phần tử đầu tiên
+    if (Array.isArray(val) && val.length === 1) val = val[0];
+    // Nếu là chuỗi dạng ["c"], parse JSON thành "c"
+    if (
+      typeof val === "string" &&
+      val.trim().startsWith("[") &&
+      val.trim().endsWith("]")
+    ) {
+      try {
+        const arr = JSON.parse(val);
+        if (Array.isArray(arr) && arr.length > 0) val = arr[0];
+      } catch {}
+    }
+    // Loại bỏ mọi dấu nháy thừa
+    return String(val)
+      .replace(/^["']+|["']+$/g, "")
+      .trim()
+      .toLowerCase();
   }
 
   // Render từng group câu hỏi theo loại
@@ -67,6 +88,21 @@ const QuestionList: React.FC<QuestionProps> = ({
               // Multiple choice (A, B, C, D)
               if (q.type === "multiple-choice") {
                 const options = parseOptions(q.options);
+                const userAnswer = normalize(answers[q.id]);
+                let correctAnswers: string[] = [];
+                if (Array.isArray(q.correctAnswer)) {
+                  correctAnswers = q.correctAnswer.map(normalize);
+                } else if (typeof q.correctAnswer === "string") {
+                  try {
+                    const arr = JSON.parse(q.correctAnswer);
+                    if (Array.isArray(arr)) correctAnswers = arr.map(normalize);
+                    else correctAnswers = [normalize(q.correctAnswer)];
+                  } catch {
+                    correctAnswers = [normalize(q.correctAnswer)];
+                  }
+                } else {
+                  correctAnswers = [normalize(q.correctAnswer)];
+                }
                 return (
                   <motion.div
                     key={q.id}
@@ -93,14 +129,10 @@ const QuestionList: React.FC<QuestionProps> = ({
                       </div>
                       <div className="flex flex-col gap-2">
                         {options.map((option: string, idx: number) => {
-                          const isSelected = answers[questionNumber] === option;
-                          const correctAnswers = Array.isArray(q.correctAnswer)
-                            ? q.correctAnswer.map((a: string) =>
-                                a.trim().toLowerCase()
-                              )
-                            : [q.correctAnswer.trim().toLowerCase()];
+                          const isSelected =
+                            normalize(userAnswer) === normalize(option);
                           const isCorrect = correctAnswers.includes(
-                            option.trim().toLowerCase()
+                            normalize(option)
                           );
                           const showCorrect =
                             isSubmitted &&
@@ -140,7 +172,8 @@ const QuestionList: React.FC<QuestionProps> = ({
                               style={{ minHeight: 48, fontSize: 16 }}
                               onClick={() =>
                                 !isSubmitted &&
-                                handleAnswer(questionNumber, option)
+                                !isSubmitted &&
+                                handleAnswer(q.id, option)
                               }
                               disabled={isSubmitted && !isReviewing}
                             >
@@ -185,12 +218,9 @@ const QuestionList: React.FC<QuestionProps> = ({
                               <input
                                 type="text"
                                 className="px-4 !my-1 border-2 border-black rounded-md w-40 text-center font-normal !text-black focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                value={answers[questionNumber + idx] || ""}
+                                value={answers[`${q.id}_${idx}`] || ""}
                                 onChange={(e) =>
-                                  handleAnswer(
-                                    questionNumber + idx,
-                                    e.target.value
-                                  )
+                                  handleAnswer(`${q.id}_${idx}`, e.target.value)
                                 }
                                 disabled={isSubmitted && !isReviewing}
                                 placeholder={`${questionNumber + idx}`}
@@ -233,11 +263,9 @@ const QuestionList: React.FC<QuestionProps> = ({
                               </span>
                               <span className="flex-1 py-1">{stmt}</span>
                               <Select
-                                value={
-                                  answers[questionNumber + idx] || undefined
-                                }
+                                value={answers[`${q.id}_${idx}`] || undefined}
                                 onChange={(value) =>
-                                  handleAnswer(questionNumber + idx, value)
+                                  handleAnswer(`${q.id}_${idx}`, value)
                                 }
                                 className="min-w-[160px] max-w-[320px] !text-base !font-semibold "
                                 dropdownStyle={{
