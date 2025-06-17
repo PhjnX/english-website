@@ -66,40 +66,148 @@ const ReadingTestPage: React.FC = () => {
     return `${m}:${s < 10 ? `0${s}` : s}`;
   };
 
-  const handleAnswer = (id: number, answer: string) => {
+  const handleAnswer = (id: string | number, answer: string) => {
     setAnswers((prev) => ({
       ...prev,
       [id]: answer,
     }));
   };
 
+  // Hàm normalize CHUẨN cho mọi so sánh đáp án
+  function normalize(val: any) {
+    if (val === undefined || val === null) return "";
+    // Nếu là mảng, chỉ lấy phần tử đầu tiên
+    if (Array.isArray(val) && val.length === 1) val = val[0];
+    // Nếu là chuỗi dạng mảng JSON, parse ra
+    if (
+      typeof val === "string" &&
+      val.trim().startsWith("[") &&
+      val.trim().endsWith("]")
+    ) {
+      try {
+        const arr = JSON.parse(val);
+        if (Array.isArray(arr) && arr.length > 0) val = arr[0];
+      } catch {}
+    }
+    // Nếu vẫn còn dạng '"B"' (nháy kép), bỏ tiếp nháy kép
+    return String(val)
+      .replace(/^['"]+|['"]+$/g, "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function normalizeTFNG(val: any) {
+    if (!val) return "";
+    return String(val)
+      .trim()
+      .toLowerCase()
+      .replace(/\s|_/g, "") // bỏ hết khoảng trắng và _
+      .replace(/^t$/, "true")
+      .replace(/^f$/, "false")
+      .replace(/^ng$/, "notgiven"); // nếu chọn nhanh gõ ng
+  }
+
   const calculateScore = () => {
     let score = 0;
     parts.forEach((part) => {
       part.groups.forEach((group) => {
         group.questions.forEach((q) => {
-          // Parse correctAnswer nếu là JSON string hoặc mảng
-          let correctAnswers: string[] = [];
-          if (Array.isArray(q.correctAnswer)) {
-            correctAnswers = q.correctAnswer.map((a: string) =>
-              a.trim().toLowerCase()
-            );
-          } else if (typeof q.correctAnswer === "string") {
-            try {
-              const arr = JSON.parse(q.correctAnswer);
-              if (Array.isArray(arr)) {
-                correctAnswers = arr.map((a: string) => a.trim().toLowerCase());
-              } else {
-                correctAnswers = [q.correctAnswer.trim().toLowerCase()];
+          // MULTIPLE CHOICE
+          if (q.type === "multiple-choice") {
+            let correctAnswers = [];
+            if (
+              typeof q.correctAnswer === "string" &&
+              q.correctAnswer.trim().startsWith("[") &&
+              q.correctAnswer.trim().endsWith("]")
+            ) {
+              try {
+                const arr = JSON.parse(q.correctAnswer);
+                correctAnswers = arr.map(normalize);
+              } catch {
+                correctAnswers = [normalize(q.correctAnswer)];
               }
-            } catch {
-              correctAnswers = [q.correctAnswer.trim().toLowerCase()];
+            } else if (Array.isArray(q.correctAnswer)) {
+              correctAnswers = q.correctAnswer.map(normalize);
+            } else {
+              correctAnswers = [normalize(q.correctAnswer)];
+            }
+
+            const userAnswer = normalize(answers[q.id]);
+            if (userAnswer && correctAnswers.includes(userAnswer)) {
+              score++;
             }
           }
-          // Xác định key của answers: q.id (luôn là id thực tế của câu hỏi)
-          const userAnswer = answers[q.id]?.trim().toLowerCase();
-          if (userAnswer && correctAnswers.includes(userAnswer)) {
-            score++;
+
+          // TRUE/FALSE/NOTGIVEN
+          else if (q.type === "true-false-notgiven") {
+            let correctAnswers = [];
+            if (Array.isArray(q.correctAnswer)) {
+              correctAnswers = q.correctAnswer.map(normalizeTFNG);
+            } else if (typeof q.correctAnswer === "string") {
+              correctAnswers = [normalizeTFNG(q.correctAnswer)];
+            } else {
+              correctAnswers = [normalizeTFNG(q.correctAnswer)];
+            }
+
+            const userAnswer = normalizeTFNG(answers[q.id]);
+            // console.log({
+            //   userRaw: answers[q.id],
+            //   user: normalizeTFNG(answers[q.id]),
+            //   correctRaw: q.correctAnswer,
+            //   correct: correctAnswers,
+            // });
+            if (userAnswer && correctAnswers.includes(userAnswer)) {
+              score++;
+            }
+          }
+
+          // GAP-FILL / PARAGRAPH
+          else if (q.type === "gap-fill" || q.type === "paragraph") {
+            let corrects = [];
+            if (Array.isArray(q.correctAnswer)) {
+              corrects = q.correctAnswer.map(normalize);
+            } else if (typeof q.correctAnswer === "string") {
+              try {
+                const arr = JSON.parse(q.correctAnswer);
+                if (Array.isArray(arr)) corrects = arr.map(normalize);
+                else corrects = [normalize(q.correctAnswer)];
+              } catch {
+                corrects = [normalize(q.correctAnswer)];
+              }
+            } else {
+              corrects = [normalize(q.correctAnswer)];
+            }
+            for (let idx = 0; idx < corrects.length; idx++) {
+              const userAnswer = normalize(answers[`${q.id}_${idx}`]);
+              const correct = normalize(corrects[idx]);
+              if (userAnswer && userAnswer === correct) {
+                score++;
+              }
+            }
+          }
+
+          // MATCHING
+          else if (q.type === "matching") {
+            let corrects = [];
+            if (Array.isArray(q.correctAnswer)) {
+              corrects = q.correctAnswer.map(normalize);
+            } else if (typeof q.correctAnswer === "string") {
+              try {
+                const arr = JSON.parse(q.correctAnswer);
+                if (Array.isArray(arr)) corrects = arr.map(normalize);
+                else corrects = [normalize(q.correctAnswer)];
+              } catch {
+                corrects = [normalize(q.correctAnswer)];
+              }
+            } else {
+              corrects = [normalize(q.correctAnswer)];
+            }
+            for (let idx = 0; idx < corrects.length; idx++) {
+              const userAnswer = normalize(answers[`${q.id}_${idx}`]);
+              if (userAnswer && userAnswer === corrects[idx]) {
+                score++;
+              }
+            }
           }
         });
       });
