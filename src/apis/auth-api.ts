@@ -1,7 +1,7 @@
 // src/apis/auth-api.ts
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://nestjs-english-website-production.up.railway.app";
 
 // 🟢 Login dùng cho cả user và admin
 export const loginApi = async (identifier: string, password: string) => {
@@ -25,7 +25,6 @@ export const signupApi = async (data: {
   const res = await axios.post(`${BASE_URL}/auth/signup`, data);
   return res.data;
 };
-
 
 // 🟢 Lấy thông tin người dùng qua token
 export const getUserInfo = async (token: string) => {

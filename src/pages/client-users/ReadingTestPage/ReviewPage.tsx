@@ -83,11 +83,13 @@ const ReviewPage: React.FC = () => {
         );
       }
       return (
-        <div className="mt-2 !text-[18px] font-semibold text-green-700">
-          Đáp án đúng:{" "}
-          {optionIndex !== -1
-            ? String.fromCharCode(65 + optionIndex)
-            : (correct || "").toUpperCase()}
+        <div className="mt-3 text-[18px] font-semibold text-green-700 flex items-center gap-2">
+          <span>Đáp án đúng:</span>
+          <span className="inline-block min-w-[40px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
+            {optionIndex !== -1
+              ? String.fromCharCode(65 + optionIndex)
+              : (correct || "").toUpperCase()}
+          </span>
         </div>
       );
     }
@@ -99,10 +101,16 @@ const ReviewPage: React.FC = () => {
       return (
         <div className="mt-2 text-[18px] font-semibold text-green-700">
           Đáp án đúng:
-          <div className="pl-2 mt-1">
+          <div className="pl-2 mt-1 flex flex-col gap-2">
             {corrects.map((ans, idx) => (
-              <div key={idx}>
-                {idxStart + idx}. {String(ans).replace(/^['"]+|['"]+$/g, "")}
+              <div key={idx} className="flex items-center gap-2">
+                <span>{idxStart + idx}.</span>
+                <span
+                  className="inline-block min-w-[60px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow"
+                  style={{ letterSpacing: "0.5px" }}
+                >
+                  {String(ans).replace(/^['"]+|['"]+$/g, "")}
+                </span>
               </div>
             ))}
           </div>
@@ -115,8 +123,16 @@ const ReviewPage: React.FC = () => {
       let corrects = normalize(q.correctAnswer) as string[];
       if (!Array.isArray(corrects)) corrects = [corrects];
       return (
-        <div className="mt-2 text-[18px] font-semibold text-green-700">
-          Đáp án đúng: {corrects || ""}
+        <div className="mt-2 text-[18px] font-semibold text-green-700 flex items-center gap-3 flex-wrap">
+          <span>Đáp án đúng:</span>
+          {corrects.map((ans, idx) => (
+            <span
+              key={idx}
+              className="inline-block min-w-[50px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow"
+            >
+              {String(ans).replace(/^['"]+|['"]+$/g, "")}
+            </span>
+          ))}
         </div>
       );
     }
@@ -128,11 +144,13 @@ const ReviewPage: React.FC = () => {
       return (
         <div className="mt-2 text-[18px] font-semibold text-green-700">
           Đáp án đúng:
-          <div className="pl-2 mt-1">
+          <div className="pl-2 mt-1 flex flex-col gap-2">
             {corrects.map((ans, idx) => (
-              <div key={idx}>
-                {String.fromCharCode(65 + idx)}.{" "}
-                {String(ans).replace(/^['"]+|['"]+$/g, "")}
+              <div key={idx} className="flex items-center gap-2">
+                <span>{String.fromCharCode(65 + idx)}.</span>
+                <span className="inline-block min-w-[50px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
+                  {String(ans).replace(/^['"]+|['"]+$/g, "")}
+                </span>
               </div>
             ))}
           </div>
@@ -145,8 +163,11 @@ const ReviewPage: React.FC = () => {
       let correct = normalize(q.correctAnswer);
       if (Array.isArray(correct)) correct = correct[0];
       return (
-        <div className="mt-2 text-[18px] font-semibold text-green-700">
-          Đáp án đúng: {(correct || "").toUpperCase()}
+        <div className="mt-3 text-[18px] font-semibold text-green-700 flex items-center gap-2">
+          <span>Đáp án đúng:</span>
+          <span className="inline-block min-w-[40px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
+            {(correct || "").toUpperCase()}
+          </span>
         </div>
       );
     }

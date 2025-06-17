@@ -1,7 +1,7 @@
 // src/apis/user-api.ts
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://nestjs-english-website-production.up.railway.app";
 
 // 🟢 Lấy danh sách toàn bộ người dùng
 export const getAllUsers = async () => {
