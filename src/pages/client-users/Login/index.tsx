@@ -72,6 +72,18 @@ const SignupInfoPanel: React.FC = () => {
   );
 };
 
+function getUserIdFromToken(token: string) {
+  try {
+    const payload = token.split(".")[1];
+    // Nếu là base64url thì cần chuyển về base64
+    const b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = JSON.parse(atob(b64));
+    return decoded.sub;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ===== Animation Variants =====
 const slideVariants = {
   initial: (direction: "left" | "right") => ({
@@ -132,8 +144,20 @@ const LoginPage: React.FC = () => {
     try {
       if (isLogin) {
         const res = await loginApi(user_name, password);
+        console.log("DEBUG loginApi res:", res);
         localStorage.setItem("token", res.token);
         localStorage.setItem("user_name", res.user_name);
+        // Giải mã user_id từ token
+        const user_id = getUserIdFromToken(res.token);
+        console.log("DEBUG: user_id from token =", user_id);
+
+        const userObj = {
+          user_id,
+          user_name: res.user_name,
+          email: res.email,
+          role: res.role,
+        };
+        localStorage.setItem("user", JSON.stringify(userObj));
         toast.success("Đăng nhập thành công!");
         const from = location.state?.from?.pathname || "/";
         navigate(from === "/assessment" ? "/assessment-confirm" : "/", {
@@ -174,15 +198,14 @@ const LoginPage: React.FC = () => {
     setIsLogin(!isLogin);
   };
 
-  // ===== Classes cho input, label (giữ nguyên như bạn) =====
   const inputWrapperClasses = "relative";
   const inputBaseClasses = `!w-full !h-11 !px-3.5 !py-2.5 !text-sm !text-purple-900 
                            !bg-purple-50/60 !border !border-purple-300/50 
                            placeholder-transparent focus:!bg-white 
                            peer !rounded-lg transition-all duration-300 focus:!border-purple-600 
                            focus:!ring-1 focus:!ring-purple-600/70`;
-  const labelClasses = `absolute left-3 -top-4.5 scale-75 origin-top-left px-2 py-0.5
-  text-base font-extrabold bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-600 bg-clip-text text-transparent
+  const labelClasses = `absolute left-3 -top-6.5 scale-75 origin-top-left px-2 py-0.5
+  text-lg font-extrabold bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-600 bg-clip-text text-transparent
   drop-shadow-md rounded transition-all duration-300
   peer-placeholder-shown:left-3.5 peer-placeholder-shown:top-2.5 peer-placeholder-shown:scale-100 
   peer-placeholder-shown:text-purple-700 peer-placeholder-shown:bg-none peer-placeholder-shown:text-shadow
@@ -195,59 +218,71 @@ const LoginPage: React.FC = () => {
       <Header />
       <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden font-inter pt-20">
         {/* BG */}
-        <div className="absolute inset-0 z-0">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute inset-0 z-0"
+        >
           <img
             src={pageBackgroundIllustration}
             alt="Readify Background"
             className="w-full h-full object-cover filter blur-md brightness-90 scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-purple-100/50 via-fuchsia-100/40 to-indigo-200/50"></div>
-        </div>
+        </motion.div>
         {/* Card chuyển cảnh */}
-        <AnimatePresence mode="wait" initial={false}>
-          {isLogin ? (
-            <motion.div
-              key="login"
-              custom={switchDirection}
-              variants={slideVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="relative z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-purple-200/60 flex flex-col overflow-hidden min-h-[620px] md:min-h-[660px] max-w-[450px]"
-            >
-              <LoginFormBlock
-                form={form}
-                handleFinish={handleFinish}
-                handleSwitchMode={handleSwitchMode}
-                inputBaseClasses={inputBaseClasses}
-                inputWrapperClasses={inputWrapperClasses}
-                labelClasses={labelClasses}
-                antInputPrefixClass={antInputPrefixClass}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="signup"
-              custom={switchDirection}
-              variants={slideVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="relative z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-purple-200/60 flex flex-row overflow-hidden min-h-[620px] md:min-h-[660px] max-w-[860px]"
-            >
-              <SignupInfoPanel />
-              <SignupFormBlock
-                form={form}
-                handleFinish={handleFinish}
-                handleSwitchMode={handleSwitchMode}
-                inputBaseClasses={inputBaseClasses}
-                inputWrapperClasses={inputWrapperClasses}
-                labelClasses={labelClasses}
-                antInputPrefixClass={antInputPrefixClass}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="relative z-10 w-full flex items-center justify-center"
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {isLogin ? (
+              <motion.div
+                key="login"
+                custom={switchDirection}
+                variants={slideVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="relative z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-purple-200/60 flex flex-col overflow-hidden min-h-[620px] md:min-h-[660px] max-w-[450px] my-10"
+              >
+                <LoginFormBlock
+                  form={form}
+                  handleFinish={handleFinish}
+                  handleSwitchMode={handleSwitchMode}
+                  inputBaseClasses={inputBaseClasses}
+                  inputWrapperClasses={inputWrapperClasses}
+                  labelClasses={labelClasses}
+                  antInputPrefixClass={antInputPrefixClass}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="signup"
+                custom={switchDirection}
+                variants={slideVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="relative z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-purple-200/60 flex flex-row overflow-hidden min-h-[620px] md:min-h-[660px] max-w-[860px] my-10"
+              >
+                <SignupInfoPanel />
+                <SignupFormBlock
+                  form={form}
+                  handleFinish={handleFinish}
+                  handleSwitchMode={handleSwitchMode}
+                  inputBaseClasses={inputBaseClasses}
+                  inputWrapperClasses={inputWrapperClasses}
+                  labelClasses={labelClasses}
+                  antInputPrefixClass={antInputPrefixClass}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
       <Footer />
     </>
@@ -289,7 +324,7 @@ const LoginFormBlock = ({
       Đăng Nhập
     </motion.h1>
     <motion.p
-      className="text-center text-purple-600/90 mb-6 font-bold text-lg"
+      className="text-center text-purple-600/90 !mb-6 font-bold text-lg"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.4 }}
@@ -307,7 +342,7 @@ const LoginFormBlock = ({
       <Form.Item
         name="user_name"
         rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}
-        className="!mb-3.5"
+        className="!mb-12"
       >
         <div className={inputWrapperClasses}>
           <Input
@@ -417,7 +452,7 @@ const SignupFormBlock = ({
       Tạo Tài Khoản
     </motion.h1>
     <motion.p
-      className="text-center text-purple-600/90 mb-6 font-bold text-lg"
+      className="text-center text-purple-600/90 !mb-8 font-bold text-lg "
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.4 }}
@@ -436,7 +471,7 @@ const SignupFormBlock = ({
         <Form.Item
           name="full_name"
           rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
-          className="!mb-0"
+          className="!mb-8"
         >
           <div className={inputWrapperClasses}>
             <Input
@@ -459,7 +494,7 @@ const SignupFormBlock = ({
               message: "Số điện thoại không hợp lệ.",
             },
           ]}
-          className="!mb-0"
+          className="!mb-8"
         >
           <div className={inputWrapperClasses}>
             <Input
@@ -499,7 +534,7 @@ const SignupFormBlock = ({
       <Form.Item
         name="user_name"
         rules={[{ required: true, message: "Vui lòng nhập tên đăng nhập!" }]}
-        className="!mb-3.5"
+        className="!mb-12 !mt-8"
       >
         <div className={inputWrapperClasses}>
           <Input
@@ -516,7 +551,7 @@ const SignupFormBlock = ({
       <Form.Item
         name="password"
         rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
-        className="!mb-3.5"
+        className="!mb-12 !mt-8"
       >
         <div className={inputWrapperClasses}>
           <Input.Password

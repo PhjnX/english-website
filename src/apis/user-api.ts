@@ -43,3 +43,30 @@ export const deleteUserApi = async (userId: number) => {
     },
   });
 };
+
+// Gửi band và level cho user
+export const updateUserBandLevel = async (
+  userId: string | number,
+  data: { band: string; level: string }
+) => {
+  const token = localStorage.getItem("token");
+  console.log("DEBUG: Gửi PUT band/level", { userId, data });
+  const res = await axios.put(`${BASE_URL}/user/${userId}`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  console.log("DEBUG: Response update user:", res.data);
+  return res.data;
+};
+
+// Lấy thông tin user theo id
+export const getUserById = async (userId: string | number) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.get(`${BASE_URL}/user/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data; // Trả về object user gồm band, level, ...
+};

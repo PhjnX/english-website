@@ -37,9 +37,15 @@ function getOptionKey(option: string) {
 }
 
 const ReviewPage: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { answers = {}, parts = [] } = location.state || {};
+  const location = useLocation();
+  let state = location.state;
+  if (!state) {
+    try {
+      state = JSON.parse(localStorage.getItem("reading_result") || "{}");
+    } catch {}
+  }
+  const { answers = {}, parts = [], score = 0, band = null } = state || {};
 
   // Nếu không có dữ liệu truyền qua thì quay lại trang điểm số
   React.useEffect(() => {
@@ -453,7 +459,11 @@ const ReviewPage: React.FC = () => {
         <div className="flex items-center gap-5">
           <button
             className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 text-white font-semibold shadow hover:scale-105 transition"
-            onClick={() => navigate("/reading-score")}
+            onClick={() =>
+              navigate("/reading-score", {
+                state: { answers, parts, score, band },
+              })
+            }
           >
             Quay lại kết quả
           </button>

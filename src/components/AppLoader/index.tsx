@@ -1,5 +1,5 @@
-import React from "react";
+import Loader from "./Loader";
 
 export default function AppLoader() {
-  return <div></div>;
+  return <Loader />;
 }

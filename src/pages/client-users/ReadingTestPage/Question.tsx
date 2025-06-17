@@ -84,6 +84,11 @@ const QuestionList: React.FC<QuestionProps> = ({
                 {group.heading}
               </div>
             )}
+            {group.questionType === "matching" && group.questionText && (
+              <div className="text-base text-purple-800 font-medium mb-2">
+                {group.questionText}
+              </div>
+            )}
             {group.questions.map((q, qidx) => {
               const questionNumber = startNumber + qidx;
               const showNumber = ![

@@ -45,8 +45,14 @@ const getBand = (score: number): number | string => {
 
 const ReadingScore = () => {
   const location = useLocation();
+  let state = location.state;
   const navigate = useNavigate();
 
+  if (!state) {
+    try {
+      state = JSON.parse(localStorage.getItem("reading_result") || "{}");
+    } catch {}
+  }
   // Lấy state truyền từ trang test
   const {
     score = 0,
@@ -54,13 +60,7 @@ const ReadingScore = () => {
     answers = {},
     questions = [],
     parts = [],
-  }: {
-    score?: number;
-    timeSpent?: number;
-    answers?: { [key: string]: string };
-    questions?: any[];
-    parts?: Part[];
-  } = location.state || {};
+  } = state || {};
 
   const band = getBand(score);
   const [showConfetti, setShowConfetti] = useState(true);
