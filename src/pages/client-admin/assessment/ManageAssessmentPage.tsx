@@ -184,10 +184,10 @@ export default function ManageAssessmentPage() {
         toast.error("Bạn chưa nhập đáp án đúng!");
         return;
       }
-  
+
       // Chuẩn hóa đáp án
       let parsedCorrectAnswer: any = [];
-  
+
       try {
         const raw = values.correctAnswer.trim();
         if (raw.startsWith("[") && raw.endsWith("]")) {
@@ -198,7 +198,7 @@ export default function ManageAssessmentPage() {
       } catch (e) {
         parsedCorrectAnswer = [values.correctAnswer.trim()];
       }
-  
+
       // Chuẩn hóa options nếu có
       const formattedOptions = values.options
         ? JSON.stringify(
@@ -208,22 +208,22 @@ export default function ManageAssessmentPage() {
               .filter(Boolean)
           )
         : undefined;
-  
+
       const payload = {
         ...values,
         type: questionType,
         options: formattedOptions,
         correctAnswer: JSON.stringify(parsedCorrectAnswer),
       };
-  
+
       if (editQuestion) {
-        await updateReadingQuestion(editQuestion.id, payload);
+        await updateQuestion(editQuestion.id, payload);
         toast.success("Cập nhật câu hỏi thành công");
       } else {
-        await createReadingQuestion(Number(selectedGroupId), payload);
+        await createQuestion(Number(selectedGroupId), payload);
         toast.success("Tạo câu hỏi thành công");
       }
-  
+
       setEditQuestion(null);
       setQuestionModalOpen(false);
       loadData();
@@ -232,8 +232,6 @@ export default function ManageAssessmentPage() {
       toast.error("Lỗi khi xử lý câu hỏi");
     }
   };
-  
-  
 
   const handleDeleteQuestion = async (questionId: number) => {
     try {
@@ -259,7 +257,10 @@ export default function ManageAssessmentPage() {
               label="Các lựa chọn (mỗi dòng 1 lựa chọn)"
               extra="Nhập mỗi đáp án 1 dòng, ví dụ: A. Option 1"
             >
-              <TextArea rows={4} placeholder={`A. ...\nB. ...\nC. ...\nD. ...`} />
+              <TextArea
+                rows={4}
+                placeholder={`A. ...\nB. ...\nC. ...\nD. ...`}
+              />
             </Form.Item>
             <Form.Item
               name="correctAnswer"
@@ -415,7 +416,10 @@ export default function ManageAssessmentPage() {
               rules={[{ required: true }]}
               extra="VD: Supermarkets want fruit and vegetables to be standard in their ____."
             >
-              <TextArea rows={3} placeholder="Supermarkets want fruit and vegetables to be standard in their ____." />
+              <TextArea
+                rows={3}
+                placeholder="Supermarkets want fruit and vegetables to be standard in their ____."
+              />
             </Form.Item>
             <Form.Item
               name="correctAnswer"
@@ -456,7 +460,7 @@ export default function ManageAssessmentPage() {
       <h2 className="text-2xl font-extrabold mb-6 text-center text-blue-900">
         Assessment - {assessment?.name}
       </h2>
-      
+
       {/* Nút + Modal Thêm Part */}
       <div className="flex justify-end mb-4">
         <Button type="primary" onClick={() => setAddPartModalOpen(true)}>
@@ -472,49 +476,35 @@ export default function ManageAssessmentPage() {
         cancelText="Huỷ"
       >
         <Form
-  layout="vertical"
-  form={createPartForm}
-  onFinish={handleCreatePart}
->
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <Form.Item
-      name="title"
-      label="Tiêu đề Part"
-      rules={[{ required: true }]}
-    >
-      <Input />
-    </Form.Item>
-    <Form.Item
-      name="instructions"
-      label="Hướng dẫn (optional)"
-    >
-      <Input.TextArea autoSize={{ minRows: 1, maxRows: 2 }} />
-    </Form.Item>
-    <Form.Item
-      name="order"
-      label="Thứ tự"
-      rules={[{ required: true }]}
-    >
-      <Input type="number" />
-    </Form.Item>
-    <Form.Item
-      name="titleDescription"
-      label="Gợi ý tiêu đề (optional)"
-    >
-      <Input />
-    </Form.Item>
-    <Form.Item
-      name="headerContent"
-      label="Tiêu đề đoạn văn"
-    >
-      <Input />
-    </Form.Item>
-  </div>
-  <Form.Item name="content" label="Nội dung đoạn văn">
-    <Input.TextArea rows={6} />
-  </Form.Item>
-</Form>
-
+          layout="vertical"
+          form={createPartForm}
+          onFinish={handleCreatePart}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Form.Item
+              name="title"
+              label="Tiêu đề Part"
+              rules={[{ required: true }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item name="instructions" label="Hướng dẫn (optional)">
+              <Input.TextArea autoSize={{ minRows: 1, maxRows: 2 }} />
+            </Form.Item>
+            <Form.Item name="order" label="Thứ tự" rules={[{ required: true }]}>
+              <Input type="number" />
+            </Form.Item>
+            <Form.Item name="titleDescription" label="Gợi ý tiêu đề (optional)">
+              <Input />
+            </Form.Item>
+            <Form.Item name="headerContent" label="Tiêu đề đoạn văn">
+              <Input />
+            </Form.Item>
+          </div>
+          <Form.Item name="content" label="Nội dung đoạn văn">
+            <Input.TextArea rows={6} />
+          </Form.Item>
+        </Form>
       </Modal>
 
       <Divider className="my-6" />
@@ -585,11 +575,17 @@ export default function ManageAssessmentPage() {
             rules={[{ required: true }]}
           >
             <Select>
-              <Select.Option value="multiple-choice">Multiple Choice</Select.Option>
+              <Select.Option value="multiple-choice">
+                Multiple Choice
+              </Select.Option>
               <Select.Option value="paragraph">Paragraph</Select.Option>
               <Select.Option value="matching">Matching</Select.Option>
-              <Select.Option value="true-false-notgiven">True/False/Not Given</Select.Option>
-              <Select.Option value="gap-fill">Gap-fill (Điền từ/chỗ trống)</Select.Option>
+              <Select.Option value="true-false-notgiven">
+                True/False/Not Given
+              </Select.Option>
+              <Select.Option value="gap-fill">
+                Gap-fill (Điền từ/chỗ trống)
+              </Select.Option>
             </Select>
           </Form.Item>
           <Form.Item

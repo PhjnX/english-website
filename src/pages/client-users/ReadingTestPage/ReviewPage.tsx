@@ -31,11 +31,6 @@ function normalizeTFNG(val: any) {
     .replace(/^ng$/, "notgiven"); // nếu chọn nhanh gõ ng
 }
 
-function getOptionKey(option: string) {
-  const match = option.trim().match(/^([A-Z])/i);
-  return match ? match[1].toUpperCase() : option.trim();
-}
-
 const ReviewPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();

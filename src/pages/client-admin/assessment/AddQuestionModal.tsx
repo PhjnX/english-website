@@ -22,7 +22,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
     const payload: any = {
       ...values,
       options: values.options
-        ? JSON.stringify(values.options.split("\n").map((opt) => opt.trim()))
+        ? JSON.stringify(
+            values.options.split("\n").map((opt: string) => opt.trim())
+          )
         : undefined,
       correctAnswer: values.correctAnswer?.trim(),
       paragraphHeading: values.paragraphHeading,
@@ -48,16 +50,28 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
           if (changed.type) setType(changed.type);
         }}
       >
-        <Form.Item name="type" label="Loại câu hỏi" rules={[{ required: true }]}>
+        <Form.Item
+          name="type"
+          label="Loại câu hỏi"
+          rules={[{ required: true }]}
+        >
           <Select placeholder="Chọn loại câu hỏi">
-            <Select.Option value="multiple-choice">Multiple Choice</Select.Option>
+            <Select.Option value="multiple-choice">
+              Multiple Choice
+            </Select.Option>
             <Select.Option value="paragraph">Paragraph</Select.Option>
             <Select.Option value="matching">Matching</Select.Option>
-            <Select.Option value="true-false-notgiven">True/False/Not Given</Select.Option>
+            <Select.Option value="true-false-notgiven">
+              True/False/Not Given
+            </Select.Option>
           </Select>
         </Form.Item>
 
-        <Form.Item name="questionText" label="Câu hỏi chính" rules={[{ required: true }]}>
+        <Form.Item
+          name="questionText"
+          label="Câu hỏi chính"
+          rules={[{ required: true }]}
+        >
           <TextArea />
         </Form.Item>
 
@@ -77,7 +91,10 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
 
         {type === "paragraph" && (
           <>
-            <Form.Item name="paragraphHeading" label="Heading đoạn văn (nếu có)">
+            <Form.Item
+              name="paragraphHeading"
+              label="Heading đoạn văn (nếu có)"
+            >
               <TextArea />
             </Form.Item>
             <Form.Item name="correctAnswer" label="Đáp án (mỗi dòng 1 từ)">
@@ -102,7 +119,10 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({
             <Form.Item name="options" label="Danh sách câu hỏi (mỗi dòng)">
               <TextArea />
             </Form.Item>
-            <Form.Item name="correctAnswer" label="Đáp án (mỗi dòng TRUE/FALSE/NOT GIVEN)">
+            <Form.Item
+              name="correctAnswer"
+              label="Đáp án (mỗi dòng TRUE/FALSE/NOT GIVEN)"
+            >
               <TextArea />
             </Form.Item>
           </>

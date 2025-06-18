@@ -100,7 +100,6 @@ const QuestionList: React.FC<QuestionProps> = ({
               // Multiple choice (A, B, C, D)
               if (q.type === "multiple-choice") {
                 const options = parseOptions(q.options);
-                const userAnswer = normalize(answers[q.id]);
                 let correctAnswers: string[] = [];
                 if (
                   typeof q.correctAnswer === "string" &&

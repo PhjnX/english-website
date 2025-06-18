@@ -76,12 +76,21 @@ const LevelPage = () => {
             (t) => Number(t.level) === levelNum
           );
           // Map to ExerciseTest type (id, title, time, level)
-          const mapped = filteredTests.map((t) => ({
-            id: t.id,
-            title: t.title,
-            time: t.time,
-            level: t.level,
-          }));
+          const mapped = filteredTests
+            .map((t) => ({
+              id: t.id,
+              title: t.title,
+              time: t.time,
+              level: t.level,
+            }))
+            .sort((a, b) => {
+              // Nếu title dạng "Reading 1", "Reading 2", ... thì sort theo số
+              const getNumber = (str: string) => {
+                const match = str.match(/\d+/);
+                return match ? parseInt(match[0]) : 0;
+              };
+              return getNumber(a.title) - getNumber(b.title);
+            });
           setTests(mapped);
           setLoading(false);
         }
@@ -202,7 +211,7 @@ const LevelPage = () => {
                         className="w-full h-32 object-cover rounded-xl mb-4 border border-purple-500/20 bg-gray-900"
                       />
                       <div className="relative p-6 bg-gray-800/80 backdrop-blur-xl h-full flex flex-col rounded-2xl border border-purple-500/20">
-                        <div className="flex-grow">
+                        <div className="flex justify-between">
                           <h3 className="font-bold text-xl mb-3 text-white line-clamp-2 h-14">
                             {test.title}
                           </h3>
@@ -214,12 +223,41 @@ const LevelPage = () => {
                           </div>
                         </div>
                         <motion.button
-                          className="mt-auto px-6 py-3 rounded-lg bg-white/10 text-purple-200 font-semibold text-center transition-colors duration-300 group-hover:bg-white group-hover:text-purple-700"
                           onClick={() =>
                             navigate(`/assessment/exercise/${test.id}`)
                           }
+                          // Các class Tailwind cho style CỐ ĐỊNH
+                          className="
+    group relative overflow-hidden // Quan trọng: `group` để kích hoạt hover cho con, `overflow-hidden` để chứa hiệu ứng shine
+    mt-auto w-full px-6 py-3 
+    flex items-center justify-center gap-2
+    
+    rounded-xl border border-transparent 
+    bg-gradient-to-r from-purple-600 via-indigo-500 to-fuchsia-600
+    
+    text-white text-base font-semibold uppercase tracking-wider
+    
+    shadow-lg transition-all duration-300 ease-out
+    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-slate-50 cursor-pointer
+  "
+                          // Animation vật lý với Framer Motion
+                          whileHover={{
+                            scale: 1.05,
+                            y: -3,
+                            boxShadow:
+                              "0px 10px 25px -5px rgba(139, 92, 246, 0.5)", // Hiệu ứng glow màu tím
+                          }}
+                          whileTap={{ scale: 0.98, y: 0 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 350,
+                            damping: 20,
+                          }}
                         >
-                          Làm bài
+                          {/* ---- NỘI DUNG NÚT BẤM ---- */}
+                          {/* Đặt nội dung trong span với z-10 để nó nằm trên hiệu ứng shine */}
+                          <span className="relative z-10">Làm bài</span>
+                          <span className="relative z-10"></span>
                         </motion.button>
                       </div>
                     </motion.div>
