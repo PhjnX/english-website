@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Navigate } from "react-router-dom";
 import PrivateRoute from "../pages/client-auth/PrivateRoute";
+import ProfilePage from "../pages/client-admin/profile";
 
 const AdminLayout = lazy(() => import("../pages/client-admin"));
 const DashboardPage = lazy(() => import("../pages/client-admin/dashboard"));
@@ -50,6 +51,7 @@ export const adminRoutes = [
             path: "reading/:readingTestId/manage",
             element: ManageReadingTestPage ,
           },
+          { path: "profile", element: ProfilePage }
         ],
       },
     ],

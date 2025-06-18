@@ -30,14 +30,17 @@ const LEVEL_OPTIONS = [
   { value: 6, label: "Level 6 (IELTS 6.0)" },
 ];
 
+// Hàm tách số trong chuỗi "Reading 1" -> 1, không thấy số trả về 0
+const getReadingNumber = (title) => Number((title.match(/\d+/) || [])[0]) || 0;
+
 export default function ReadingTestListPage() {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
-  const [currentEdit, setCurrentEdit] = useState<any>(null);
-  const [levelFilter, setLevelFilter] = useState<number | null>(null);
+  const [currentEdit, setCurrentEdit] = useState(null);
+  const [levelFilter, setLevelFilter] = useState(null);
 
   const navigate = useNavigate();
 
@@ -48,14 +51,16 @@ export default function ReadingTestListPage() {
   const fetchData = async () => {
     try {
       const res = await getAllReadingTests();
-      setData(res);
+      // Sắp xếp theo số trong title, tăng dần
+      const sorted = [...res].sort((a, b) => getReadingNumber(a.title) - getReadingNumber(b.title));
+      setData(sorted);
     } catch (err) {
       toast.error("Lỗi khi lấy danh sách bài reading!");
     }
   };
 
   // Xoá bài lesson
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id) => {
     try {
       await deleteReadingTest(id);
       setData((prev) => prev.filter((item) => item.id !== id));
@@ -66,7 +71,7 @@ export default function ReadingTestListPage() {
   };
 
   // Thêm bài lesson
-  const handleCreate = async (values: any) => {
+  const handleCreate = async (values) => {
     try {
       await createReadingTest(values);
       toast.success("✅ Tạo bài lesson thành công!");
@@ -79,7 +84,7 @@ export default function ReadingTestListPage() {
   };
 
   // Sửa bài lesson
-  const handleEditClick = (record: any) => {
+  const handleEditClick = (record) => {
     setCurrentEdit(record);
     setIsEditModalOpen(true);
     editForm.setFieldsValue({
@@ -90,7 +95,7 @@ export default function ReadingTestListPage() {
     });
   };
 
-  const handleUpdate = async (values: any) => {
+  const handleUpdate = async (values) => {
     if (!currentEdit) return;
     try {
       await updateReadingTest(currentEdit.id, values);
@@ -112,17 +117,19 @@ export default function ReadingTestListPage() {
   const columns = [
     {
       title: "Tên bài lesson",
-      dataIndex: "title",  // <-- SỬA lại thành "title"
+      dataIndex: "title",
       key: "title",
+      sorter: (a, b) => getReadingNumber(a.title) - getReadingNumber(b.title),
+      defaultSortOrder: "ascend",
     },
     {
       title: "Level",
       dataIndex: "level",
       key: "level",
-      render: (val: number) =>
+      render: (val) =>
         LEVEL_OPTIONS.find((o) => o.value === Number(val))?.label || val,
       filters: LEVEL_OPTIONS.map((o) => ({ text: o.label, value: o.value })),
-      onFilter: (value: any, record: any) => Number(record.level) === value,
+      onFilter: (value, record) => Number(record.level) === value,
     },
     {
       title: "Thời gian (phút)",
@@ -137,7 +144,7 @@ export default function ReadingTestListPage() {
     {
       title: "Thao tác",
       key: "action",
-      render: (_: any, record: any) => (
+      render: (_, record) => (
         <Space>
           <Tooltip title="Quản lý chi tiết">
             <Button
@@ -212,7 +219,7 @@ export default function ReadingTestListPage() {
       >
         <Form form={form} layout="vertical" onFinish={handleCreate}>
           <Form.Item
-            name="title"   // <-- SỬA lại thành "title"
+            name="title"
             label="Tên bài lesson"
             rules={[{ required: true, message: "Không được bỏ trống tên!" }]}
           >
@@ -256,7 +263,7 @@ export default function ReadingTestListPage() {
           onFinish={handleUpdate}
         >
           <Form.Item
-            name="title"   // <-- SỬA lại thành "title"
+            name="title"
             label="Tên bài lesson"
             rules={[{ required: true, message: "Không được bỏ trống tên!" }]}
           >

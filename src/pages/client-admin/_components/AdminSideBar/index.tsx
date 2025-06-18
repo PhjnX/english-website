@@ -31,9 +31,10 @@ export default function AdminSidebar({ collapsed }: SidebarProps) {
 
   const adminMenu: MenuProps["items"] = [
     !collapsed
-      ? { label: "Giao diện - Người dùng", type: "group" }
+      ? { label: "Người dùng", type: "group" }
       : { type: "divider" },
     { key: "/admin", label: "Trang chủ", icon: <MailOutlined /> },
+  
     {
       key: "sub1",
       label: "Quản lý người dùng",
@@ -67,7 +68,6 @@ export default function AdminSidebar({ collapsed }: SidebarProps) {
       icon: <UserOutlined />,
       children: [
         { key: "/admin/profile", label: "Thông tin cá nhân" },
-        { key: "/admin/password", label: "Cập nhật mật khẩu" },
       ],
     },
     {

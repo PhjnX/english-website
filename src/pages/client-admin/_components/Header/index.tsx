@@ -90,12 +90,6 @@ export default function CustomHeader({
       icon: <InfoCircleOutlined />,
       onClick: () => navigate("/admin/profile"),
     },
-    {
-      key: "change-password",
-      label: "Đổi mật khẩu",
-      icon: <LockOutlined />,
-      onClick: () => navigate("/admin/password"),
-    },
     { type: "divider" },
     {
       key: "logout",
