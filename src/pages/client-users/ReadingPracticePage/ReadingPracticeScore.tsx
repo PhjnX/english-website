@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   CircularProgressbarWithChildren,
   buildStyles,
@@ -9,15 +9,16 @@ import { motion } from "framer-motion";
 import Confetti from "react-confetti";
 import {
   FaRedo,
-  FaHome,
   FaEye,
   FaRocket,
   FaAward,
   FaBookReader,
   FaChartLine,
+  FaGraduationCap,
 } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
 import { Part, Group, Question } from "./reading";
+import { saveReadingPracticeResult } from "../../../utils/mockData";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -43,23 +44,31 @@ const getBand = (score: number): number | string => {
   return "Below 3.0";
 };
 
-const ReadingScore = () => {
+const ReadingPracticeScore = () => {
   const location = useLocation();
-  let state = location.state;
   const navigate = useNavigate();
+  const { level, readingNum } = useParams<{
+    level: string;
+    readingNum: string;
+  }>();
+
+  let state = location.state;
 
   if (!state) {
     try {
-      state = JSON.parse(localStorage.getItem("reading_result") || "{}");
+      state = JSON.parse(
+        localStorage.getItem("reading_practice_result") || "{}"
+      );
     } catch {}
   }
-  // Lấy state truyền từ trang test
+  // Lấy state truyền từ trang practice
   const {
     score = 0,
     timeSpent = 0,
     answers = {},
     questions = [],
     parts = [],
+    testLevel = level || "1",
   } = state || {};
 
   const band = getBand(score);
@@ -76,14 +85,73 @@ const ReadingScore = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 5500);
     return () => clearTimeout(timer);
-  }, []);
+  }, []);  // Lưu kết quả vào localStorage khi component mount - cải tiến để tránh lưu trùng lặp
+  useEffect(() => {
+    // Đảm bảo tất cả dữ liệu cần thiết đã sẵn sàng
+    if (parts && parts.length > 0 && level && readingNum && score >= 0) {
+      const totalQuestions = countQuestions(parts);
+      // Chuẩn hóa title thành format "Reading {readingNum}"
+      const title = `Reading ${readingNum}`;
+
+      console.log(`Attempting to save: Level ${level}, Reading ${readingNum}, Score ${score}/${totalQuestions}`);
+
+      // Kiểm tra xem đã lưu kết quả này chưa bằng cách check localStorage
+      const existingData = localStorage.getItem("user_completed_exercises");
+      let shouldSave = true;
+
+      if (existingData) {
+        try {
+          const exercises = JSON.parse(existingData);
+          const existing = exercises.find(
+            (ex: any) =>
+              ex.level === parseInt(level) &&
+              ex.readingNum === parseInt(readingNum)
+          );
+          
+          if (existing) {
+            // Nếu đã tồn tại, chỉ update nếu có thay đổi về điểm
+            if (existing.score === score && existing.totalQuestions === totalQuestions) {
+              shouldSave = false;
+              console.log(`Result already saved for Level ${level}, Reading ${readingNum} with same score`);
+            } else {
+              console.log(`Updating existing result for Level ${level}, Reading ${readingNum}: ${existing.score}/${existing.totalQuestions} -> ${score}/${totalQuestions}`);
+            }
+          } else {
+            console.log(`No existing result found for Level ${level}, Reading ${readingNum}, will create new`);
+          }
+        } catch (error) {
+          console.error("Error checking existing data:", error);
+        }
+      } else {
+        console.log("No existing data found, will create new entry");
+      }
+
+      if (shouldSave) {
+        console.log(`Saving result: Level ${level}, Reading ${readingNum}, Score ${score}/${totalQuestions}`);
+        saveReadingPracticeResult({
+          level: parseInt(level),
+          readingNum: parseInt(readingNum),
+          title: title,
+          score: score,
+          totalQuestions: totalQuestions,
+        });
+        console.log(`✅ Result saved successfully`);
+      }
+    } else {
+      console.log("Missing required data for saving:", {
+        parts: parts?.length || 0,
+        level,
+        readingNum,
+        score,
+      });
+    }
+  }, [parts, level, readingNum, score]); // Chạy khi các dependency thay đổi
 
   const handleReview = () => {
-    navigate("/review", {
+    navigate("/reading-practice-review", {
       state: {
         answers,
         questions,
@@ -92,8 +160,20 @@ const ReadingScore = () => {
         isReviewing: true,
         score,
         band,
+        level,
+        readingNum,
       },
     });
+  };
+
+  const handleContinuePractice = () => {
+    // Quay về trang level trước đó
+    navigate(`/lessons/${level}`);
+  };
+
+  const handleRetry = () => {
+    // Làm lại bài này
+    navigate(`/lessons/${level}/${readingNum}`);
   };
 
   // Đếm chính xác số câu hỏi của tất cả dạng
@@ -124,6 +204,9 @@ const ReadingScore = () => {
 
   const totalQuestions =
     Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 40;
+
+  // Extract reading number từ readingNum parameter
+  const practiceNumber = readingNum?.replace(/\D/g, "") || "1";
 
   // Gradient màu động cho progressbar
   const progressColor = (percent: number) =>
@@ -167,7 +250,7 @@ const ReadingScore = () => {
     },
   };
 
-  // Style gradient động cho button (inline, không cần file ngoài)
+  // Style gradient động cho button
   const gradBtnStyle: React.CSSProperties = {
     backgroundImage:
       "linear-gradient(to right, #FEAC5E 0%, #C779D0 51%, #FEAC5E 100%)",
@@ -195,7 +278,7 @@ const ReadingScore = () => {
     <div
       className="min-h-screen w-full overflow-y-auto flex flex-col items-center justify-center px-2 py-6 font-inter"
       style={{
-        background: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         backgroundAttachment: "fixed",
       }}
     >
@@ -261,7 +344,7 @@ const ReadingScore = () => {
         animate="visible"
         className="backdrop-blur-2xl bg-white/80 border border-white/30 rounded-3xl shadow-2xl p-6 sm:p-10 md:p-14 w-full max-w-4xl text-center mx-auto my-auto"
         style={{
-          boxShadow: "0 8px 48px 0 rgba(202,122,213,0.10)",
+          boxShadow: "0 8px 48px 0 rgba(102,126,234,0.10)",
         }}
       >
         <motion.div
@@ -279,14 +362,17 @@ const ReadingScore = () => {
             }}
             className="flex items-center justify-center gap-4 mb-3"
           >
-            <GiPartyPopper className="text-5xl text-yellow-400 animate-pulse" />
-            <span className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-purple-600 drop-shadow">
-              Excellent!
+            <FaGraduationCap className="text-5xl text-blue-400 animate-pulse" />
+            <span className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 drop-shadow">
+              Great Job!
             </span>
             <GiPartyPopper className="text-5xl text-yellow-400 animate-pulse scale-x-[-1]" />
           </motion.div>
-          <p className="text-lg md:text-xl text-gray-600 font-medium">
-            Bạn đã hoàn thành bài kiểm tra đầu vào! Đây là kết quả của bạn:
+          <p className="text-lg md:text-xl text-gray-600 font-medium mb-2">
+            Bạn đã hoàn thành bài ôn luyện
+          </p>
+          <p className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+            Reading {practiceNumber} - Level {testLevel}
           </p>
         </motion.div>
 
@@ -388,7 +474,7 @@ const ReadingScore = () => {
         {/* Dải band điểm */}
         <motion.div variants={itemVariants} className="mb-10">
           <h3 className="text-lg font-semibold text-purple-900 mb-4">
-            Band điểm của bạn:
+            Your Band on the Scale:
           </h3>
           <div className="flex flex-wrap gap-2 justify-center px-2">
             {bandMapping
@@ -400,7 +486,7 @@ const ReadingScore = () => {
                   className={`px-3 py-1.5 rounded-lg border-2 text-sm font-bold transition-all duration-200 shadow
                   ${
                     b.band === band
-                      ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white border-purple-700 scale-110 ring-2 ring-pink-200 ring-offset-1"
+                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white border-purple-700 scale-110 ring-2 ring-blue-200 ring-offset-1"
                       : typeof band === "number" && b.band < band
                       ? "bg-purple-100 text-purple-700 border-purple-300"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-400"
@@ -421,24 +507,7 @@ const ReadingScore = () => {
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 w-full">
             <motion.button
               whileHover={{ scale: 1.04 }}
-              onClick={() => navigate("/")}
-              style={{
-                ...gradBtnStyle,
-                backgroundPosition: "left center",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundPosition = "right center")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundPosition = "left center")
-              }
-            >
-              <FaHome size={20} />
-              <span>Home</span>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              onClick={() => navigate("/assessment")}
+              onClick={handleRetry}
               style={{
                 ...gradBtnStyle,
                 backgroundPosition: "left center",
@@ -453,6 +522,7 @@ const ReadingScore = () => {
               <FaRedo size={20} />
               <span>Làm lại</span>
             </motion.button>
+
             <motion.button
               whileHover={{ scale: 1.08 }}
               onClick={handleReview}
@@ -470,12 +540,13 @@ const ReadingScore = () => {
               }
             >
               <FaEye size={20} />
-              <span>Review Answers</span>
+              <span>Review</span>
             </motion.button>
           </div>
+
           <motion.button
             whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/lessons")}
+            onClick={handleContinuePractice}
             style={{
               ...gradBtnStyle,
               width: "100%",
@@ -483,7 +554,7 @@ const ReadingScore = () => {
               fontSize: 19,
               marginTop: 18,
               backgroundImage:
-                "linear-gradient(to right, #43cea2 0%, #185a9d 100%)",
+                "linear-gradient(to right, #667eea 0%, #764ba2 100%)",
               backgroundPosition: "left center",
             }}
             onMouseEnter={(e) =>
@@ -494,7 +565,7 @@ const ReadingScore = () => {
             }
           >
             <FaRocket size={22} />
-            <span>Bắt đầu ôn luyện</span>
+            <span>Tiếp tục ôn luyện</span>
           </motion.button>
         </motion.div>
       </motion.div>
@@ -502,4 +573,4 @@ const ReadingScore = () => {
   );
 };
 
-export default ReadingScore;
+export default ReadingPracticeScore;

@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaBookOpen,
-  FaCrown,
-  FaBullseye,
-  FaUserGraduate,
-} from "react-icons/fa";
+import { FaBookOpen, FaCrown, FaUserGraduate } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Header from "../_components/Header"; // Assuming path is correct
 import Footer from "../_components/Footer"; // Assuming path is correct
+import { getUserById } from "../../../apis/user-api"; // Adjust the import path as needed
+import icon from "../../../assets/suggest_level.gif";
 
 // --- TYPE DEFINITIONS ---
 interface UserData {
@@ -75,7 +72,7 @@ const readingLevels: LevelCardData[] = [
   {
     id: 6,
     level: 6,
-    band: "6.0+",
+    band: "5.5+",
     description:
       "Thử thách với các chủ đề phức tạp, yêu cầu tư duy phản biện và kỹ năng đọc xuất sắc.",
     icon: <FaBookOpen />,
@@ -85,12 +82,22 @@ const readingLevels: LevelCardData[] = [
 
 // Mock API to get user data (replace with your actual API call)
 const fetchUserProgress = async (): Promise<UserData> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Change these values to test different scenarios
-      resolve({ level: 3, band: 4.0 });
-    }, 1000);
-  });
+  const raw = localStorage.getItem("user");
+  if (raw) {
+    try {
+      const user = JSON.parse(raw);
+      const userId = user.user_id;
+      if (!userId) return { level: null, band: null };
+      const userData = await getUserById(userId);
+      return {
+        level: userData.level ? Number(userData.level) : null,
+        band: userData.band ? Number(userData.band) : null,
+      };
+    } catch {
+      return { level: null, band: null };
+    }
+  }
+  return { level: null, band: null };
 };
 
 // --- MAIN COMPONENT ---
@@ -184,7 +191,7 @@ const LessonsPage: React.FC = () => {
             </motion.p>
           </motion.div>
 
-          {/* User Progress Display */}
+          {/* Level Suggest */}
           <AnimatePresence>
             {!loading && (
               <motion.div
@@ -210,7 +217,7 @@ const LessonsPage: React.FC = () => {
                         Band
                       </p>
                       <div className="text-6xl font-bold text-white">
-                        {userData?.band?.toFixed(1)}
+                        {userData?.band ? userData.band : "?"}
                       </div>
                     </div>
                     <div className="hidden sm:block w-px h-16 bg-gradient-to-b from-transparent via-purple-300/50 to-transparent"></div>
@@ -232,19 +239,43 @@ const LessonsPage: React.FC = () => {
                     </motion.div>
                   </div>
                 ) : (
-                  <div className="text-center max-w-2xl mx-auto bg-yellow-500/10 border border-yellow-500/40 rounded-2xl p-6">
-                    <FaBullseye className="text-yellow-400 text-4xl mx-auto mb-3" />
-                    <h3 className="text-2xl font-bold text-white mb-2">
-                      Chưa có lộ trình!
+                  <div className="text-center max-w-2xl mx-auto bg-pink-500/10 border border-purple-500/40 rounded-2xl p-6">
+                    <div className="flex justify-center">
+                      <img
+                        src={icon}
+                        alt="icon"
+                        className="w-20 h-20 rounded-full !border-2 border-pink-400 object-cover mb-3"
+                      />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white !my-2">
+                      Bạn chưa làm bài test đầu vào
                     </h3>
-                    <p className="text-yellow-200/80 mb-4">
-                      Bạn cần làm bài test đầu vào để nhận được lộ trình học tập
-                      phù hợp.
+                    <p className=" !my-4">
+                      Bạn cần làm bài test đầu vào để được đề xuất level phù hợp
+                      với bản thân.
                     </p>
                     <motion.button
-                      onClick={() => navigate("/assessment-confirm")}
-                      className="px-6 py-2.5 bg-yellow-500 text-gray-900 font-bold rounded-lg shadow-lg hover:bg-yellow-400 transition-colors"
-                      whileHover={{ scale: 1.05 }}
+                      onClick={() => navigate("/assessment")}
+                      className="
+    inline-flex items-center justify-center gap-x-2.5 
+    px-8 py-4 !my-2
+    bg-gradient-to-r from-purple-600 via-indigo-600 to-fuchsia-600 
+    text-white text-base font-semibold 
+    rounded-xl shadow-lg 
+    border border-transparent
+    transition-all duration-300 ease-out cursor-pointer
+  "
+                      whileHover={{
+                        scale: 1.05,
+                        y: -3,
+                        boxShadow: "0px 10px 25px -5px rgba(168, 85, 247, 0.4)",
+                      }}
+                      whileTap={{ scale: 0.98, y: 0 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 15,
+                      }}
                     >
                       Làm bài test ngay
                     </motion.button>
@@ -272,7 +303,7 @@ const LessonsPage: React.FC = () => {
                 <motion.div
                   key={card.id}
                   variants={itemVariants}
-                  className={`relative rounded-3xl overflow-hidden transition-all duration-300 transform-gpu cursor-pointer group
+                  className={`relative rounded-3xl overflow-hidden cursor-pointer group
     ${
       isRecommended
         ? "shadow-2xl shadow-purple-500/40 scale-105 z-20"

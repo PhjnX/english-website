@@ -182,6 +182,8 @@ const Header: React.FC = () => {
     logoutApi();
     localStorage.removeItem("token");
     localStorage.removeItem("user_name");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("reading_result");
     setUser(null);
     message.success("Đăng xuất thành công!");
     navigate("/login");

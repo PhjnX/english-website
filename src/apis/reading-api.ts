@@ -1,4 +1,8 @@
 import axios from "axios";
+import {
+  mapBackendDataToFrontend,
+  findReadingTestByLevelAndNumber,
+} from "../pages/client-users/ReadingPracticePage/reading";
 
 // Nếu cần, chỉnh lại baseURL cho API của bạn
 const BASE_URL = "https://nestjs-english-website-production.up.railway.app"; // Sửa thành endpoint backend của bạn nếu khác
@@ -74,5 +78,45 @@ export const updateReadingQuestion = async (questionId: number, data: any) => {
 
 export const deleteReadingQuestion = async (questionId: number) => {
   const res = await http.delete(`/reading/questions/${questionId}`);
+  return res.data;
+};
+
+// Lấy chi tiết bài reading luyện tập theo level và số bài đọc (ví dụ readingNum là 1, 2, 3,...)
+export const getReadingTestByLevelAndNumber = async (
+  level: number | string,
+  readingNum: number | string
+) => {
+  const token = localStorage.getItem("token");
+
+  // Lấy tất cả reading tests từ endpoint /reading
+  const res = await http.get("/reading", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  const allTests = res.data;
+  console.log("All tests from API:", allTests);
+
+  // Tìm test theo level và reading number
+  const targetTest = findReadingTestByLevelAndNumber(
+    allTests,
+    level,
+    readingNum
+  );
+
+  if (!targetTest) {
+    throw new Error(
+      `Không tìm thấy bài reading Level ${level} - Reading ${readingNum}`
+    );
+  }
+  // Map dữ liệu từ backend sang frontend format
+  return mapBackendDataToFrontend(targetTest);
+};
+
+// Lấy chi tiết 1 bài reading theo ID (dạng luyện tập)
+export const getReadingTestById = async (id: number | string) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.get(`${BASE_URL}/reading/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.data;
 };

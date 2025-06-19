@@ -31,24 +31,33 @@ function normalizeTFNG(val: any) {
     .replace(/^ng$/, "notgiven"); // nếu chọn nhanh gõ ng
 }
 
-const ReviewPage: React.FC = () => {
+const ReadingPracticeReview: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   let state = location.state;
   if (!state) {
     try {
-      state = JSON.parse(localStorage.getItem("reading_result") || "{}");
+      state = JSON.parse(
+        localStorage.getItem("reading_practice_result") || "{}"
+      );
     } catch {}
   }
-  const { answers = {}, parts = [], score = 0, band = null } = state || {};
+  const {
+    answers = {},
+    parts = [],
+    score = 0,
+    band = null,
+    level = "1",
+    readingNum = "1",
+  } = state || {};
 
   // Nếu không có dữ liệu truyền qua thì quay lại trang điểm số
   React.useEffect(() => {
     if (!parts || parts.length === 0) {
-      navigate("/reading-score");
+      navigate(`/reading-practice-score/${level}/${readingNum}`);
     }
     // eslint-disable-next-line
-  }, [parts]);
+  }, [parts, level, readingNum]);
 
   // Tab logic
   const [activeKey, setActiveKey] = React.useState(
@@ -93,24 +102,48 @@ const ReviewPage: React.FC = () => {
           </span>
         </div>
       );
-    }
-
-    // PARAGRAPH
+    } // PARAGRAPH
     if (q.type === "paragraph") {
-      let corrects = normalize(q.correctAnswer) as string[];
-      if (!Array.isArray(corrects)) corrects = [corrects];
+      let corrects: string[] = [];
+      const correctAnswer = normalize(q.correctAnswer);
+      // Xử lý correctAnswer có thể chứa \n để tách thành nhiều đáp án
+      if (typeof correctAnswer === "string") {
+        // Thử split theo cả \n thực tế và \\n literal
+        const splitByNewline = correctAnswer
+          .split("\n")
+          .filter((ans: string) => ans.trim());
+        const splitByLiteralNewline = correctAnswer
+          .split("\\n")
+          .filter((ans: string) => ans.trim());
+
+        // Chọn cách split nào cho nhiều kết quả hơn
+        if (splitByNewline.length > splitByLiteralNewline.length) {
+          corrects = splitByNewline;
+        } else if (splitByLiteralNewline.length > 1) {
+          corrects = splitByLiteralNewline;
+        } else {
+          corrects = [correctAnswer];
+        }
+      } else if (Array.isArray(correctAnswer)) {
+        corrects = correctAnswer;
+      } else {
+        corrects = [String(correctAnswer)];
+      }
+
       return (
         <div className="mt-2 text-[18px] font-semibold text-green-700">
           Đáp án đúng:
           <div className="pl-2 mt-1 flex flex-col gap-2">
-            {corrects.map((ans, idx) => (
+            {corrects.map((ans: string, idx: number) => (
               <div key={idx} className="flex items-center gap-2">
                 <span>{idxStart + idx}.</span>
                 <span
                   className="inline-block min-w-[60px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow"
                   style={{ letterSpacing: "0.5px" }}
                 >
-                  {String(ans).replace(/^['"]+|['"]+$/g, "")}
+                  {String(ans)
+                    .trim()
+                    .replace(/^['"]+|['"]+$/g, "")}
                 </span>
               </div>
             ))}
@@ -172,7 +205,6 @@ const ReviewPage: React.FC = () => {
         </div>
       );
     }
-
     return null;
   };
 
@@ -207,13 +239,6 @@ const ReviewPage: React.FC = () => {
         } else {
           correct = [normalize(q.correctAnswer)];
         }
-        console.log("ReviewPage MC:", {
-          qid: q.id,
-          options,
-          userAnswer: answers[q.id],
-          normUserAnswer: normalize(answers[q.id]),
-          correct,
-        });
 
         return (
           <div
@@ -448,15 +473,15 @@ const ReviewPage: React.FC = () => {
             <span className="text-3xl">📖</span>
           </div>
           <span className="text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-700 via-fuchsia-500 to-pink-500 font-sans select-none drop-shadow-md">
-            Reading Test Review
+            Reading Practice Review
           </span>
         </div>
         <div className="flex items-center gap-5">
           <button
-            className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 text-white font-semibold shadow hover:scale-105 transition"
+            className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 text-white font-semibold shadow hover:scale-105 transition cursor-pointer"
             onClick={() =>
-              navigate("/reading-score", {
-                state: { answers, parts, score, band },
+              navigate(`/reading-practice-score/${level}/${readingNum}`, {
+                state: { answers, parts, score, band, level, readingNum },
               })
             }
           >
@@ -535,4 +560,4 @@ const ReviewPage: React.FC = () => {
   );
 };
 
-export default ReviewPage;
+export default ReadingPracticeReview;

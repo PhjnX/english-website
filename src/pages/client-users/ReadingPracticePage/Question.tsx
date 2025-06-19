@@ -72,7 +72,7 @@ const QuestionList: React.FC<QuestionProps> = ({
       className="p-4 h-full overflow-y-auto rounded-2xl bg-gradient-to-br from-violet-200  to-pink-200 space-y-8"
       style={{ fontFamily: "beVietnamProFont, sans-serif", color: "#18181b" }}
     >
-      {groups.map((group) => {
+      {(groups || []).map((group) => {
         const startNumber = group.startNumber ?? 1;
         return (
           <div key={group.id} className="space-y-4">
@@ -89,7 +89,7 @@ const QuestionList: React.FC<QuestionProps> = ({
                 {group.questionText}
               </div>
             )}
-            {group.questions.map((q, qidx) => {
+            {(group.questions || []).map((q, qidx) => {
               const questionNumber = startNumber + qidx;
               const showNumber = ![
                 "paragraph",

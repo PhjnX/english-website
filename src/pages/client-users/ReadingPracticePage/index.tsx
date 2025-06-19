@@ -1,19 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Paragraph from "./Paragraph";
 import QuestionList from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
 import testGif from "../../../assets/testGif.gif";
 import hourglassgif from "../../../assets/hourglass.gif";
-import { getAllAssessments } from "../../../apis/assessment-api";
+import { getReadingTestByLevelAndNumber } from "../../../apis/reading-api";
 import { Assessment, Part } from "./reading";
-import { updateUserBandLevel } from "../../../apis/user-api";
 
 export interface Answers {
   [key: number]: string;
 }
 
-const ReadingTestPage: React.FC = () => {
+const ReadingPracticePage: React.FC = () => {
+  const { level, readingNum } = useParams<{
+    level: string;
+    readingNum: string;
+  }>();
   const [timeLeft, setTimeLeft] = useState(60 * 60);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -26,20 +29,31 @@ const ReadingTestPage: React.FC = () => {
   const [parts, setParts] = useState<Part[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
-
   useEffect(() => {
     setIsLoading(true);
-    getAllAssessments().then((all: Assessment[]) => {
-      const data = all && all.length > 0 ? all[0] : null;
-      if (data && data.parts) {
-        setParts(data.parts);
-        setActiveKey(data.parts[0]?.id?.toString() || "1");
-      } else {
-        setParts([]);
-      }
-      setIsLoading(false);
-    });
-  }, []);
+    if (level && readingNum) {
+      // Extract number from readingNum (e.g., "reading1" -> "1")
+      const readingNumber = readingNum.replace(/\D/g, "") || "1";
+      console.log("Fetching reading test:", { level, readingNumber });
+      getReadingTestByLevelAndNumber(level, readingNumber)
+        .then((data: Assessment) => {
+          console.log("API Response:", data);
+          if (data && data.parts && data.parts.length > 0) {
+            setParts(data.parts);
+            setActiveKey(data.parts[0]?.id?.toString() || "1");
+          } else {
+            console.warn("No parts found in response:", data);
+            setParts([]);
+          }
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching reading test:", error);
+          setParts([]);
+          setIsLoading(false);
+        });
+    }
+  }, [level, readingNum]);
 
   useEffect(() => {
     if (!isSubmitted) {
@@ -251,22 +265,6 @@ const ReadingTestPage: React.FC = () => {
     const score = calculateScore();
     const band = convertScoreToBand(score);
     const level = bandToLevel(band);
-
-    // Lấy user_id từ localStorage
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = user.user_id;
-    try {
-      if (userId) {
-        await updateUserBandLevel(userId, {
-          band: String(band),
-          level: String(level),
-        });
-        console.log("DEBUG: Đã update band/level cho user_id", userId);
-      }
-    } catch (error) {
-      console.error("DEBUG: Lỗi update band/level", error);
-    }
-
     const resultData = {
       answers,
       score,
@@ -276,9 +274,11 @@ const ReadingTestPage: React.FC = () => {
       isSubmitted: true,
       questions: [],
       parts,
+      testLevel: level,
+      readingNum,
     };
-    localStorage.setItem("reading_result", JSON.stringify(resultData));
-    navigate("/reading-score", {
+    localStorage.setItem("reading_practice_result", JSON.stringify(resultData));
+    navigate(`/reading-practice-score/${level}/${readingNum}`, {
       state: resultData,
     });
   };
@@ -337,7 +337,7 @@ const ReadingTestPage: React.FC = () => {
               fontFamily: "beVietnamProFont, sans-serif",
             }}
           >
-            Reading Test
+            READING PRACTICE
           </span>
         </div>
         <div className="flex items-center gap-5">
@@ -506,4 +506,4 @@ const ReadingTestPage: React.FC = () => {
   );
 };
 
-export default ReadingTestPage;
+export default ReadingPracticePage;

@@ -37,6 +37,7 @@ export interface Group {
   startNumber?: number | null;
   endNumber?: number | null;
   questions: Question[];
+  questionText?: string | null; // Dùng cho các loại câu hỏi không có phần heading
 }
 
 export interface Question {
