@@ -76,13 +76,21 @@ const ReadingPracticeScore = () => {
   } = state || {};
 
   // Ưu tiên actualLevel (level gốc từ params) > originalLevel > stateLevel
-  const currentLevel = actualLevel || originalLevel || stateLevel || testLevel || level || "1";
-  const currentReadingNum = actualReadingNum || stateReadingNum || readingNum || "reading1";
+  const currentLevel =
+    actualLevel || originalLevel || stateLevel || testLevel || level || "1";
+  const currentReadingNum =
+    actualReadingNum || stateReadingNum || readingNum || "reading1";
   // Debug log để kiểm tra các giá trị
   console.log("ReadingPracticeScore Debug:", {
     fromURL: { level, readingNum },
-    fromState: { stateLevel, stateReadingNum, actualLevel, actualReadingNum, originalLevel },
-    final: { currentLevel, currentReadingNum }
+    fromState: {
+      stateLevel,
+      stateReadingNum,
+      actualLevel,
+      actualReadingNum,
+      originalLevel,
+    },
+    final: { currentLevel, currentReadingNum },
   });
 
   const band = getBand(score);

@@ -117,8 +117,12 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) navigate("/");
-  }, [navigate]);
+    if (token) {
+      // Nếu đã đăng nhập và có redirect path, chuyển về đó
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
+    }
+  }, [navigate, location.state]);
 
   useEffect(() => {
     if (location.state?.isSignUp && isLogin) {
@@ -159,10 +163,15 @@ const LoginPage: React.FC = () => {
         };
         localStorage.setItem("user", JSON.stringify(userObj));
         toast.success("Đăng nhập thành công!");
+
+        // Redirect logic
         const from = location.state?.from?.pathname || "/";
-        navigate(from === "/assessment" ? "/assessment-confirm" : "/", {
-          replace: true,
-        });
+        console.log("Redirecting to:", from); // Xử lý đặc biệt cho assessment
+        if (from === "/assessment") {
+          navigate("/reading-test", { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       } else {
         if (password !== confirmPassword) {
           toast.error("Mật khẩu xác nhận không khớp!");
@@ -249,10 +258,12 @@ const LoginPage: React.FC = () => {
                 exit="exit"
                 className="relative z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-purple-200/60 flex flex-col overflow-hidden min-h-[620px] md:min-h-[660px] max-w-[450px] my-10"
               >
+                {" "}
                 <LoginFormBlock
                   form={form}
                   handleFinish={handleFinish}
                   handleSwitchMode={handleSwitchMode}
+                  location={location}
                   inputBaseClasses={inputBaseClasses}
                   inputWrapperClasses={inputWrapperClasses}
                   labelClasses={labelClasses}
@@ -294,6 +305,7 @@ const LoginFormBlock = ({
   form,
   handleFinish,
   handleSwitchMode,
+  location,
   inputBaseClasses,
   inputWrapperClasses,
   labelClasses,
@@ -322,14 +334,14 @@ const LoginFormBlock = ({
       transition={{ delay: 0.2, duration: 0.4 }}
     >
       Đăng Nhập
-    </motion.h1>
+    </motion.h1>{" "}
     <motion.p
       className="text-center text-purple-600/90 !mb-6 font-bold text-lg"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.4 }}
     >
-      Chào mừng bạn quay trở lại!
+      {location.state?.redirectMessage || "Chào mừng bạn quay trở lại!"}
     </motion.p>
     <Form
       form={form}
