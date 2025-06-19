@@ -221,11 +221,18 @@ const LevelPage = () => {
                               {test.time ? `${test.time} phút` : "-- phút"}
                             </span>
                           </div>
-                        </div>
+                        </div>{" "}
                         <motion.button
-                          onClick={() =>
-                            navigate(`/assessment/exercise/${test.id}`)
-                          }
+                          onClick={() => {
+                            // Extract reading number from title (e.g., "Reading 1" -> "1")
+                            const readingMatch = test.title.match(/\d+/);
+                            const readingNum = readingMatch
+                              ? readingMatch[0]
+                              : "1";
+                            navigate(
+                              `/lessons/${levelNum}/reading${readingNum}`
+                            );
+                          }}
                           // Các class Tailwind cho style CỐ ĐỊNH
                           className="
     group relative overflow-hidden // Quan trọng: `group` để kích hoạt hover cho con, `overflow-hidden` để chứa hiệu ứng shine
