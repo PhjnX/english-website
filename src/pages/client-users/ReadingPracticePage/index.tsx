@@ -303,20 +303,21 @@ const ReadingPracticePage: React.FC = () => {
       newResult,
     ];
     localStorage.setItem("reading_completed", JSON.stringify(updated));
-    // --------------------------------------
-
-    // Tiếp tục như cũ (lưu kết quả tạm cho trang kết quả)
+    // --------------------------------------    // Tiếp tục như cũ (lưu kết quả tạm cho trang kết quả)
     const resultData = {
       answers,
       score,
       band: String(band),
-      level: String(levelNum),
+      level: String(levelNum), // Level tính từ band (cho hiển thị)
       timeSpent: 60 * 60 - timeLeft,
       isSubmitted: true,
       questions: [],
       parts,
       testLevel: levelNum,
       readingNum,
+      actualLevel: level, // Level thực tế từ URL params (để navigation)
+      actualReadingNum: readingNum, // ReadingNum thực tế từ URL params
+      originalLevel: level, // Backup thêm cho chắc chắn
     };
     localStorage.setItem("reading_practice_result", JSON.stringify(resultData));
     navigate(`/reading-practice-score/${levelNum}/${readingNum}`, {

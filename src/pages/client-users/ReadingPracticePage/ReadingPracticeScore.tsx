@@ -52,10 +52,11 @@ const ReadingPracticeScore = () => {
   }>();
 
   let state = location.state;
-
   if (!state) {
     try {
-      state = JSON.parse(localStorage.getItem("reading_practice_result") || "{}");
+      state = JSON.parse(
+        localStorage.getItem("reading_practice_result") || "{}"
+      );
     } catch {}
   }
 
@@ -66,9 +67,23 @@ const ReadingPracticeScore = () => {
     answers = {},
     questions = [],
     parts = [],
-    testName = "",
-    testLevel = level || "1",
+    level: stateLevel, // Level từ state (chính xác từ trang practice)
+    testLevel = level || "1", // Fallback từ URL params
+    actualLevel, // Level thực tế từ URL params (để navigation)
+    actualReadingNum, // ReadingNum thực tế từ URL params
+    readingNum: stateReadingNum, // ReadingNum từ state
+    originalLevel, // Backup level từ URL params
   } = state || {};
+
+  // Ưu tiên actualLevel (level gốc từ params) > originalLevel > stateLevel
+  const currentLevel = actualLevel || originalLevel || stateLevel || testLevel || level || "1";
+  const currentReadingNum = actualReadingNum || stateReadingNum || readingNum || "reading1";
+  // Debug log để kiểm tra các giá trị
+  console.log("ReadingPracticeScore Debug:", {
+    fromURL: { level, readingNum },
+    fromState: { stateLevel, stateReadingNum, actualLevel, actualReadingNum, originalLevel },
+    final: { currentLevel, currentReadingNum }
+  });
 
   const band = getBand(score);
   const [showConfetti, setShowConfetti] = useState(true);
@@ -89,7 +104,6 @@ const ReadingPracticeScore = () => {
     const timer = setTimeout(() => setShowConfetti(false), 5500);
     return () => clearTimeout(timer);
   }, []);
-
   const handleReview = () => {
     navigate("/reading-practice-review", {
       state: {
@@ -100,20 +114,19 @@ const ReadingPracticeScore = () => {
         isReviewing: true,
         score,
         band,
-        level,
-        readingNum,
+        level: currentLevel,
+        readingNum: currentReadingNum,
       },
     });
   };
-
   const handleContinuePractice = () => {
-    // Quay về trang level trước đó
-    navigate(`/lessons/${level}`);
+    // Quay về trang level trước đó (sử dụng currentLevel)
+    navigate(`/lessons/${currentLevel}`);
   };
 
   const handleRetry = () => {
-    // Làm lại bài này
-    navigate(`/lessons/${level}/${readingNum}`);
+    // Làm lại bài này (sử dụng currentLevel và currentReadingNum)
+    navigate(`/lessons/${currentLevel}/${currentReadingNum}`);
   };
 
   // Đếm chính xác số câu hỏi của tất cả dạng
@@ -144,10 +157,9 @@ const ReadingPracticeScore = () => {
 
   const totalQuestions =
     Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 40;
+  // Extract reading number từ currentReadingNum
+  const practiceNumber = currentReadingNum?.replace(/\D/g, "") || "1";
 
-  // Extract reading number từ readingNum parameter
-  const practiceNumber = readingNum?.replace(/\D/g, '') || "1";
-  
   // Gradient màu động cho progressbar
   const progressColor = (percent: number) =>
     percent >= 80
@@ -310,9 +322,9 @@ const ReadingPracticeScore = () => {
           </motion.div>
           <p className="text-lg md:text-xl text-gray-600 font-medium mb-2">
             Bạn đã hoàn thành bài ôn luyện
-          </p>
+          </p>{" "}
           <p className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
-            Reading {practiceNumber} - Level {testLevel}
+            Reading {practiceNumber} - Level {currentLevel}
           </p>
         </motion.div>
 
@@ -462,7 +474,7 @@ const ReadingPracticeScore = () => {
               <FaRedo size={20} />
               <span>Làm lại</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.08 }}
               onClick={handleReview}
@@ -483,7 +495,7 @@ const ReadingPracticeScore = () => {
               <span>Review</span>
             </motion.button>
           </div>
-          
+
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleContinuePractice}
