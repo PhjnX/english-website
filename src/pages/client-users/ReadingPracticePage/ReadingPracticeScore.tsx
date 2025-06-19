@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
 import { Part, Group, Question } from "./reading";
+import { saveReadingPracticeResult } from "../../../utils/mockData";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -55,10 +56,11 @@ const ReadingPracticeScore = () => {
 
   if (!state) {
     try {
-      state = JSON.parse(localStorage.getItem("reading_practice_result") || "{}");
+      state = JSON.parse(
+        localStorage.getItem("reading_practice_result") || "{}"
+      );
     } catch {}
   }
-
   // Lấy state truyền từ trang practice
   const {
     score = 0,
@@ -66,7 +68,6 @@ const ReadingPracticeScore = () => {
     answers = {},
     questions = [],
     parts = [],
-    testName = "",
     testLevel = level || "1",
   } = state || {};
 
@@ -84,11 +85,70 @@ const ReadingPracticeScore = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 5500);
     return () => clearTimeout(timer);
-  }, []);
+  }, []);  // Lưu kết quả vào localStorage khi component mount - cải tiến để tránh lưu trùng lặp
+  useEffect(() => {
+    // Đảm bảo tất cả dữ liệu cần thiết đã sẵn sàng
+    if (parts && parts.length > 0 && level && readingNum && score >= 0) {
+      const totalQuestions = countQuestions(parts);
+      // Chuẩn hóa title thành format "Reading {readingNum}"
+      const title = `Reading ${readingNum}`;
+
+      console.log(`Attempting to save: Level ${level}, Reading ${readingNum}, Score ${score}/${totalQuestions}`);
+
+      // Kiểm tra xem đã lưu kết quả này chưa bằng cách check localStorage
+      const existingData = localStorage.getItem("user_completed_exercises");
+      let shouldSave = true;
+
+      if (existingData) {
+        try {
+          const exercises = JSON.parse(existingData);
+          const existing = exercises.find(
+            (ex: any) =>
+              ex.level === parseInt(level) &&
+              ex.readingNum === parseInt(readingNum)
+          );
+          
+          if (existing) {
+            // Nếu đã tồn tại, chỉ update nếu có thay đổi về điểm
+            if (existing.score === score && existing.totalQuestions === totalQuestions) {
+              shouldSave = false;
+              console.log(`Result already saved for Level ${level}, Reading ${readingNum} with same score`);
+            } else {
+              console.log(`Updating existing result for Level ${level}, Reading ${readingNum}: ${existing.score}/${existing.totalQuestions} -> ${score}/${totalQuestions}`);
+            }
+          } else {
+            console.log(`No existing result found for Level ${level}, Reading ${readingNum}, will create new`);
+          }
+        } catch (error) {
+          console.error("Error checking existing data:", error);
+        }
+      } else {
+        console.log("No existing data found, will create new entry");
+      }
+
+      if (shouldSave) {
+        console.log(`Saving result: Level ${level}, Reading ${readingNum}, Score ${score}/${totalQuestions}`);
+        saveReadingPracticeResult({
+          level: parseInt(level),
+          readingNum: parseInt(readingNum),
+          title: title,
+          score: score,
+          totalQuestions: totalQuestions,
+        });
+        console.log(`✅ Result saved successfully`);
+      }
+    } else {
+      console.log("Missing required data for saving:", {
+        parts: parts?.length || 0,
+        level,
+        readingNum,
+        score,
+      });
+    }
+  }, [parts, level, readingNum, score]); // Chạy khi các dependency thay đổi
 
   const handleReview = () => {
     navigate("/reading-practice-review", {
@@ -146,8 +206,8 @@ const ReadingPracticeScore = () => {
     Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 40;
 
   // Extract reading number từ readingNum parameter
-  const practiceNumber = readingNum?.replace(/\D/g, '') || "1";
-  
+  const practiceNumber = readingNum?.replace(/\D/g, "") || "1";
+
   // Gradient màu động cho progressbar
   const progressColor = (percent: number) =>
     percent >= 80
@@ -462,7 +522,7 @@ const ReadingPracticeScore = () => {
               <FaRedo size={20} />
               <span>Làm lại</span>
             </motion.button>
-            
+
             <motion.button
               whileHover={{ scale: 1.08 }}
               onClick={handleReview}
@@ -483,7 +543,7 @@ const ReadingPracticeScore = () => {
               <span>Review</span>
             </motion.button>
           </div>
-          
+
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={handleContinuePractice}

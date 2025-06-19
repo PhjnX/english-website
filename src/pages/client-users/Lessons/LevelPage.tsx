@@ -200,6 +200,12 @@ const LevelPage = () => {
                           damping: 15,
                         },
                       }}
+                      onClick={() => {
+                        // Extract reading number from title (e.g., "Reading 1" -> "1")
+                        const readingMatch = test.title.match(/\d+/);
+                        const readingNum = readingMatch ? readingMatch[0] : "1";
+                        navigate(`/lessons/${levelNum}/reading${readingNum}`);
+                      }}
                     >
                       {/* Static image for all exercises */}
                       <img
@@ -223,16 +229,6 @@ const LevelPage = () => {
                           </div>
                         </div>{" "}
                         <motion.button
-                          onClick={() => {
-                            // Extract reading number from title (e.g., "Reading 1" -> "1")
-                            const readingMatch = test.title.match(/\d+/);
-                            const readingNum = readingMatch
-                              ? readingMatch[0]
-                              : "1";
-                            navigate(
-                              `/lessons/${levelNum}/reading${readingNum}`
-                            );
-                          }}
                           // Các class Tailwind cho style CỐ ĐỊNH
                           className="
     group relative overflow-hidden // Quan trọng: `group` để kích hoạt hover cho con, `overflow-hidden` để chứa hiệu ứng shine
@@ -261,10 +257,8 @@ const LevelPage = () => {
                             damping: 20,
                           }}
                         >
-                          {/* ---- NỘI DUNG NÚT BẤM ---- */}
                           {/* Đặt nội dung trong span với z-10 để nó nằm trên hiệu ứng shine */}
                           <span className="relative z-10">Làm bài</span>
-                          <span className="relative z-10"></span>
                         </motion.button>
                       </div>
                     </motion.div>
