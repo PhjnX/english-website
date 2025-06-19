@@ -286,7 +286,7 @@ const ReadingScore = () => {
             <GiPartyPopper className="text-5xl text-yellow-400 animate-pulse scale-x-[-1]" />
           </motion.div>
           <p className="text-lg md:text-xl text-gray-600 font-medium">
-            You’ve completed your Reading Test! Here are your results:
+            Bạn đã hoàn thành bài kiểm tra đầu vào! Đây là kết quả của bạn:
           </p>
         </motion.div>
 
@@ -388,7 +388,7 @@ const ReadingScore = () => {
         {/* Dải band điểm */}
         <motion.div variants={itemVariants} className="mb-10">
           <h3 className="text-lg font-semibold text-purple-900 mb-4">
-            Your Band on the Scale:
+            Band điểm của bạn:
           </h3>
           <div className="flex flex-wrap gap-2 justify-center px-2">
             {bandMapping
@@ -451,7 +451,7 @@ const ReadingScore = () => {
               }
             >
               <FaRedo size={20} />
-              <span>Try Again</span>
+              <span>Làm lại</span>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.08 }}
@@ -494,7 +494,7 @@ const ReadingScore = () => {
             }
           >
             <FaRocket size={22} />
-            <span>Continue Learning Path</span>
+            <span>Bắt đầu ôn luyện</span>
           </motion.button>
         </motion.div>
       </motion.div>

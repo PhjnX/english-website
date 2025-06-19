@@ -257,10 +257,8 @@ const LevelPage = () => {
                             damping: 20,
                           }}
                         >
-                          {/* ---- NỘI DUNG NÚT BẤM ---- */}
                           {/* Đặt nội dung trong span với z-10 để nó nằm trên hiệu ứng shine */}
                           <span className="relative z-10">Làm bài</span>
-                          <span className="relative z-10"></span>
                         </motion.button>
                       </div>
                     </motion.div>
