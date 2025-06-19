@@ -19,6 +19,8 @@ export interface Part {
   headerContent?: string | null;
   content?: string | null;
   groups: Group[];
+  readingId?: string; // Optional reading ID
+  readingTitle?: string; // Optional reading title
 }
 
 // Chỉ giữ các loại hiện tại: multiple-choice, paragraph, gap-fill, matching, true-false-notgiven

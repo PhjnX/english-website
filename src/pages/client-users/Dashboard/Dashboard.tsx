@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useSpring, useTransform } from "framer-motion";
 import {
-  FaBook,
-  FaRedo,
   FaRocket,
   FaExclamationCircle,
   FaCrown,
   FaCheckCircle,
 } from "react-icons/fa";
+import { getUserById } from "../../../apis/user-api";
 
 // --- TYPE DEFINITIONS (Giả lập cấu trúc dữ liệu) ---
 interface UserData {
@@ -22,12 +21,17 @@ interface UserData {
 }
 
 interface CompletedExercise {
-  id: string;
+  readingId: string;
+  readingNum: number;
   title: string;
   level: number;
   score: number;
-  totalQuestions: number;
-  dateCompleted: string;
+  total: number;
+  submittedAt: string;
+}
+
+interface CompletedByLevel {
+  [key: number]: CompletedExercise[];
 }
 
 interface LevelInfo {
@@ -36,114 +40,6 @@ interface LevelInfo {
   title: string;
   totalExercises: number;
 }
-
-// --- MOCK API (Giả lập các hàm gọi API) ---
-// Giả lập API lấy thông tin người dùng
-const fetchUserData = async (): Promise<UserData> => {
-  console.log("Fetching user data...");
-  // Trong thực tế, bạn sẽ gọi API thật ở đây
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        user_id: 1,
-        user_name: "phongx2003",
-        full_name: "Lê Văn Phong",
-        email: "phong@gmail.com",
-        level: 3, // Người dùng đang ở Level 3
-        band: 4.0,
-        picture: "https://placehold.co/100x100/A78BFA/FFFFFF?text=P",
-      });
-    }, 800);
-  });
-};
-
-// Giả lập API lấy danh sách bài đã hoàn thành
-const fetchCompletedExercises = async (): Promise<CompletedExercise[]> => {
-  console.log("Fetching completed exercises...");
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: "read001",
-          title: "The History of Glass",
-          level: 1,
-          score: 9,
-          totalQuestions: 13,
-          dateCompleted: "2024-06-10",
-        },
-        {
-          id: "read002",
-          title: "Volcanoes - A Fiery Force",
-          level: 1,
-          score: 11,
-          totalQuestions: 13,
-          dateCompleted: "2024-06-11",
-        },
-        {
-          id: "read005",
-          title: "The Life of a Honeybee",
-          level: 2,
-          score: 12,
-          totalQuestions: 14,
-          dateCompleted: "2024-06-12",
-        },
-        {
-          id: "read008",
-          title: "Exploring the Deep Sea",
-          level: 2,
-          score: 10,
-          totalQuestions: 14,
-          dateCompleted: "2024-06-14",
-        },
-        {
-          id: "read012",
-          title: "The Art of Storytelling",
-          level: 3,
-          score: 8,
-          totalQuestions: 15,
-          dateCompleted: "2024-06-15",
-        },
-      ]);
-    }, 1200);
-  });
-};
-
-// Giả lập API lấy thông tin tất cả các level và bài tập
-const fetchAllLevels = async (): Promise<LevelInfo[]> => {
-  console.log("Fetching all levels info...");
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          level: 1,
-          band: 3.0,
-          title: "Beginner Foundation",
-          totalExercises: 5,
-        },
-        {
-          level: 2,
-          band: 3.5,
-          title: "Elementary Progress",
-          totalExercises: 8,
-        },
-        { level: 3, band: 4.0, title: "Pre-Intermediate", totalExercises: 10 },
-        {
-          level: 4,
-          band: 4.5,
-          title: "Intermediate Skills",
-          totalExercises: 12,
-        },
-        {
-          level: 5,
-          band: 5.0,
-          title: "Upper-Intermediate",
-          totalExercises: 15,
-        },
-        { level: 6, band: 6.0, title: "Advanced Reading", totalExercises: 15 },
-      ]);
-    }, 500);
-  });
-};
 
 // Animated Counter Component
 const AnimatedCounter = ({ value }: { value: number }) => {
@@ -157,16 +53,46 @@ const AnimatedCounter = ({ value }: { value: number }) => {
   return <motion.span>{display}</motion.span>;
 };
 
+// Mock levels function
+const fetchAllLevels = async (): Promise<LevelInfo[]> => {
+  return [
+    { level: 1, band: 3.0, title: "Beginner Foundation", totalExercises: 5 },
+    { level: 2, band: 3.5, title: "Elementary Progress", totalExercises: 8 },
+    { level: 3, band: 4.0, title: "Pre-Intermediate", totalExercises: 10 },
+    { level: 4, band: 4.5, title: "Intermediate Skills", totalExercises: 12 },
+    { level: 5, band: 5.0, title: "Upper-Intermediate", totalExercises: 15 },
+    { level: 6, band: 6.0, title: "Advanced Reading", totalExercises: 15 },
+  ];
+};
+
 // --- DASHBOARD PAGE COMPONENT ---
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-
   const [user, setUser] = useState<UserData | null>(null);
   const [completed, setCompleted] = useState<CompletedExercise[]>([]);
   const [allLevels, setAllLevels] = useState<LevelInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [redoItem, setRedoItem] = useState<CompletedExercise | null>(null);
+  const [openRedo, setOpenRedo] = useState(false);
 
+  const completedByLevel: CompletedByLevel = completed.reduce((acc, item) => {
+    if (!acc[item.level]) acc[item.level] = [];
+    acc[item.level].push(item);
+    return acc;
+  }, {} as CompletedByLevel);
+
+  const handleRedo = (item: CompletedExercise) => {
+    setRedoItem(item);
+    setOpenRedo(true);
+  };
+  const confirmRedo = () => {
+    if (redoItem) {
+      navigate(`/lessons/${redoItem.level}/reading${redoItem.readingNum}`);
+    }
+    setOpenRedo(false);
+  };
+  const cancelRedo = () => setOpenRedo(false);
   // Protected Route Logic
   useEffect(() => {
     const token = localStorage.getItem("token"); // Hoặc cách bạn quản lý token
@@ -176,13 +102,21 @@ const DashboardPage: React.FC = () => {
     } else {
       const loadDashboardData = async () => {
         try {
-          const [userData, completedData, levelsData] = await Promise.all([
-            fetchUserData(),
-            fetchCompletedExercises(),
-            fetchAllLevels(),
+          // Lấy user (vẫn gọi API)
+          const [userData, levelsData] = await Promise.all([
+            getUserById(
+              JSON.parse(localStorage.getItem("user") || "{}").user_id
+            ),
+            fetchAllLevels(), // vẫn dùng mock levels hoặc API thực nếu có
           ]);
           setUser(userData);
-          setCompleted(completedData);
+
+          // Lấy completed từ localStorage
+          const localCompleted = JSON.parse(
+            localStorage.getItem("reading_completed") || "[]"
+          );
+          setCompleted(localCompleted);
+
           setAllLevels(levelsData);
         } catch (error) {
           console.error("Failed to load dashboard data:", error);
@@ -419,55 +353,139 @@ const DashboardPage: React.FC = () => {
 
           {/* Completed Exercises Section */}
           <div className="mt-12">
-            <h2 className="text-3xl font-bold text-white mb-6">
+            <h3 className="font-bold text-3xl text-purple-300 mb-6">
               Lịch sử làm bài
-            </h2>
-            {/* Remove AnimatePresence and framer-motion entrance/exit for completed exercises */}
-            {completed.length > 0 ? (
-              <div className="space-y-4">
-                {completed.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    className="bg-white/5 backdrop-blur-md border border-purple-500/20 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 hover:bg-white/10 hover:border-purple-400/50 transition-all duration-300"
-                    initial={false}
-                    animate={false}
-                  >
-                    <div className="flex items-center gap-5 w-full">
-                      <div className="p-4 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-lg text-2xl shadow-lg">
-                        <FaBook />
-                      </div>
-                      <div className="flex-grow">
-                        <h3 className="font-bold text-lg text-gray-100">
-                          {item.title}
-                        </h3>
-                        <p className="text-sm text-purple-300/80">
-                          Level: {item.level} | Score: {item.score}/
-                          {item.totalQuestions}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <motion.button
-                          onClick={() =>
-                            navigate(`/assessment/exercise/${item.id}`)
-                          }
-                          className="flex items-center gap-2 px-5 py-2.5 bg-purple-500/20 text-purple-200 font-semibold rounded-lg hover:bg-purple-500/40 hover:text-white transition-colors duration-200"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <FaRedo />
-                          <span>Làm lại</span>
-                        </motion.button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center bg-white/5 backdrop-blur-md p-8 rounded-xl border border-purple-500/20 text-purple-300">
-                Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu ngay!
-              </div>
+            </h3>
+            {Object.entries(completedByLevel).length === 0 && (
+              <motion.div
+                className="text-lg text-gray-400 italic"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                Bạn chưa làm bài nào
+              </motion.div>
             )}
+            <div className="space-y-8">
+              {Object.entries(completedByLevel).map(([level, list]) => (
+                <motion.div
+                  key={level}
+                  className=""
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="font-bold text-xl text-purple-400 mb-3">
+                    Level {level}
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    {(list as CompletedExercise[]).map((item) => (
+                      <motion.div
+                        key={item.readingId}
+                        className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 rounded-xl shadow-lg bg-gradient-to-r from-[#ede7f6] to-[#fce4ec] border border-purple-200/60 transition hover:scale-[1.01] hover:shadow-2xl"
+                        whileHover={{ scale: 1.02 }}
+                      >
+                        <div>
+                          <div className="font-bold text-xl text-purple-800 drop-shadow mb-1">
+                            {item.title ?? `Reading ${item.readingNum}`}
+                          </div>
+                          <div className="text-gray-700 text-base">
+                            <span className="font-semibold text-green-600">
+                              Điểm: {item.score}
+                            </span>
+                            <span className="mx-1 text-gray-400">/</span>
+                            <span className="text-gray-600">
+                              {item.total ?? 40}
+                            </span>
+                            <span className="mx-2 text-gray-400">|</span>
+                            <span>
+                              Ngày:{" "}
+                              <span className="text-gray-700">
+                                {item.submittedAt
+                                  ? new Date(
+                                      item.submittedAt
+                                    ).toLocaleTimeString("vi-VN", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      second: "2-digit",
+                                    })
+                                  : ""}
+                              </span>
+                              <span className="text-gray-500">
+                                {item.submittedAt
+                                  ? " " +
+                                    new Date(
+                                      item.submittedAt
+                                    ).toLocaleDateString("vi-VN")
+                                  : ""}
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          whileHover={{
+                            background:
+                              "linear-gradient(90deg,#a78bfa,#ec4899)",
+                            color: "#fff",
+                            scale: 1.04,
+                          }}
+                          className="mt-2 md:mt-0 px-6 py-2 rounded-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-md transition-all duration-200"
+                          onClick={() => handleRedo(item)}
+                        >
+                          Làm lại
+                        </motion.button>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
+
+          {/* MODAL Làm lại dùng tailwind + framer-motion */}
+          {openRedo && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                initial={{ scale: 0.95, y: 40, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.95, y: 40, opacity: 0 }}
+                className="bg-white max-w-sm w-full rounded-xl shadow-xl p-7 text-center relative"
+              >
+                <div className="text-3xl mb-3 text-purple-700 font-bold">
+                  Xác nhận làm lại bài
+                </div>
+                <div className="text-base text-gray-700 mb-6">
+                  Bạn có chắc chắn muốn làm lại bài này không? Kết quả cũ sẽ bị
+                  thay thế.
+                </div>
+                <div className="flex justify-center gap-3">
+                  <button
+                    onClick={confirmRedo}
+                    className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:opacity-90 transition"
+                  >
+                    Làm lại
+                  </button>
+                  <button
+                    onClick={cancelRedo}
+                    className="px-5 py-2 bg-gray-200 font-semibold rounded-lg hover:bg-gray-300 transition"
+                  >
+                    Huỷ
+                  </button>
+                </div>
+                <button
+                  className="absolute top-3 right-3 text-xl text-gray-400 hover:text-purple-600"
+                  onClick={cancelRedo}
+                >
+                  &times;
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

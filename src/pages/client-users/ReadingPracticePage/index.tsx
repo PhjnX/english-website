@@ -27,6 +27,8 @@ const ReadingPracticePage: React.FC = () => {
   const [activeKey, setActiveKey] = useState("1");
   const [prevKey, setPrevKey] = useState("1");
   const [parts, setParts] = useState<Part[]>([]);
+  const [readingTitle, setReadingTitle] = useState<string>("");
+  const [totalQuestions, setTotalQuestions] = useState<number>(40);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   useEffect(() => {
@@ -41,15 +43,31 @@ const ReadingPracticePage: React.FC = () => {
           if (data && data.parts && data.parts.length > 0) {
             setParts(data.parts);
             setActiveKey(data.parts[0]?.id?.toString() || "1");
+            setReadingTitle(data.name || "");
+            // Tính tổng số câu thực tế
+            const total = data.parts.reduce(
+              (sum, part) =>
+                sum +
+                part.groups.reduce(
+                  (gSum, g) => gSum + (g.questions?.length || 0),
+                  0
+                ),
+              0
+            );
+            setTotalQuestions(total > 0 ? total : 40);
           } else {
             console.warn("No parts found in response:", data);
             setParts([]);
+            setReadingTitle(`Reading ${readingNum}`);
+            setTotalQuestions(40);
           }
           setIsLoading(false);
         })
         .catch((error) => {
           console.error("Error fetching reading test:", error);
           setParts([]);
+          setReadingTitle(`Reading ${readingNum}`);
+          setTotalQuestions(40);
           setIsLoading(false);
         });
     }
@@ -264,21 +282,44 @@ const ReadingPracticePage: React.FC = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
     const band = convertScoreToBand(score);
-    const level = bandToLevel(band);
+    const levelNum = bandToLevel(band);
+
+    const completed = JSON.parse(
+      localStorage.getItem("reading_completed") || "[]"
+    );
+    const newResult = {
+      readingId: `${level}_${readingNum}`,
+      readingNum: Number((readingNum || "1").replace(/\D/g, "")),
+      title: readingTitle,
+      level: Number(level),
+      score,
+      total: totalQuestions,
+      submittedAt: new Date().toISOString(),
+    };
+
+    // Xoá bản cũ (nếu có) rồi push mới
+    const updated = [
+      ...completed.filter((x: any) => x.readingId !== newResult.readingId),
+      newResult,
+    ];
+    localStorage.setItem("reading_completed", JSON.stringify(updated));
+    // --------------------------------------
+
+    // Tiếp tục như cũ (lưu kết quả tạm cho trang kết quả)
     const resultData = {
       answers,
       score,
       band: String(band),
-      level: String(level),
+      level: String(levelNum),
       timeSpent: 60 * 60 - timeLeft,
       isSubmitted: true,
       questions: [],
       parts,
-      testLevel: level,
+      testLevel: levelNum,
       readingNum,
     };
     localStorage.setItem("reading_practice_result", JSON.stringify(resultData));
-    navigate(`/reading-practice-score/${level}/${readingNum}`, {
+    navigate(`/reading-practice-score/${levelNum}/${readingNum}`, {
       state: resultData,
     });
   };
