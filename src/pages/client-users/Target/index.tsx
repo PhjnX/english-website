@@ -36,9 +36,9 @@ const targetsData: Omit<TargetItemProps, "index">[] = [
   },
   {
     icon: SparklesIcon,
-    title: "Truyền Cảm Hứng Bất Tận",
+    title: "Theo Dõi Tiến Trình Rõ Ràng",
     description:
-      "Khơi gợi niềm yêu thích đọc hiểu qua các bài tập tương tác, thử thách và hệ thống khen thưởng hấp dẫn.",
+      "Theo dõi kết quả học tập qua các báo cáo chi tiết, thống kê tiến bộ và phản hồi tức thì từ hệ thống.",
   },
 ];
 
@@ -199,7 +199,10 @@ const TargetCard: React.FC<TargetItemProps> = ({
 
 const TargetSection: React.FC = () => {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-white via-purple-50 to-indigo-100 relative overflow-hidden">
+    <section
+      id="target"
+      className="py-16 md:py-24 bg-gradient-to-b from-white via-purple-50 to-indigo-100 relative overflow-hidden"
+    >
       <AnimatedShape
         className="w-60 h-60 bg-purple-200/70 top-[5%] left-[5%]"
         duration={25}

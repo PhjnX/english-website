@@ -433,7 +433,7 @@ const ReadingScore = () => {
               <FaRedo size={18} />
               <span>Làm lại</span>
             </motion.button>
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={handleReview}
               style={{
@@ -451,7 +451,7 @@ const ReadingScore = () => {
             >
               <FaEye size={18} />
               <span>Xem đáp án</span>
-            </motion.button>
+            </motion.button> */}
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
