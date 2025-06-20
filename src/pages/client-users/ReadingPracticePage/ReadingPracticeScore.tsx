@@ -127,7 +127,8 @@ const ReadingPracticeScore = () => {
         readingNum: currentReadingNum,
       },
     });
-  };  const handleContinuePractice = () => {
+  };
+  const handleContinuePractice = () => {
     // Quay về trang level trước đó (sử dụng currentLevel)
     navigate(`/lessons/${currentLevel}`);
   };
@@ -531,7 +532,8 @@ const ReadingPracticeScore = () => {
             }
           >
             <FaRocket size={22} />
-            <span>Tiếp tục ôn luyện</span>          </motion.button>
+            <span>Tiếp tục ôn luyện</span>{" "}
+          </motion.button>
         </motion.div>
       </motion.div>
 

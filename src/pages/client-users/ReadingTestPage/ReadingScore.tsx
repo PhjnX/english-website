@@ -441,7 +441,8 @@ const ReadingScore = () => {
             >
               <FaHome size={20} />
               <span>Home</span>
-            </motion.button>            <motion.button
+            </motion.button>{" "}
+            <motion.button
               whileHover={{ scale: 1.04 }}
               onClick={() => setShowRetakeModal(true)}
               style={{
@@ -496,7 +497,8 @@ const ReadingScore = () => {
             }
             onMouseLeave={(e) =>
               (e.currentTarget.style.backgroundPosition = "left center")
-            }          >
+            }
+          >
             <FaRocket size={22} />
             <span>Bắt đầu ôn luyện</span>
           </motion.button>

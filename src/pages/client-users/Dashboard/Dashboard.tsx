@@ -687,15 +687,17 @@ const DashboardPage: React.FC = () => {
                     </div>
                   </motion.div>
                 ))}
-              </div>            </div>
-            
+              </div>{" "}
+            </div>
             {/* Confirm Modal */}
             <ConfirmModal
               isOpen={openRedo}
               onClose={cancelRedo}
               onConfirm={confirmRedo}
               title="Xác nhận làm lại"
-              message={`Bạn có chắc chắn muốn làm lại bài ${redoItem?.title ?? `Reading ${redoItem?.readingNum}`} không?`}
+              message={`Bạn có chắc chắn muốn làm lại bài ${
+                redoItem?.title ?? `Reading ${redoItem?.readingNum}`
+              } không?`}
               confirmText="Làm lại ngay"
               cancelText="Hủy bỏ"
               type="warning"

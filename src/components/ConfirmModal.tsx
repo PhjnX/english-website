@@ -21,7 +21,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   message = "Bạn có chắc chắn muốn làm lại không?",
   confirmText = "Làm lại ngay",
   cancelText = "Hủy bỏ",
-  type = "warning"
+  type = "warning",
 }) => {
   // Thêm font Be Vietnam Pro
   React.useEffect(() => {
@@ -39,24 +39,30 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     switch (type) {
       case "danger":
         return {
-          iconBg: "bg-gradient-to-r from-red-500/20 to-red-600/20 border-red-400/30",
+          iconBg:
+            "bg-gradient-to-r from-red-500/20 to-red-600/20 border-red-400/30",
           iconColor: "text-red-400",
-          confirmBg: "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600",
-          confirmShadow: "hover:shadow-red-500/40"
+          confirmBg:
+            "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600",
+          confirmShadow: "hover:shadow-red-500/40",
         };
       case "info":
         return {
-          iconBg: "bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-400/30",
+          iconBg:
+            "bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-blue-400/30",
           iconColor: "text-blue-400",
-          confirmBg: "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600",
-          confirmShadow: "hover:shadow-blue-500/40"
+          confirmBg:
+            "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600",
+          confirmShadow: "hover:shadow-blue-500/40",
         };
       default: // warning
         return {
-          iconBg: "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border-orange-400/30",
+          iconBg:
+            "bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border-orange-400/30",
           iconColor: "text-orange-400",
-          confirmBg: "bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-500 hover:to-yellow-500",
-          confirmShadow: "hover:shadow-orange-500/40"
+          confirmBg:
+            "bg-gradient-to-r from-orange-600 to-yellow-600 hover:from-orange-500 hover:to-yellow-500",
+          confirmShadow: "hover:shadow-orange-500/40",
         };
     }
   };
@@ -73,7 +79,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
           exit={{ opacity: 0 }}
           onClick={onClose}
           style={{
-            fontFamily: "'Be Vietnam Pro', 'Inter', Arial, Helvetica, sans-serif",
+            fontFamily:
+              "'Be Vietnam Pro', 'Inter', Arial, Helvetica, sans-serif",
           }}
         >
           <motion.div
@@ -94,9 +101,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                       <FaRedo className="text-xl text-purple-200" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white">
-                        {title}
-                      </h3>
+                      <h3 className="text-xl font-bold text-white">{title}</h3>
                       <p className="text-purple-200 text-sm">
                         Xác nhận hành động
                       </p>
@@ -117,8 +122,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {/* Body */}
             <div className="p-6 bg-gray-900">
               <div className="text-center mb-6">
-                <div className={`w-16 h-16 ${typeStyles.iconBg} border rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  <FaExclamationCircle className={`text-2xl ${typeStyles.iconColor}`} />
+                <div
+                  className={`w-16 h-16 ${typeStyles.iconBg} border rounded-full flex items-center justify-center mx-auto mb-4`}
+                >
+                  <FaExclamationCircle
+                    className={`text-2xl ${typeStyles.iconColor}`}
+                  />
                 </div>
                 <p className="text-gray-200 text-lg leading-relaxed">
                   {message}
