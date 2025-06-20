@@ -114,7 +114,7 @@ const allResourcesData: ResourceItem[] = [
     title: "Bộ Đề Luyện True/False/NG",
     description:
       "Rèn luyện kỹ năng xử lý dạng bài khó nhằn này với các bài tập đa dạng và giải thích chi tiết.",
-    link: "https://www.kanan.co/ielts/academic/reading/practice-test/",
+    link: "/lessons",
     linkType: "internal",
     ctaText: "Luyện Tập",
   },
@@ -144,7 +144,7 @@ const allResourcesData: ResourceItem[] = [
     title: "Bài Tập Matching Headings",
     description:
       "Nâng cao khả năng tóm tắt ý chính và nối tiêu đề với các đoạn văn một cách chính xác.",
-    link: "https://www.ieltstutor.me/blog/ielts-reading-heading-matching-exercises",
+    link: "/lessons",
     linkType: "internal",
     ctaText: "Luyện Tập",
   },

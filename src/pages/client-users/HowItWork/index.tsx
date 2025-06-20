@@ -13,6 +13,7 @@ interface StepItem {
   icon: React.ElementType;
   title: string;
   description: string;
+  link: string;
 }
 
 const stepsData: StepItem[] = [
@@ -21,30 +22,35 @@ const stepsData: StepItem[] = [
     title: "Đăng Ký Tài Khoản",
     description:
       "Tạo tài khoản Readify miễn phí chỉ trong vài giây để mở khóa toàn bộ tài nguyên học tập.",
+    link: "/login",
   },
   {
     icon: ClipboardDocumentCheckIcon,
     title: "Kiểm Tra Trình Độ",
     description:
       "Hoàn thành bài kiểm tra đầu vào để hệ thống phân tích và đề xuất lộ trình phù hợp nhất với bạn.",
+    link: "/assessment",
   },
   {
     icon: AcademicCapIcon,
     title: "Học Theo Lộ Trình",
     description:
       "Theo sát kế hoạch học tập được cá nhân hóa, bao gồm bài giảng, từ vựng và các dạng bài tập trọng tâm.",
+    link: "/dashboard",
   },
   {
     icon: PencilSquareIcon,
     title: "Luyện Tập Chuyên Sâu",
     description:
       "Thực hành không giới hạn với kho đề thi thử và bài tập đa dạng, bám sát cấu trúc thi thật.",
+    link: "/lessons",
   },
   {
     icon: CheckBadgeIcon,
     title: "Chinh Phục Mục Tiêu",
     description:
       "Theo dõi tiến độ, nhận phản hồi chi tiết và tự tin đạt được điểm số IELTS Reading bạn mơ ước.",
+    link: "/mock-test",
   },
 ];
 
@@ -83,16 +89,20 @@ const StepCard: React.FC<StepItem & { index: number; totalSteps: number }> = ({
   description,
   index,
   totalSteps,
+  link,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: cardRef,
     offset: ["start end", "center center"],
   });
-
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.9, 1.05, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7], [0, 1, 1]);
   const y = useTransform(scrollYProgress, [0, 0.3], [50, 0]);
+
+  const handleCardClick = () => {
+    window.location.href = link;
+  };
 
   return (
     <motion.div
@@ -121,12 +131,13 @@ const StepCard: React.FC<StepItem & { index: number; totalSteps: number }> = ({
             transition={{ duration: 0.5, ease: "circOut", delay: 0.2 }}
           />
         )}
-      </div>
+      </div>{" "}
       <motion.div
         className="flex-1 bg-white/80 backdrop-blur-lg p-6 rounded-xl shadow-lg border border-purple-200/50 
-                   group-hover:shadow-2xl group-hover:border-purple-300 transition-all duration-300"
+                   group-hover:shadow-2xl group-hover:border-purple-300 transition-all duration-300 cursor-pointer"
         whileHover={{ y: -5, backgroundColor: "rgba(255,255,255,0.95)" }}
         transition={{ type: "spring", stiffness: 300, damping: 15 }}
+        onClick={handleCardClick}
       >
         <div className="flex items-center mb-3">
           <Icon className="w-7 h-7 md:w-8 md:h-8 text-purple-600 mr-3 group-hover:text-indigo-600 transition-colors" />
@@ -138,13 +149,37 @@ const StepCard: React.FC<StepItem & { index: number; totalSteps: number }> = ({
             {title}
           </h3>
         </div>
-        {/* SỬA FONT TRỰC TIẾP CHO MÔ TẢ CARD */}
+        {/* SỬA FONT TRỰC TIẾP CHO MÔ TẢ CARD */}{" "}
         <p
-          className="text-sm md:text-base text-slate-600 leading-relaxed"
+          className="text-sm md:text-base text-slate-600 leading-relaxed mb-4"
           style={{ fontFamily: '"Inter", sans-serif' }} // Áp dụng font trực tiếp
         >
           {description}
         </p>
+        <motion.button
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 hover:text-purple-700 transition-colors duration-200 cursor-pointer"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = link;
+          }}
+        >
+          Bắt đầu
+          <svg
+            className="w-4 h-4 ml-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </motion.button>
       </motion.div>
     </motion.div>
   );

@@ -18,7 +18,7 @@ import {
 } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
 import { Part, Group, Question } from "./reading";
-import { saveReadingPracticeResult } from "../../../utils/mockData";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -53,7 +53,6 @@ const ReadingPracticeScore = () => {
   }>();
 
   let state = location.state;
-
   if (!state) {
     try {
       state = JSON.parse(
@@ -61,6 +60,7 @@ const ReadingPracticeScore = () => {
       );
     } catch {}
   }
+
   // Lấy state truyền từ trang practice
   const {
     score = 0,
@@ -68,11 +68,34 @@ const ReadingPracticeScore = () => {
     answers = {},
     questions = [],
     parts = [],
-    testLevel = level || "1",
+    level: stateLevel, // Level từ state (chính xác từ trang practice)
+    testLevel = level || "1", // Fallback từ URL params
+    actualLevel, // Level thực tế từ URL params (để navigation)
+    actualReadingNum, // ReadingNum thực tế từ URL params
+    readingNum: stateReadingNum, // ReadingNum từ state
+    originalLevel, // Backup level từ URL params
   } = state || {};
 
+  // Ưu tiên actualLevel (level gốc từ params) > originalLevel > stateLevel
+  const currentLevel =
+    actualLevel || originalLevel || stateLevel || testLevel || level || "1";
+  const currentReadingNum =
+    actualReadingNum || stateReadingNum || readingNum || "reading1";
+  // Debug log để kiểm tra các giá trị
+  console.log("ReadingPracticeScore Debug:", {
+    fromURL: { level, readingNum },
+    fromState: {
+      stateLevel,
+      stateReadingNum,
+      actualLevel,
+      actualReadingNum,
+      originalLevel,
+    },
+    final: { currentLevel, currentReadingNum },
+  });
   const band = getBand(score);
   const [showConfetti, setShowConfetti] = useState(true);
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -85,71 +108,11 @@ const ReadingPracticeScore = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 5500);
     return () => clearTimeout(timer);
-  }, []);  // Lưu kết quả vào localStorage khi component mount - cải tiến để tránh lưu trùng lặp
-  useEffect(() => {
-    // Đảm bảo tất cả dữ liệu cần thiết đã sẵn sàng
-    if (parts && parts.length > 0 && level && readingNum && score >= 0) {
-      const totalQuestions = countQuestions(parts);
-      // Chuẩn hóa title thành format "Reading {readingNum}"
-      const title = `Reading ${readingNum}`;
-
-      console.log(`Attempting to save: Level ${level}, Reading ${readingNum}, Score ${score}/${totalQuestions}`);
-
-      // Kiểm tra xem đã lưu kết quả này chưa bằng cách check localStorage
-      const existingData = localStorage.getItem("user_completed_exercises");
-      let shouldSave = true;
-
-      if (existingData) {
-        try {
-          const exercises = JSON.parse(existingData);
-          const existing = exercises.find(
-            (ex: any) =>
-              ex.level === parseInt(level) &&
-              ex.readingNum === parseInt(readingNum)
-          );
-          
-          if (existing) {
-            // Nếu đã tồn tại, chỉ update nếu có thay đổi về điểm
-            if (existing.score === score && existing.totalQuestions === totalQuestions) {
-              shouldSave = false;
-              console.log(`Result already saved for Level ${level}, Reading ${readingNum} with same score`);
-            } else {
-              console.log(`Updating existing result for Level ${level}, Reading ${readingNum}: ${existing.score}/${existing.totalQuestions} -> ${score}/${totalQuestions}`);
-            }
-          } else {
-            console.log(`No existing result found for Level ${level}, Reading ${readingNum}, will create new`);
-          }
-        } catch (error) {
-          console.error("Error checking existing data:", error);
-        }
-      } else {
-        console.log("No existing data found, will create new entry");
-      }
-
-      if (shouldSave) {
-        console.log(`Saving result: Level ${level}, Reading ${readingNum}, Score ${score}/${totalQuestions}`);
-        saveReadingPracticeResult({
-          level: parseInt(level),
-          readingNum: parseInt(readingNum),
-          title: title,
-          score: score,
-          totalQuestions: totalQuestions,
-        });
-        console.log(`✅ Result saved successfully`);
-      }
-    } else {
-      console.log("Missing required data for saving:", {
-        parts: parts?.length || 0,
-        level,
-        readingNum,
-        score,
-      });
-    }
-  }, [parts, level, readingNum, score]); // Chạy khi các dependency thay đổi
-
+  }, []);
   const handleReview = () => {
     navigate("/reading-practice-review", {
       state: {
@@ -160,20 +123,25 @@ const ReadingPracticeScore = () => {
         isReviewing: true,
         score,
         band,
-        level,
-        readingNum,
+        level: currentLevel,
+        readingNum: currentReadingNum,
       },
     });
   };
-
   const handleContinuePractice = () => {
-    // Quay về trang level trước đó
-    navigate(`/lessons/${level}`);
+    // Quay về trang level trước đó (sử dụng currentLevel)
+    navigate(`/lessons/${currentLevel}`);
+  };
+
+  const handleRetake = () => {
+    setShowRetakeModal(false);
+    // Làm lại bài này (sử dụng currentLevel và currentReadingNum)
+    navigate(`/lessons/${currentLevel}/${currentReadingNum}`);
   };
 
   const handleRetry = () => {
-    // Làm lại bài này
-    navigate(`/lessons/${level}/${readingNum}`);
+    // Hiển thị modal xác nhận
+    setShowRetakeModal(true);
   };
 
   // Đếm chính xác số câu hỏi của tất cả dạng
@@ -204,9 +172,8 @@ const ReadingPracticeScore = () => {
 
   const totalQuestions =
     Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 40;
-
-  // Extract reading number từ readingNum parameter
-  const practiceNumber = readingNum?.replace(/\D/g, "") || "1";
+  // Extract reading number từ currentReadingNum
+  const practiceNumber = currentReadingNum?.replace(/\D/g, "") || "1";
 
   // Gradient màu động cho progressbar
   const progressColor = (percent: number) =>
@@ -370,9 +337,9 @@ const ReadingPracticeScore = () => {
           </motion.div>
           <p className="text-lg md:text-xl text-gray-600 font-medium mb-2">
             Bạn đã hoàn thành bài ôn luyện
-          </p>
+          </p>{" "}
           <p className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
-            Reading {practiceNumber} - Level {testLevel}
+            Reading {practiceNumber} - Level {currentLevel}
           </p>
         </motion.div>
 
@@ -565,10 +532,22 @@ const ReadingPracticeScore = () => {
             }
           >
             <FaRocket size={22} />
-            <span>Tiếp tục ôn luyện</span>
+            <span>Tiếp tục ôn luyện</span>{" "}
           </motion.button>
         </motion.div>
       </motion.div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showRetakeModal}
+        onClose={() => setShowRetakeModal(false)}
+        onConfirm={handleRetake}
+        title="Xác nhận làm lại"
+        message={`Bạn có chắc chắn muốn làm lại bài Reading Level ${currentLevel} - ${currentReadingNum} không?`}
+        confirmText="Làm lại ngay"
+        cancelText="Hủy bỏ"
+        type="warning"
+      />
     </div>
   );
 };

@@ -16,29 +16,29 @@ const slidesData = [
     description:
       "Lộ trình được cá nhân hóa, kho bài tập đa dạng và những chiến lược làm bài hiệu quả nhất đang chờ bạn khám phá.",
     ctaText: "Tìm Hiểu Thêm",
-    ctaLink: "/features",
+    ctaLink: "/#target",
     imageUrl: carousel1,
     altText: "Học viên Readify đang học tập",
   },
   {
     id: 2,
-    headline: "Từ Vựng Chuyên Sâu, Nền Tảng Vững Chắc",
+    headline: "Đánh Giá Trình Độ, Lộ Trình Cá Nhân Hóa",
     description:
-      "Nắm vững từ vựng học thuật cốt lõi qua các bài học tương tác, flashcards thông minh và trò chơi thử thách.",
-    ctaText: "Bắt Đầu Học Từ",
-    ctaLink: "/vocabulary",
+      "Thực hiện bài test đầu vào để nhận đánh giá chính xác trình độ hiện tại và nhận lộ trình học tập được cá nhân hóa phù hợp với khả năng của bạn.",
+    ctaText: "Làm Bài Đánh Giá",
+    ctaLink: "/assessment",
     imageUrl: carousel2,
-    altText: "Flashcards từ vựng Readify",
+    altText: "Học viên làm bài đánh giá trình độ trên Readify",
   },
   {
     id: 3,
     headline: "Luyện Đề Như Thi Thật, Tự Tin Tối Đa",
     description:
-      "Trải nghiệm các bộ đề thi thử chuẩn format quốc tế, nhận phân tích chi tiết và chiến lược cải thiện điểm số.",
-    ctaText: "Làm Bài Thi Thử",
-    ctaLink: "/mock-tests",
+      "Trải nghiệm các bộ đề ôn luyện chuẩn format quốc tế, nhận gợi ý level tướng ứng với khả năng.",
+    ctaText: "Tiến Hành Ôn Luyện",
+    ctaLink: "/lessons",
     imageUrl: carousel3,
-    altText: "Học viên làm bài thi thử trên Readify",
+    altText: "Học viên làm bài ôn luyện trên Readify",
   },
 ];
 
@@ -77,6 +77,19 @@ const NewHeroCarousel: React.FC = () => {
     Autoplay({ delay: 7000, stopOnInteraction: false }),
   ]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const handleCtaClick = (e: React.MouseEvent, ctaLink: string) => {
+    if (ctaLink === "/#target") {
+      e.preventDefault();
+      const targetElement = document.getElementById("target");
+      if (targetElement) {
+        targetElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }
+  };
 
   const scrollPrev = useCallback(
     () => emblaApi && emblaApi.scrollPrev(),
@@ -208,7 +221,7 @@ const NewHeroCarousel: React.FC = () => {
                     className="text-lg md:text-xl text-purple-700/90 mb-8 font-inter leading-relaxed"
                   >
                     {slide.description}
-                  </motion.p>
+                  </motion.p>{" "}
                   <motion.div variants={textItemVariants}>
                     <motion.a
                       href={slide.ctaLink}
@@ -216,7 +229,8 @@ const NewHeroCarousel: React.FC = () => {
                       whileHover={{
                         y: -3,
                         boxShadow: "0px 10px 20px rgba(128, 90, 213, 0.3)",
-                      }} // Thêm hiệu ứng đổ bóng khi hover
+                      }}
+                      onClick={(e) => handleCtaClick(e, slide.ctaLink)}
                     >
                       {slide.ctaText}
                     </motion.a>

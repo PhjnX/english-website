@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import Paragraph from "./Paragraph";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaCheckCircle } from "react-icons/fa";
 import { Part } from "./reading";
+
+export interface Answers {
+  [key: number]: string;
+}
 
 function normalize(val: any) {
   if (val === undefined || val === null) return "";
@@ -17,6 +22,7 @@ function normalize(val: any) {
       if (Array.isArray(arr) && arr.length > 0) val = arr;
     } catch {}
   }
+  // Trả về nguyên bản nếu là string có \n để các hàm khác xử lý
   return val;
 }
 
@@ -32,50 +38,38 @@ function normalizeTFNG(val: any) {
 }
 
 const ReadingPracticeReview: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  let state = location.state;
-  if (!state) {
-    try {
-      state = JSON.parse(
-        localStorage.getItem("reading_practice_result") || "{}"
-      );
-    } catch {}
-  }
+  const navigate = useNavigate();
   const {
     answers = {},
     parts = [],
     score = 0,
-    band = null,
+    band = "N/A",
     level = "1",
-    readingNum = "1",
-  } = state || {};
+    readingNum = "reading1",
+  } = location.state || {};
 
-  // Nếu không có dữ liệu truyền qua thì quay lại trang điểm số
-  React.useEffect(() => {
-    if (!parts || parts.length === 0) {
-      navigate(`/reading-practice-score/${level}/${readingNum}`);
-    }
-    // eslint-disable-next-line
-  }, [parts, level, readingNum]);
-
-  // Tab logic
-  const [activeKey, setActiveKey] = React.useState(
-    parts && parts.length > 0 ? parts[0].id.toString() : "1"
+  const [highlightedSentence, setHighlightedSentence] = useState<string | null>(
+    null
   );
-  const [prevKey, setPrevKey] = React.useState(activeKey);
+  const [activeKey, setActiveKey] = useState("1");
+  const [prevKey, setPrevKey] = useState("1");
 
-  const [highlightedSentence, setHighlightedSentence] = React.useState<
-    string | null
-  >(null);
+  useEffect(() => {
+    if (parts && parts.length > 0) {
+      setActiveKey(parts[0]?.id?.toString() || "1");
+    }
+  }, [parts]);
 
   const handleTabChange = (key: string) => {
     setPrevKey(activeKey);
     setActiveKey(key);
-    setHighlightedSentence(null);
+  };
+  const handleGoBack = () => {
+    navigate(`/reading-practice-score/${level}/${readingNum}`);
   };
 
-  // UI render cho đáp án đúng + giải thích
+  // UI render cho đáp án đúng + giải thích (giống hệt ReviewPage.tsx)
   const renderAnswerExplain = (q: any, idxStart = 1) => {
     // MULTIPLE CHOICE
     if (q.type === "multiple-choice") {
@@ -93,122 +87,207 @@ const ReadingPracticeReview: React.FC = () => {
         );
       }
       return (
-        <div className="mt-3 text-[18px] font-semibold text-green-700 flex items-center gap-2">
+        <div className="mt-3 text-[18px] font-semibold text-green-700 gap-2">
           <span>Đáp án đúng:</span>
           <span className="inline-block min-w-[40px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
             {optionIndex !== -1
               ? String.fromCharCode(65 + optionIndex)
               : (correct || "").toUpperCase()}
           </span>
+          {q.explanation && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">💡</span>
+                </div>
+                <span className="text-[16px] font-bold text-green-800">
+                  Giải thích:
+                </span>
+              </div>
+              <div className="text-[15px] text-green-700 leading-relaxed whitespace-pre-line pl-8">
+                {q.explanation}
+              </div>
+            </div>
+          )}
         </div>
       );
     } // PARAGRAPH
     if (q.type === "paragraph") {
-      let corrects: string[] = [];
-      const correctAnswer = normalize(q.correctAnswer);
-      // Xử lý correctAnswer có thể chứa \n để tách thành nhiều đáp án
-      if (typeof correctAnswer === "string") {
-        // Thử split theo cả \n thực tế và \\n literal
-        const splitByNewline = correctAnswer
-          .split("\n")
-          .filter((ans: string) => ans.trim());
-        const splitByLiteralNewline = correctAnswer
-          .split("\\n")
-          .filter((ans: string) => ans.trim());
-
-        // Chọn cách split nào cho nhiều kết quả hơn
-        if (splitByNewline.length > splitByLiteralNewline.length) {
-          corrects = splitByNewline;
-        } else if (splitByLiteralNewline.length > 1) {
-          corrects = splitByLiteralNewline;
-        } else {
-          corrects = [correctAnswer];
-        }
-      } else if (Array.isArray(correctAnswer)) {
-        corrects = correctAnswer;
-      } else {
-        corrects = [String(correctAnswer)];
+      let corrects = normalize(q.correctAnswer);
+      // Xử lý trường hợp correctAnswer có \n để tách từng dòng
+      if (typeof corrects === "string" && corrects.includes("\n")) {
+        corrects = corrects.split("\n").filter((ans: string) => ans.trim());
+      } else if (!Array.isArray(corrects)) {
+        corrects = [corrects];
       }
-
       return (
         <div className="mt-2 text-[18px] font-semibold text-green-700">
           Đáp án đúng:
-          <div className="pl-2 mt-1 flex flex-col gap-2">
-            {corrects.map((ans: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-2">
-                <span>{idxStart + idx}.</span>
-                <span
-                  className="inline-block min-w-[60px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow"
-                  style={{ letterSpacing: "0.5px" }}
-                >
-                  {String(ans)
-                    .trim()
-                    .replace(/^['"]+|['"]+$/g, "")}
+          <div className="pl-2 mt-1">
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 max-w-md">
+              {corrects.map((ans: any, idx: number) => (
+                <>
+                  <span
+                    key={`num-${idx}`}
+                    className="text-right pr-1 font-semibold"
+                  >
+                    {idxStart + idx}.
+                  </span>
+                  <span
+                    key={`ans-${idx}`}
+                    className="inline-block min-w-[60px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow justify-self-start"
+                    style={{ letterSpacing: "0.5px" }}
+                  >
+                    {String(ans)
+                      .replace(/^['"]+|['"]+$/g, "")
+                      .trim()}
+                  </span>
+                </>
+              ))}
+            </div>
+          </div>
+          {q.explanation && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">💡</span>
+                </div>
+                <span className="text-[16px] font-bold text-green-800">
+                  Giải thích:
                 </span>
               </div>
-            ))}
-          </div>
+              <div className="text-[15px] text-black leading-relaxed whitespace-pre-line pl-8">
+                {q.explanation}
+              </div>
+            </div>
+          )}
         </div>
       );
-    }
-
-    // GAP-FILL
+    } // GAP-FILL
     if (q.type === "gap-fill") {
-      let corrects = normalize(q.correctAnswer) as string[];
-      if (!Array.isArray(corrects)) corrects = [corrects];
+      let corrects = normalize(q.correctAnswer);
+      // Xử lý trường hợp correctAnswer có \n để tách từng dòng
+      if (typeof corrects === "string" && corrects.includes("\n")) {
+        corrects = corrects.split("\n").filter((ans: string) => ans.trim());
+      } else if (!Array.isArray(corrects)) {
+        corrects = [corrects];
+      }
       return (
         <div className="mt-2 text-[18px] font-semibold text-green-700 flex items-center gap-3 flex-wrap">
           <span>Đáp án đúng:</span>
-          {corrects.map((ans, idx) => (
+          {corrects.map((ans: any, idx: number) => (
             <span
               key={idx}
               className="inline-block min-w-[50px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow"
             >
-              {String(ans).replace(/^['"]+|['"]+$/g, "")}
+              {String(ans)
+                .replace(/^['"]+|['"]+$/g, "")
+                .trim()}
             </span>
           ))}
+          {q.explanation && (
+            <div className="w-full mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">💡</span>
+                </div>
+                <span className="text-[16px] font-bold text-green-800">
+                  Giải thích:
+                </span>
+              </div>
+              <div className="text-[15px] text-black leading-relaxed whitespace-pre-line pl-8">
+                {q.explanation}
+              </div>
+            </div>
+          )}
         </div>
       );
-    }
-
-    // MATCHING
+    } // MATCHING
     if (q.type === "matching") {
-      let corrects = normalize(q.correctAnswer) as string[];
-      if (!Array.isArray(corrects)) corrects = [corrects];
+      let corrects = normalize(q.correctAnswer);
+      // Xử lý trường hợp correctAnswer có \n để tách từng dòng
+      if (typeof corrects === "string" && corrects.includes("\n")) {
+        corrects = corrects.split("\n").filter((ans: string) => ans.trim());
+      } else if (!Array.isArray(corrects)) {
+        corrects = [corrects];
+      }
       return (
         <div className="mt-2 text-[18px] font-semibold text-green-700">
           Đáp án đúng:
-          <div className="pl-2 mt-1 flex flex-col gap-2">
-            {corrects.map((ans, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <span>{String.fromCharCode(65 + idx)}.</span>
-                <span className="inline-block min-w-[50px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
-                  {String(ans).replace(/^['"]+|['"]+$/g, "")}
+          <div className="pl-2 mt-1">
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 max-w-md">
+              {corrects.map((ans: any, idx: number) => (
+                <>
+                  <span
+                    key={`num-${idx}`}
+                    className="text-right pr-1 font-semibold"
+                  >
+                    {String.fromCharCode(65 + idx)}.
+                  </span>
+                  <span
+                    key={`ans-${idx}`}
+                    className="inline-block min-w-[50px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow justify-self-start"
+                  >
+                    {String(ans)
+                      .replace(/^['"]+|['"]+$/g, "")
+                      .trim()}
+                  </span>
+                </>
+              ))}
+            </div>
+          </div>
+          {q.explanation && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">💡</span>
+                </div>
+                <span className="text-[16px] font-bold text-green-800">
+                  Giải thích:
                 </span>
               </div>
-            ))}
-          </div>
+              <div className="text-[15px] text-black leading-relaxed whitespace-pre-line pl-8">
+                {q.explanation}
+              </div>
+            </div>
+          )}
         </div>
       );
-    }
-
-    // TRUE/FALSE/NOT GIVEN: (giữ nguyên nếu bạn muốn)
+    } // TRUE/FALSE/NOT GIVEN
     if (q.type === "true-false-notgiven") {
       let correct = normalize(q.correctAnswer);
       if (Array.isArray(correct)) correct = correct[0];
       return (
-        <div className="mt-3 text-[18px] font-semibold text-green-700 flex items-center gap-2">
-          <span>Đáp án đúng:</span>
-          <span className="inline-block min-w-[40px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
-            {(correct || "").toUpperCase()}
-          </span>
+        <div className="mt-3 text-[18px] font-semibold text-green-700">
+          <div className="flex items-center gap-2 mb-2">
+            <span>Đáp án đúng:</span>
+            <span className="inline-block min-w-[40px] px-3 py-1 border-2 border-green-600 bg-green-50 text-green-700 rounded-lg font-bold text-[17px] shadow">
+              {(correct || "").toUpperCase()}
+            </span>
+          </div>{" "}
+          {q.explanation && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">💡</span>
+                </div>
+                <span className="text-[16px] font-bold text-green-800">
+                  Giải thích:
+                </span>
+              </div>
+              <div className="text-[15px] text-black leading-relaxed whitespace-pre-line pl-8">
+                {q.explanation}
+              </div>
+            </div>
+          )}
         </div>
       );
     }
+
     return null;
   };
 
-  // UI câu hỏi (tối ưu cho tất cả loại)
+  // UI câu hỏi (giống hệt ReviewPage.tsx)
   const renderQuestion = (group: any, answers: any) => {
     const startNumber = group.startNumber ?? 1;
     return group.questions.map((q: any, idx: number) => {
@@ -442,8 +521,7 @@ const ReadingPracticeReview: React.FC = () => {
       return null;
     });
   };
-
-  // Tabs UI
+  // Custom Tab UI (giống ReviewPage.tsx)
   const renderTabs = () => (
     <div className="flex flex-wrap gap-2 md:gap-4 px-2 md:px-6 pt-3 pb-1">
       {parts.map((part: Part) => (
@@ -463,7 +541,6 @@ const ReadingPracticeReview: React.FC = () => {
       ))}
     </div>
   );
-
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-gradient-to-br from-[#f8fafc] via-[#f3e8ff] to-[#e0e7ef] text-black font-inter">
       {/* Header */}
@@ -477,13 +554,15 @@ const ReadingPracticeReview: React.FC = () => {
           </span>
         </div>
         <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3 bg-white/80 rounded-xl px-4 py-2 shadow-md">
+            <FaCheckCircle className="text-purple-500 text-xl" />
+            <span className="text-lg font-bold text-purple-700">
+              Correct Answers: {score} | Band: {band}
+            </span>
+          </div>
           <button
             className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 text-white font-semibold shadow hover:scale-105 transition cursor-pointer"
-            onClick={() =>
-              navigate(`/reading-practice-score/${level}/${readingNum}`, {
-                state: { answers, parts, score, band, level, readingNum },
-              })
-            }
+            onClick={handleGoBack}
           >
             Quay lại kết quả
           </button>
@@ -491,6 +570,7 @@ const ReadingPracticeReview: React.FC = () => {
       </header>
       {/* Tabs */}
       {renderTabs()}
+
       {/* Tab Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <AnimatePresence mode="wait">

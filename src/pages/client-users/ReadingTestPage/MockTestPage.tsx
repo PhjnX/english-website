@@ -1,23 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Paragraph from "./Paragraph";
 import QuestionList from "./Question";
 import { motion, AnimatePresence } from "framer-motion";
 import testGif from "../../../assets/testGif.gif";
 import hourglassgif from "../../../assets/hourglass.gif";
-import { getReadingTestByLevelAndNumber } from "../../../apis/reading-api";
+import { getAllAssessments } from "../../../apis/assessment-api";
 import { Assessment, Part } from "./reading";
 
 export interface Answers {
   [key: number]: string;
 }
 
-const ReadingPracticePage: React.FC = () => {
-  const { level, readingNum } = useParams<{
-    level: string;
-    readingNum: string;
-  }>();
-  const navigate = useNavigate();
+const ReadingTestPage: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(60 * 60);
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -28,53 +23,23 @@ const ReadingPracticePage: React.FC = () => {
   const [activeKey, setActiveKey] = useState("1");
   const [prevKey, setPrevKey] = useState("1");
   const [parts, setParts] = useState<Part[]>([]);
-  const [readingTitle, setReadingTitle] = useState<string>("");
-  const [totalQuestions, setTotalQuestions] = useState<number>(40);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [readingId, setReadingId] = useState<string>("");
+  const navigate = useNavigate();
+
   useEffect(() => {
     setIsLoading(true);
-    if (level && readingNum) {
-      // Extract number from readingNum (e.g., "reading1" -> "1")
-      const readingNumber = readingNum.replace(/\D/g, "") || "1";
-      console.log("Fetching reading test:", { level, readingNumber });
-      getReadingTestByLevelAndNumber(level, readingNumber)
-        .then((data: Assessment) => {
-          console.log("API Response:", data);
-          if (data && data.parts && data.parts.length > 0) {
-            setParts(data.parts);
-            setReadingId(data.id ? String(data.id) : `${level}_${readingNum}`);
-            setActiveKey(data.parts[0]?.id?.toString() || "1");
-            setReadingTitle(data.name || "");
-
-            // Tính tổng số câu thực tế
-            const total = data.parts.reduce(
-              (sum, part) =>
-                sum +
-                part.groups.reduce(
-                  (gSum, g) => gSum + (g.questions?.length || 0),
-                  0
-                ),
-              0
-            );
-            setTotalQuestions(total > 0 ? total : 40);
-          } else {
-            console.warn("No parts found in response:", data);
-            setParts([]);
-            setReadingTitle(`Reading ${readingNum}`);
-            setTotalQuestions(40);
-          }
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          console.error("Error fetching reading test:", error);
-          setParts([]);
-          setReadingTitle(`Reading ${readingNum}`);
-          setTotalQuestions(40);
-          setIsLoading(false);
-        });
-    }
-  }, [level, readingNum]);
+    getAllAssessments().then((all: Assessment[]) => {
+      // Chỉ lấy bài có id = 7 (mock test)
+      const data = all?.find((test) => test.id === 7) || null;
+      if (data && data.parts) {
+        setParts(data.parts);
+        setActiveKey(data.parts[0]?.id?.toString() || "1");
+      } else {
+        setParts([]);
+      }
+      setIsLoading(false);
+    });
+  }, []);
 
   useEffect(() => {
     if (!isSubmitted) {
@@ -279,57 +244,25 @@ const ReadingPracticePage: React.FC = () => {
     if (band >= 3.0) return 1;
     return 1; // fallback, trường hợp ngoài ý muốn vẫn trả về level 1
   };
-
   const handleSubmit = async () => {
     setIsSubmitted(true);
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
     const band = convertScoreToBand(score);
-    const levelNum = bandToLevel(band);
+    const level = bandToLevel(band);
 
-    const completed = JSON.parse(
-      localStorage.getItem("reading_completed") || "[]"
-    );
-    const readingData = {
-      id: readingId, // đã lấy đúng từ API hoặc `${level}_${readingNum}`
-      title: readingTitle, // đã set ở useEffect từ data.name (API)
-      totalQuestions, // đã tính đúng ở useEffect, tổng toàn bộ các part+group+question
-    };
-    const newResult = {
-      readingId: readingData.id,
-      readingNum: Number((readingNum || "1").replace(/\D/g, "")),
-      title: readingData.title, // LUÔN LÀ "Reading 1", "Reading 2" ... lấy từ API
-      level: Number(level),
-      score,
-      total: 40,
-      submittedAt: new Date().toISOString(),
-    };
-    console.log("[DEBUG] Lưu newResult vào localStorage:", newResult);
-
-    // Xoá bản cũ (nếu có) rồi push mới
-    const updated = [
-      ...completed.filter((x: any) => x.readingId !== newResult.readingId),
-      newResult,
-    ];
-    localStorage.setItem("reading_completed", JSON.stringify(updated));
-    // --------------------------------------    // Tiếp tục như cũ (lưu kết quả tạm cho trang kết quả)
     const resultData = {
       answers,
       score,
       band: String(band),
-      level: String(levelNum), // Level tính từ band (cho hiển thị)
+      level: String(level),
       timeSpent: 60 * 60 - timeLeft,
       isSubmitted: true,
       questions: [],
       parts,
-      testLevel: levelNum,
-      readingNum,
-      actualLevel: level, // Level thực tế từ URL params (để navigation)
-      actualReadingNum: readingNum, // ReadingNum thực tế từ URL params
-      originalLevel: level, // Backup thêm cho chắc chắn
     };
-    localStorage.setItem("reading_practice_result", JSON.stringify(resultData));
-    navigate(`/reading-practice-score/${levelNum}/${readingNum}`, {
+    localStorage.setItem("reading_result", JSON.stringify(resultData));
+    navigate("/mock-test-score", {
       state: resultData,
     });
   };
@@ -388,7 +321,7 @@ const ReadingPracticePage: React.FC = () => {
               fontFamily: "beVietnamProFont, sans-serif",
             }}
           >
-            READING PRACTICE
+            Mock-Test
           </span>
         </div>
         <div className="flex items-center gap-5">
@@ -557,4 +490,4 @@ const ReadingPracticePage: React.FC = () => {
   );
 };
 
-export default ReadingPracticePage;
+export default ReadingTestPage;
