@@ -7,7 +7,6 @@ import testGif from "../../../assets/testGif.gif";
 import hourglassgif from "../../../assets/hourglass.gif";
 import { getAllAssessments } from "../../../apis/assessment-api";
 import { Assessment, Part } from "./reading";
-import { updateUserBandLevel } from "../../../apis/user-api";
 
 export interface Answers {
   [key: number]: string;
@@ -245,28 +244,12 @@ const ReadingTestPage: React.FC = () => {
     if (band >= 3.0) return 1;
     return 1; // fallback, trường hợp ngoài ý muốn vẫn trả về level 1
   };
-
   const handleSubmit = async () => {
     setIsSubmitted(true);
     if (timerRef.current) clearInterval(timerRef.current);
     const score = calculateScore();
     const band = convertScoreToBand(score);
     const level = bandToLevel(band);
-
-    // Lấy user_id từ localStorage
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = user.user_id;
-    try {
-      if (userId) {
-        await updateUserBandLevel(userId, {
-          band: String(band),
-          level: String(level),
-        });
-        console.log("DEBUG: Đã update band/level cho user_id", userId);
-      }
-    } catch (error) {
-      console.error("DEBUG: Lỗi update band/level", error);
-    }
 
     const resultData = {
       answers,
@@ -279,7 +262,7 @@ const ReadingTestPage: React.FC = () => {
       parts,
     };
     localStorage.setItem("reading_result", JSON.stringify(resultData));
-    navigate("/reading-score", {
+    navigate("/mock-test-score", {
       state: resultData,
     });
   };

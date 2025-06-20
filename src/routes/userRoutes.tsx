@@ -13,6 +13,7 @@ import Dashboard from "../pages/client-users/Dashboard/Dashboard";
 import ReadingPracticePage from "../pages/client-users/ReadingPracticePage";
 import ReadingTestPage from "../pages/client-users/ReadingTestPage";
 import MockTestPage from "../pages/client-users/ReadingTestPage/MockTestPage";
+import MockTestScore from "../pages/client-users/ReadingTestPage/MockTestScore";
 
 const ClientUserLayout = lazy(() => import("../pages/client-users"));
 const HomePage = lazy(() => import("../pages/client-users/HomePage"));
@@ -111,6 +112,10 @@ export const userRoutes = [
   {
     path: "reading-test",
     element: ProtectedReadingTest,
+  },
+  {
+    path: "mock-test-score",
+    element: MockTestScore,
   },
   {
     path: "reading-practice-score/:level/:readingNum",

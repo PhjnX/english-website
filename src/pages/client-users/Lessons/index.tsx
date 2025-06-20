@@ -10,7 +10,7 @@ import icon from "../../../assets/suggest_level.gif";
 // --- TYPE DEFINITIONS ---
 interface UserData {
   level: number | null;
-  band: number | null;
+  band: number | string | null; // Có thể là số hoặc string "Below 3.0"
 }
 
 interface LevelCardData {
@@ -91,7 +91,7 @@ const fetchUserProgress = async (): Promise<UserData> => {
       const userData = await getUserById(userId);
       return {
         level: userData.level ? Number(userData.level) : null,
-        band: userData.band ? Number(userData.band) : null,
+        band: userData.band || null, // Giữ nguyên không parse thành số
       };
     } catch {
       return { level: null, band: null };
@@ -215,9 +215,13 @@ const LessonsPage: React.FC = () => {
                     <div className="flex flex-col items-center flex-1">
                       <p className="text-base font-semibold text-purple-300 mb-2 uppercase tracking-wider">
                         Band
-                      </p>
+                      </p>{" "}
                       <div className="text-6xl font-bold text-white">
-                        {userData?.band ? userData.band : "?"}
+                        {userData?.band === null || userData?.band === undefined
+                          ? "?"
+                          : typeof userData?.band === "string"
+                          ? userData?.band
+                          : userData?.band}
                       </div>
                     </div>
                     <div className="hidden sm:block w-px h-16 bg-gradient-to-b from-transparent via-purple-300/50 to-transparent"></div>
@@ -232,9 +236,16 @@ const LessonsPage: React.FC = () => {
                     >
                       <p className="text-base font-semibold text-purple-200 uppercase tracking-wide">
                         Đề xuất
-                      </p>
+                      </p>{" "}
                       <p className="text-3xl font-bold text-white mt-1">
-                        Luyện Level {userLevel}
+                        Luyện Level{" "}
+                        {(() => {
+                          // Chỉ override nếu band "Below 3.0"
+                          if (userData?.band === "Below 3.0") {
+                            return 1;
+                          }
+                          return userLevel;
+                        })()}
                       </p>
                     </motion.div>
                   </div>
@@ -292,12 +303,15 @@ const LessonsPage: React.FC = () => {
             initial="hidden"
             animate="visible"
           >
+            {" "}
             {readingLevels.map((card) => {
-              const isRecommended = userLevel === card.level;
-              const isCompleted =
-                userLevel !== undefined &&
-                userLevel !== null &&
-                userLevel > card.level;
+              // Xác định level được đề xuất - chỉ override nếu band "Below 3.0"
+              let recommendedLevel = userLevel;
+              if (userData?.band === "Below 3.0") {
+                recommendedLevel = 1;
+              }
+
+              const isRecommended = recommendedLevel === card.level;
 
               return (
                 <motion.div

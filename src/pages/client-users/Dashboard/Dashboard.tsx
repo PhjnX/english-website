@@ -13,7 +13,7 @@ interface UserData {
   full_name: string;
   email: string;
   level: number | null; // e.g., 1, 2, 3...
-  band: number | null; // e.g., 3.0, 3.5, 4.0...
+  band: number | string | null; // e.g., 3.0, 3.5, 4.0... hoặc "Below 3.0"
   picture: string | null;
 }
 
@@ -48,6 +48,17 @@ const AnimatedCounter = ({ value }: { value: number }) => {
   }, [spring, value]);
 
   return <motion.span>{display}</motion.span>;
+};
+
+// Band Display Component để xử lý cả string và number
+const BandDisplay = ({ band }: { band: number | string | null }) => {
+  if (band === null || band === undefined) {
+    return <span>N/A</span>;
+  }
+  if (typeof band === "string") {
+    return <span>{band}</span>;
+  }
+  return <AnimatedCounter value={band} />;
 };
 
 // Mock levels function
@@ -108,21 +119,6 @@ const DashboardPage: React.FC = () => {
           ]);
           setUser(userData);
 
-          // Debug log để kiểm tra user data
-          console.log("User data from API:", userData);
-          console.log(
-            "User level:",
-            userData?.level,
-            "Type:",
-            typeof userData?.level
-          );
-          console.log(
-            "User band:",
-            userData?.band,
-            "Type:",
-            typeof userData?.band
-          );
-
           // Lấy completed từ localStorage
           const localCompleted = JSON.parse(
             localStorage.getItem("reading_completed") || "[]"
@@ -138,30 +134,62 @@ const DashboardPage: React.FC = () => {
       };
       loadDashboardData();
     }
-  }, [navigate]);
-
-  // Calculate Progress Logic
+  }, [navigate]); // Calculate Progress Logic
   useEffect(() => {
-    if (user && user.level && allLevels.length > 0) {
-      const relevantLevels = allLevels.filter((l) => l.level >= user.level!);
-      if (relevantLevels.length === 0) {
-        setProgress(100); // User is at the highest level
-        return;
-      }
-      const totalExercisesInPath = relevantLevels.reduce(
-        (sum, level) => sum + level.totalExercises,
-        0
-      );
-      const completedExercisesInPath = completed.filter((c) =>
-        relevantLevels.some((l) => l.level === c.level)
-      ).length;
+    if (allLevels.length > 0) {
+      if (user && user.level !== null && user.level !== undefined) {
+        // Xác định level hiện tại dựa trên band (bao gồm cả "Below 3.0")
+        let currentLevel = user.level;
+        if (user.band !== null && user.band !== undefined) {
+          if (user.band === "Below 3.0") {
+            currentLevel = 1; // Chỉ override nếu band là "Below 3.0"
+          }
+        }
 
-      if (totalExercisesInPath > 0) {
-        const calculatedProgress = Math.min(
-          100,
-          Math.round((completedExercisesInPath / totalExercisesInPath) * 100)
+        // Convert currentLevel to number nếu là string
+        const currentLevelNum =
+          typeof currentLevel === "string"
+            ? parseInt(currentLevel)
+            : currentLevel; // Trường hợp đã làm assessment: tính progress từ level hiện tại
+        const relevantLevels = allLevels.filter(
+          (l) => l.level >= currentLevelNum
         );
-        setProgress(calculatedProgress);
+        if (relevantLevels.length === 0) {
+          setProgress(100); // User is at the highest level
+          return;
+        }
+        const totalExercisesInPath = relevantLevels.reduce(
+          (sum, level) => sum + level.totalExercises,
+          0
+        );
+        const completedExercisesInPath = completed.filter((c) =>
+          relevantLevels.some((l) => l.level === c.level)
+        ).length;
+
+        if (totalExercisesInPath > 0) {
+          const calculatedProgress = Math.min(
+            100,
+            Math.round((completedExercisesInPath / totalExercisesInPath) * 100)
+          );
+          setProgress(calculatedProgress);
+        }
+      } else {
+        // Trường hợp chưa làm assessment: tính progress từ tất cả levels
+        const totalExercisesAll = allLevels.reduce(
+          (sum, level) => sum + level.totalExercises,
+          0
+        );
+        const completedExercisesAll = completed.length;
+
+        if (totalExercisesAll > 0) {
+          const calculatedProgress = Math.min(
+            100,
+            Math.round((completedExercisesAll / totalExercisesAll) * 100)
+          );
+          setProgress(calculatedProgress);
+        } else {
+          setProgress(0);
+        }
       }
     }
   }, [user, completed, allLevels]);
@@ -200,7 +228,7 @@ const DashboardPage: React.FC = () => {
               dựng lộ trình học tập phù hợp nhất cho bạn.
             </p>
             <motion.button
-              onClick={() => navigate("/assessment-confirm")}
+              onClick={() => navigate("/assessment")}
               className="px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg hover:shadow-purple-500/40 transition-all duration-300"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
@@ -255,55 +283,137 @@ const DashboardPage: React.FC = () => {
                   <div>
                     <p className="text-purple-300 text-lg">
                       Band điểm hiện tại của bạn:
-                    </p>
+                    </p>{" "}
                     <div className="flex items-baseline gap-4 mt-2">
                       <p className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                        Band{" "}
-                        {user && user.band ? (
-                          <AnimatedCounter value={user.band} />
-                        ) : (
-                          "N/A"
-                        )}
+                        Band <BandDisplay band={user?.band} />
                       </p>
-                    </div>
-                    <p className="mt-4 text-purple-200 text-xl">
-                      Cấp độ hiện tại của bạn{" "}
-                      <strong className="font-bold text-white underline">
-                        Level {user?.level}
-                      </strong>
-                      .
-                    </p>
-                  </div>
-                  <motion.button
-                    onClick={() => navigate(`/lessons/${user?.level}`)}
-                    className="w-full mt-8 flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300 cursor-pointer"
-                    whileHover={{ y: -3 }}
-                  >
-                    <FaRocket />
-                    Bắt đầu ôn luyện theo level được đề xuất
-                  </motion.button>
+                    </div>{" "}
+                    {(() => {
+                      // Xác định level được đề xuất dựa trên band
+                      let recommendedLevel = user?.level;
+                      if (user?.band !== null && user?.band !== undefined) {
+                        if (user?.band === "Below 3.0") {
+                          recommendedLevel = 1; // Chỉ override nếu band là "Below 3.0"
+                        }
+                      }
+                      // Convert to number để hiển thị chính xác
+                      const recommendedLevelNum =
+                        typeof recommendedLevel === "string"
+                          ? parseInt(recommendedLevel)
+                          : recommendedLevel;
+
+                      return (
+                        <p className="mt-4 text-purple-200 text-xl">
+                          Cấp độ được đề xuất cho bạn:{" "}
+                          <strong className="font-bold text-white underline">
+                            Level {recommendedLevelNum}
+                          </strong>
+                          .
+                        </p>
+                      );
+                    })()}
+                  </div>{" "}
+                  {(() => {
+                    // Xác định level để navigate
+                    let targetLevel = user?.level;
+                    if (user?.band !== null && user?.band !== undefined) {
+                      if (user?.band === "Below 3.0") {
+                        targetLevel = 1; // Chỉ override nếu band là "Below 3.0"
+                      }
+                    }
+                    // Convert to number để navigate đúng
+                    const targetLevelNum =
+                      typeof targetLevel === "string"
+                        ? parseInt(targetLevel)
+                        : targetLevel;
+
+                    return (
+                      <motion.button
+                        onClick={() => navigate(`/lessons/${targetLevelNum}`)}
+                        className="w-full mt-8 flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300 cursor-pointer"
+                        whileHover={{ y: -3 }}
+                      >
+                        <FaRocket />
+                        Bắt đầu ôn luyện theo level được đề xuất
+                      </motion.button>
+                    );
+                  })()}
                 </motion.div>
               ) : (
-                /* Card khuyến khích chọn level khi chưa làm assessment */
+                /* Card khuyến khích làm assessment khi chưa làm */
                 <motion.div
-                  className="lg:col-span-2 bg-white/5 backdrop-blur-md border border-purple-500/20 rounded-2xl shadow-2xl p-8 flex flex-col justify-center"
+                  className="lg:col-span-2 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md border-2 border-gradient-to-r border-purple-400/30 rounded-3xl shadow-2xl p-8 flex flex-col justify-between relative overflow-hidden"
                   whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
                 >
-                  <div className="text-center">
-                    <p className="text-purple-300 text-lg mb-4">
-                      Chọn level phù hợp để bắt đầu học tập:
-                    </p>
-                    <p className="text-purple-200 text-xl mb-6">
-                      Bạn có thể chọn bất kỳ level nào từ lộ trình bên dưới để
-                      bắt đầu ôn luyện.
-                    </p>
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-pink-900/20 opacity-50"></div>
+
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <FaExclamationCircle className="text-3xl text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white mb-1">
+                          Bạn chưa làm bài test đầu vào
+                        </h3>
+                        <p className="text-purple-300 text-lg">
+                          Hãy làm bài test để cá nhân hóa lộ trình học tập
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/20">
+                      <p className="text-purple-200 text-lg leading-relaxed">
+                        🎯{" "}
+                        <strong className="text-white">
+                          Bạn có muốn làm bài test đầu vào
+                        </strong>{" "}
+                        để chúng tôi có thể xây dựng lộ trình học tập phù hợp
+                        nhất với trình độ của bạn không?
+                      </p>
+                      <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-green-300">
+                          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                          Đánh giá chính xác trình độ
+                        </div>
+                        <div className="flex items-center gap-2 text-blue-300">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                          Lộ trình học cá nhân hóa
+                        </div>
+                        <div className="flex items-center gap-2 text-yellow-300">
+                          <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                          Theo dõi tiến độ chi tiết
+                        </div>
+                        <div className="flex items-center gap-2 text-pink-300">
+                          <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+                          Đề xuất bài tập phù hợp
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 flex gap-4">
                     <motion.button
-                      onClick={() => navigate("/lessons")}
-                      className="flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300 cursor-pointer mx-auto"
+                      onClick={() => navigate("/assessment-confirm")}
+                      className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-purple-500/40 transform hover:scale-105 transition-all duration-300 cursor-pointer"
                       whileHover={{ y: -3 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       <FaRocket />
-                      Khám phá các level
+                      Làm bài test đầu vào ngay
+                    </motion.button>
+                    <motion.button
+                      onClick={() => navigate("/lessons")}
+                      className="flex items-center justify-center gap-2 px-6 py-4 bg-white/10 backdrop-blur-sm text-purple-200 font-semibold rounded-xl border border-purple-400/30 hover:bg-white/20 transition-all duration-300 cursor-pointer"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Tự chọn level
                     </motion.button>
                   </div>
                 </motion.div>
@@ -350,7 +460,7 @@ const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                   </motion.div>
-                )}
+                )}{" "}
             </div>
             {/* Learning Path */}
             <div>
@@ -365,30 +475,35 @@ const DashboardPage: React.FC = () => {
                     user?.level !== null &&
                     user?.level !== undefined &&
                     user?.band !== null &&
-                    user?.band !== undefined;
+                    user?.band !== undefined; // Xác định level được đề xuất dựa trên dữ liệu user
+                  let recommendedLevel = user?.level;
+                  if (
+                    hasAssessment &&
+                    user?.band !== null &&
+                    user?.band !== undefined
+                  ) {
+                    // Nếu band "Below 3.0" thì đề xuất Level 1
+                    if (user?.band === "Below 3.0") {
+                      recommendedLevel = 1;
+                    }
+                    // Với các band số khác, sử dụng level từ user data (đã được tính từ API/assessment)
+                  }
 
+                  // Convert recommended level to number để so sánh chính xác
+                  const recommendedLevelNum =
+                    typeof recommendedLevel === "string"
+                      ? parseInt(recommendedLevel)
+                      : recommendedLevel;
+
+                  // Kiểm tra có phải level được đề xuất không
                   const isCurrent =
-                    hasAssessment && user?.level === level.level;
+                    hasAssessment && recommendedLevelNum === level.level;
 
-                  // Tạm thời force highlight Level 1 để test
-                  const forceHighlight = level.level === 1;
-                  const shouldHighlight = isCurrent || forceHighlight;
-
-                  // Debug log
-                  console.log(`Level ${level.level}:`, {
-                    userLevel: user?.level,
-                    levelLevel: level.level,
-                    hasAssessment,
-                    isCurrent,
-                    strictComparison: user?.level === level.level,
-                    userType: typeof user?.level,
-                    levelType: typeof level.level,
-                  });
                   return (
                     <motion.div
                       key={level.level}
                       className={`relative p-5 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
-                        shouldHighlight
+                        isCurrent
                           ? "bg-gradient-to-br from-purple-400/60 to-indigo-400/50 border-purple-200 shadow-purple-400/80 shadow-2xl ring-4 ring-purple-300/60"
                           : "bg-gray-700/50 border-gray-600 hover:border-purple-400/50 hover:bg-gray-600/50"
                       }`}
@@ -397,7 +512,7 @@ const DashboardPage: React.FC = () => {
                         transition: { duration: 0.2 },
                       }}
                       animate={
-                        shouldHighlight
+                        isCurrent
                           ? {
                               boxShadow: [
                                 "0 0 30px rgba(168, 85, 247, 0.4)",
@@ -408,7 +523,7 @@ const DashboardPage: React.FC = () => {
                           : {}
                       }
                       transition={
-                        shouldHighlight
+                        isCurrent
                           ? {
                               boxShadow: {
                                 duration: 3,
@@ -422,7 +537,7 @@ const DashboardPage: React.FC = () => {
                     >
                       {" "}
                       {/* Chỉ hiển thị crown khi đã làm assessment và đây là level hiện tại */}
-                      {shouldHighlight && (
+                      {isCurrent && (
                         <>
                           <motion.div
                             animate={{
@@ -455,16 +570,14 @@ const DashboardPage: React.FC = () => {
                       )}{" "}
                       <p
                         className={`font-bold text-2xl ${
-                          shouldHighlight
-                            ? "text-white drop-shadow-lg"
-                            : "text-white"
+                          isCurrent ? "text-white drop-shadow-lg" : "text-white"
                         }`}
                       >
                         Level {level.level}
                       </p>
                       <p
                         className={`font-semibold ${
-                          shouldHighlight
+                          isCurrent
                             ? "text-yellow-200 drop-shadow-sm font-bold"
                             : "text-gray-400"
                         }`}
