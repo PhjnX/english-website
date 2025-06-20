@@ -5,6 +5,7 @@ import { FaRocket, FaExclamationCircle, FaCrown } from "react-icons/fa";
 import { getUserById } from "../../../apis/user-api";
 import Header from "../_components/Header";
 import Footer from "../_components/Footer";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 // --- TYPE DEFINITIONS (Giả lập cấu trúc dữ liệu) ---
 interface UserData {
@@ -686,106 +687,19 @@ const DashboardPage: React.FC = () => {
                     </div>
                   </motion.div>
                 ))}
-              </div>
-            </div>{" "}
-            {/* MODAL Làm lại với thiết kế tối hiện đại */}
-            {openRedo && (
-              <motion.div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={cancelRedo}
-              >
-                <motion.div
-                  initial={{ scale: 0.8, y: 50, opacity: 0 }}
-                  animate={{ scale: 1, y: 0, opacity: 1 }}
-                  exit={{ scale: 0.8, y: 50, opacity: 0 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                  className="bg-gray-900 border border-purple-500/30 max-w-md w-full mx-4 rounded-3xl shadow-2xl overflow-hidden"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Header với gradient tối */}
-                  <div className="bg-gradient-to-r from-purple-700 via-purple-800 to-pink-700 p-6 text-white relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 backdrop-blur-sm"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/40 rounded-full flex items-center justify-center backdrop-blur-sm">
-                            <FaRocket className="text-xl text-purple-200" />
-                          </div>
-                          <div>
-                            <h3 className="text-xl font-bold text-white">
-                              Xác nhận làm lại
-                            </h3>
-                            <p className="text-purple-200 text-sm">
-                              Bài tập Reading
-                            </p>
-                          </div>
-                        </div>
-                        <motion.button
-                          whileHover={{ scale: 1.1, rotate: 90 }}
-                          whileTap={{ scale: 0.9 }}
-                          className="w-8 h-8 bg-red-500/20 border border-red-400/30 rounded-full flex items-center justify-center text-red-300 hover:text-red-200 hover:bg-red-500/30 transition-all"
-                          onClick={cancelRedo}
-                        >
-                          ✕
-                        </motion.button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Body với theme tối */}
-                  <div className="p-6 bg-gray-900">
-                    <div className="text-center mb-6">
-                      <div className="w-16 h-16 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-400/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FaExclamationCircle className="text-2xl text-orange-400" />
-                      </div>
-                      <p className="text-gray-200 text-lg leading-relaxed">
-                        Bạn có chắc chắn muốn làm lại bài{" "}
-                        <span className="font-bold text-purple-400">
-                          {redoItem?.title ?? `Reading ${redoItem?.readingNum}`}
-                        </span>{" "}
-                        không?
-                      </p>
-                      <p className="text-gray-400 text-sm mt-2">
-                        Kết quả cũ sẽ được thay thế bằng kết quả mới
-                      </p>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <motion.button
-                        whileHover={{
-                          scale: 1.02,
-                          y: -1,
-                          boxShadow: "0 5px 15px rgba(107, 114, 128, 0.3)",
-                        }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={cancelRedo}
-                        className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold rounded-xl transition-all duration-200 border border-gray-600 hover:border-gray-500 cursor-pointer"
-                      >
-                        Hủy bỏ
-                      </motion.button>
-                      <motion.button
-                        whileHover={{
-                          scale: 1.02,
-                          y: -1,
-                          boxShadow: "0 10px 25px rgba(168, 85, 247, 0.4)",
-                        }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={confirmRedo}
-                        className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-xl shadow-lg transition-all duration-200 border border-purple-400/50 cursor-pointer"
-                      >
-                        <div className="flex items-center justify-center gap-2">
-                          <FaRocket className="text-sm" />
-                          Làm lại ngay
-                        </div>
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>{" "}
-              </motion.div>
-            )}
+              </div>            </div>
+            
+            {/* Confirm Modal */}
+            <ConfirmModal
+              isOpen={openRedo}
+              onClose={cancelRedo}
+              onConfirm={confirmRedo}
+              title="Xác nhận làm lại"
+              message={`Bạn có chắc chắn muốn làm lại bài ${redoItem?.title ?? `Reading ${redoItem?.readingNum}`} không?`}
+              confirmText="Làm lại ngay"
+              cancelText="Hủy bỏ"
+              type="warning"
+            />
           </div>
         </div>
       </div>

@@ -16,7 +16,8 @@ import {
   FaBookReader,
   FaChartLine,
 } from "react-icons/fa";
-import { Part, Group, Question } from "./reading";
+import { Part, Group } from "./reading";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -66,7 +67,9 @@ const ReadingScore = () => {
       fontLink.rel = "stylesheet";
       document.head.appendChild(fontLink);
     }
-  }, []); // Lấy state truyền từ trang test
+  }, []);
+
+  // Lấy state truyền từ trang test
   const {
     score = 0,
     band: stateBand,
@@ -79,6 +82,7 @@ const ReadingScore = () => {
   // Sử dụng band từ state nếu có, nếu không thì tính lại từ score
   const band = stateBand || getBand(score);
   const [showConfetti, setShowConfetti] = useState(true);
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -97,17 +101,14 @@ const ReadingScore = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleRetake = () => {
+    setShowRetakeModal(false);
+    navigate("/mock-test");
+  };
+
   const handleReview = () => {
-    navigate("/review", {
-      state: {
-        answers,
-        questions,
-        parts,
-        isSubmitted: true,
-        isReviewing: true,
-        score,
-        band,
-      },
+    navigate("/mock-test-review", {
+      state: { answers, questions, parts, score, band },
     });
   };
 
@@ -116,63 +117,41 @@ const ReadingScore = () => {
     let total = 0;
     parts.forEach((part: Part) => {
       part.groups.forEach((group: Group) => {
-        group.questions.forEach((q: Question) => {
-          if (q.type === "gap-fill" || q.type === "paragraph") {
-            // Mỗi chỗ ___ là 1 câu hỏi
-            const numBlanks = (q.questionText.match(/_{2,}/g) || []).length;
-            total += numBlanks;
-          } else if (q.type === "matching") {
-            // Mỗi statement là 1 câu hỏi
-            const numStatements = q.questionText
-              .split(/\n/)
-              .filter((s: string) => s.trim()).length;
-            total += numStatements;
-          } else {
-            // multiple-choice, true-false-notgiven: mỗi object là 1 câu hỏi
-            total += 1;
+        // Ưu tiên sử dụng startNumber và endNumber nếu có
+        if (typeof group.startNumber === 'number' && typeof group.endNumber === 'number') {
+          total += group.endNumber - group.startNumber + 1;
+        } else if (group.questions && group.questions.length > 0) {
+          // Fallback: đếm theo số lượng questions
+          total += group.questions.length;
+        } else {
+          // Fallback cuối: đếm theo nội dung questionText của group
+          if (group.questionText) {
+            const text = group.questionText;
+            if (group.questionType === "gap-fill" || group.questionType === "paragraph") {
+              // Đếm số chỗ trống ___
+              const numBlanks = (text.match(/_{2,}/g) || []).length;
+              total += numBlanks > 0 ? numBlanks : 1;
+            } else if (group.questionType === "matching") {
+              // Đếm số statement có dạng "1. ...", "2. ..."
+              const numStatements = text
+                .split(/\n/)
+                .filter((s: string) => s.trim() && /^\d+\./.test(s.trim())).length;
+              total += numStatements > 0 ? numStatements : 1;
+            } else {
+              // Các loại khác mặc định là 1
+              total += 1;
+            }
           }
-        });
+        }
       });
     });
     return total;
   };
 
   const totalQuestions =
-    Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 40;
+    Array.isArray(parts) && parts.length > 0 ? countQuestions(parts) : 
+    (questions && Array.isArray(questions) ? questions.length : 40);
 
-  // Gradient màu động cho progressbar
-  const progressColor = (percent: number) =>
-    percent >= 80
-      ? "url(#gradSuccess)"
-      : percent >= 60
-      ? "url(#gradGood)"
-      : percent >= 40
-      ? "url(#gradOkay)"
-      : "url(#gradNeedsImprovement)";
-
-  const bandProgressColor = (currentBand: number | string) =>
-    typeof currentBand !== "number"
-      ? "url(#gradNeedsImprovement)"
-      : currentBand >= 7.0
-      ? "url(#gradExcellentBand)"
-      : currentBand >= 5.5
-      ? "url(#gradGoodBand)"
-      : "url(#gradOkayBand)";
-
-  // Hiệu ứng motion
-  const containerVariants = {
-    hidden: { opacity: 0, scale: 0.97 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-        when: "beforeChildren",
-        staggerChildren: 0.09,
-      },
-    },
-  };
   const itemVariants = {
     hidden: { opacity: 0, y: 24 },
     visible: {
@@ -181,6 +160,7 @@ const ReadingScore = () => {
       transition: { duration: 0.44, ease: "easeOut" },
     },
   };
+
   // Style gradient động cho button (inline, không cần file ngoài)
   const gradBtnStyle: React.CSSProperties = {
     backgroundImage: "linear-gradient(to right, #667eea 0%, #764ba2 100%)",
@@ -193,23 +173,22 @@ const ReadingScore = () => {
     fontWeight: 700,
     fontSize: 16,
     padding: "14px 28px",
-    margin: "0 8px",
     cursor: "pointer",
-    outline: "none",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    minWidth: 140,
-    textTransform: "capitalize" as const,
-    fontFamily: "'Be Vietnam Pro', 'Inter', Arial, Helvetica, sans-serif",
+    gap: 8,
+    width: "fit-content",
+    maxWidth: 280,
+    marginTop: 12,
   };
+
   return (
     <div
-      className="min-h-screen w-full overflow-y-auto flex flex-col items-center justify-center px-4 py-6"
+      className="min-h-screen"
       style={{
         fontFamily: "'Be Vietnam Pro', 'Inter', Arial, Helvetica, sans-serif",
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        background:
+          "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
         backgroundAttachment: "fixed",
       }}
     >
@@ -218,224 +197,202 @@ const ReadingScore = () => {
           width={windowSize.width}
           height={windowSize.height}
           recycle={false}
-          numberOfPieces={score > 0 ? 260 : 40}
-          gravity={0.09}
+          numberOfPieces={300}
+          gravity={0.1}
+          colors={["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#feca57"]}
         />
-      )}{" "}
-      {/* SVG linear gradient cho Progressbar */}
-      <svg width="0" height="0">
-        <defs>
-          <linearGradient id="gradSuccess" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="100%" stopColor="#059669" />
-          </linearGradient>
-          <linearGradient id="gradGood" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#7c3aed" />
-          </linearGradient>
-          <linearGradient id="gradOkay" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#d97706" />
-          </linearGradient>
-          <linearGradient
-            id="gradNeedsImprovement"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="0%"
-          >
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="100%" stopColor="#dc2626" />
-          </linearGradient>
-          <linearGradient
-            id="gradExcellentBand"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="0%"
-          >
-            <stop offset="0%" stopColor="#7c3aed" />
-            <stop offset="100%" stopColor="#5b21b6" />
-          </linearGradient>
-          <linearGradient id="gradGoodBand" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#7c3aed" />
-          </linearGradient>
-          <linearGradient id="gradOkayBand" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#a78bfa" />
-            <stop offset="100%" stopColor="#8b5cf6" />
-          </linearGradient>
-        </defs>
-      </svg>
+      )}
+
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="backdrop-blur-xl bg-white/90 border border-white/40 rounded-3xl shadow-2xl p-8 sm:p-12 md:p-16 w-full max-w-5xl text-center mx-auto my-auto"
-        style={{
-          boxShadow:
-            "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.2)",
-          fontFamily: "'Be Vietnam Pro', 'Inter', Arial, Helvetica, sans-serif",
-        }}
+        className="container mx-auto px-4 py-8 max-w-4xl"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
       >
+        {/* Header */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-col items-center mb-7"
+          className="text-center mb-8"
         >
           <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{
-              delay: 0.1,
-              type: "spring",
-              stiffness: 200,
-              damping: 10,
-            }}
-            className="flex items-center justify-center gap-4 mb-3"
+            className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-lg rounded-full px-6 py-3 mb-4 shadow-xl border border-white/30"
+            whileHover={{ scale: 1.05 }}
           >
-            {" "}
-            <FaRocket className="text-6xl text-purple-500 animate-bounce" />
-            <span className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 drop-shadow-lg">
-              Chúc mừng! Bạn đã hoàn thành bài thi thử !
+            <FaAward className="text-yellow-300 text-2xl" />
+            <span className="text-white font-bold text-xl">
+              Kết quả IELTS Reading
             </span>
-            <FaRocket className="text-6xl text-purple-500 animate-bounce scale-x-[-1]" />
-          </motion.div>{" "}
-          <p className="text-lg md:text-xl text-gray-700 font-medium leading-relaxed">
-            Đây là kết quả bài thi thử IELTS Reading của bạn.
-            <br />
-            Hãy sử dụng kết quả này để đánh giá năng lực hiện tại và lên kế
-            hoạch luyện tập để đạt mục tiêu!
-          </p>
+          </motion.div>
+          <motion.h1
+            className="text-5xl font-black text-transparent bg-clip-text mb-2"
+            style={{
+              backgroundImage:
+                "linear-gradient(45deg, #FFD700, #FFA500, #FF6347)",
+            }}
+            animate={{ scale: [0.9, 1.1, 1] }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+          >
+            Chúc mừng!
+          </motion.h1>
+          <motion.p
+            className="text-white/90 text-lg font-medium"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Bạn đã hoàn thành bài kiểm tra
+          </motion.p>
         </motion.div>
-        {/* 3 Card thống kê */}
+
+        {/* Main Score Display */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-7 mb-11"
+          className="bg-white/15 backdrop-blur-lg rounded-3xl p-8 mb-8 shadow-2xl border border-white/20"
         >
-          {" "}
-          <motion.div
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
-            }}
-            className="flex flex-col items-center px-6 py-8 bg-gradient-to-br from-orange-50 to-orange-100 rounded-3xl shadow-lg border border-orange-200"
-          >
-            <div className="w-32 h-32 mb-4">
-              <CircularProgressbarWithChildren
-                value={totalQuestions > 0 ? (score / totalQuestions) * 100 : 0}
-                strokeWidth={8}
-                styles={buildStyles({
-                  pathColor: progressColor(
-                    totalQuestions > 0 ? (score / totalQuestions) * 100 : 0
-                  ),
-                  trailColor: "#fed7aa",
-                  pathTransitionDuration: 1.2,
-                  strokeLinecap: "round",
-                })}
-              >
-                <FaBookReader className="text-3xl text-orange-600 mb-2" />
-                <div className="text-sm text-orange-700 font-bold">Đúng</div>
-                <div className="text-2xl font-extrabold text-orange-800">
-                  {score}/{totalQuestions > 0 ? totalQuestions : "N/A"}
-                </div>
-              </CircularProgressbarWithChildren>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Circular Progress */}
+            <div className="flex justify-center">
+              <div className="w-64 h-64">
+                <CircularProgressbarWithChildren
+                  value={(score / totalQuestions) * 100}
+                  styles={buildStyles({
+                    pathColor: "#4ade80",
+                    trailColor: "rgba(255,255,255,0.2)",
+                    strokeLinecap: "round",
+                    pathTransitionDuration: 2.5,
+                  })}
+                  strokeWidth={8}
+                >
+                  <div className="text-center">
+                    <div className="text-6xl font-black text-white mb-2">
+                      {score}
+                    </div>
+                    <div className="text-white/80 text-lg font-medium">
+                      / {totalQuestions}
+                    </div>
+                    <div className="text-sm text-white/60 mt-1">câu đúng</div>
+                  </div>
+                </CircularProgressbarWithChildren>
+              </div>
             </div>
-            <p className="text-lg font-bold text-orange-800">Số câu trả lời</p>
-          </motion.div>{" "}
-          <motion.div
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
-            }}
-            className="flex flex-col items-center px-6 py-8 bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl shadow-lg border border-purple-200"
-          >
-            <div className="w-32 h-32 mb-4">
-              <CircularProgressbarWithChildren
-                value={typeof band === "number" ? (band / 9) * 100 : 0}
-                strokeWidth={8}
-                styles={buildStyles({
-                  pathColor: bandProgressColor(band),
-                  trailColor: "#e9d5ff",
-                  pathTransitionDuration: 1.2,
-                  strokeLinecap: "round",
-                })}
-              >
-                <FaAward className="text-3xl text-purple-600 mb-2" />
-                <div className="text-sm text-purple-700 font-bold">Band</div>
-                <div className="text-2xl font-extrabold text-purple-800">
+
+            {/* Score Details */}
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <FaAward className="text-yellow-400 text-2xl" />
+                  <span className="text-white font-bold text-xl">
+                    Band Score
+                  </span>
+                </div>
+                <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
                   {band}
                 </div>
-              </CircularProgressbarWithChildren>
-            </div>
-            <p className="text-lg font-bold text-purple-800">Điểm số IELTS</p>
-          </motion.div>{" "}
-          <motion.div
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 20px 40px rgba(0, 0, 0, 0.1)",
-            }}
-            className="flex flex-col items-center px-6 py-8 bg-gradient-to-br from-green-50 to-green-100 rounded-3xl shadow-lg border border-green-200"
-          >
-            <div className="w-32 h-32 mb-4">
-              <CircularProgressbarWithChildren
-                value={100}
-                strokeWidth={8}
-                styles={buildStyles({
-                  pathColor: "url(#gradGood)",
-                  trailColor: "#bbf7d0",
-                  strokeLinecap: "round",
-                })}
-              >
-                <FaChartLine className="text-3xl text-green-600 mb-2" />
-                <div className="text-sm text-green-700 font-bold">
-                  Thời gian
+                <div className="text-white/70 text-sm mt-1">
+                  Thang điểm IELTS
                 </div>
-                <div className="text-xl font-bold text-green-800">
-                  {Math.floor(timeSpent / 60)}p {timeSpent % 60}s
+              </div>
+
+              <div className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <FaChartLine className="text-blue-400 text-2xl" />
+                  <span className="text-white font-bold text-xl">
+                    Thống kê
+                  </span>
                 </div>
-              </CircularProgressbarWithChildren>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-400">
+                      {score}
+                    </div>
+                    <div className="text-white/70 text-xs">Câu đúng</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-red-400">
+                      {totalQuestions - score}
+                    </div>
+                    <div className="text-white/70 text-xs">Câu sai</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-3 mb-3">
+                  <FaBookReader className="text-indigo-400 text-2xl" />
+                  <span className="text-white font-bold text-xl">
+                    Thời gian
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-indigo-400">
+                  {Math.floor(timeSpent / 60)} phút {timeSpent % 60} giây
+                </div>
+                <div className="text-white/70 text-xs">
+                  Thời gian hoàn thành
+                </div>
+              </div>
             </div>
-            <p className="text-lg font-bold text-green-800">
-              Thời lượng làm bài
-            </p>
-          </motion.div>
-        </motion.div>{" "}
-        {/* Dải band điểm */}
-        <motion.div variants={itemVariants} className="mb-12">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">
-            Vị trí điểm số của bạn trên thang điểm IELTS:
-          </h3>
-          <div className="flex flex-wrap gap-2 justify-center px-2">
-            {displayBandMapping
-              .slice()
-              .reverse()
-              .map((b) => (
-                <motion.span
-                  key={b.band}
-                  className={`px-4 py-2 rounded-xl border-2 text-sm font-bold transition-all duration-300 shadow-md
-                  ${
-                    b.band === band
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-600 scale-110 ring-4 ring-purple-200 ring-offset-2 shadow-lg"
-                      : typeof band === "number" &&
-                        typeof b.band === "number" &&
-                        b.band < band
-                      ? "bg-purple-100 text-purple-800 border-purple-300"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400"
-                  }`}
-                  whileHover={{ y: -2, transition: { duration: 0.14 } }}
-                >
-                  {b.band}
-                </motion.span>
-              ))}
           </div>
         </motion.div>
+
+        {/* Band Analysis - chỉ hiển thị nếu có band */}
+        {band && (
+          <motion.div
+            variants={itemVariants}
+            className="bg-white/15 backdrop-blur-lg rounded-3xl p-8 mb-8 shadow-2xl border border-white/20"
+          >
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">
+              Phân tích Band Score
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {displayBandMapping.slice(0, 8).map((item, index) => {
+                const isCurrentBand =
+                  typeof band === "number"
+                    ? item.band === band
+                    : item.band === band;
+                return (
+                  <motion.div
+                    key={index}
+                    className={`p-4 rounded-xl border-2 transition-all ${
+                      isCurrentBand
+                        ? "bg-gradient-to-r from-yellow-400/30 to-orange-500/30 border-yellow-400 shadow-lg"
+                        : "bg-white/10 border-white/20 hover:bg-white/20"
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="text-center">
+                      <div
+                        className={`text-2xl font-bold ${
+                          isCurrentBand ? "text-yellow-300" : "text-white"
+                        }`}
+                      >
+                        {item.band}
+                      </div>
+                      <div
+                        className={`text-sm ${
+                          isCurrentBand ? "text-yellow-200" : "text-white/70"
+                        }`}
+                      >
+                        {item.score}+ điểm
+                      </div>
+                      {isCurrentBand && (
+                        <div className="text-xs text-yellow-300 mt-1 font-semibold">
+                          Kết quả của bạn
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+
         {/* Nút hành động */}
         <motion.div
           variants={itemVariants}
           className="flex flex-col items-center gap-4"
         >
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 w-full">
-            {" "}
             <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
@@ -455,7 +412,7 @@ const ReadingScore = () => {
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
-              onClick={() => navigate("/mock-test")}
+              onClick={() => setShowRetakeModal(true)}
               style={{
                 ...gradBtnStyle,
                 backgroundPosition: "left center",
@@ -489,18 +446,14 @@ const ReadingScore = () => {
               <FaEye size={18} />
               <span>Xem đáp án</span>
             </motion.button>
-          </div>{" "}
+          </div>
           <motion.button
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.05 }}
             onClick={() => navigate("/lessons")}
             style={{
               ...gradBtnStyle,
-              width: "100%",
-              maxWidth: 400,
-              fontSize: 18,
-              marginTop: 20,
               backgroundImage:
-                "linear-gradient(to right, #4facfe 0%, #00f2fe 100%)",
+                "linear-gradient(to right, #667eea 0%, #764ba2 100%)",
               backgroundPosition: "left center",
             }}
             onMouseEnter={(e) =>
@@ -515,6 +468,18 @@ const ReadingScore = () => {
           </motion.button>
         </motion.div>
       </motion.div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showRetakeModal}
+        onClose={() => setShowRetakeModal(false)}
+        onConfirm={handleRetake}
+        title="Xác nhận làm lại"
+        message="Bạn có chắc chắn muốn làm lại bài kiểm tra IELTS Reading không?"
+        confirmText="Làm lại ngay"
+        cancelText="Hủy bỏ"
+        type="warning"
+      />
     </div>
   );
 };

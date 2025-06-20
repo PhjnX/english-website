@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
 import { Part, Group, Question } from "./reading";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -92,9 +93,9 @@ const ReadingPracticeScore = () => {
     },
     final: { currentLevel, currentReadingNum },
   });
-
   const band = getBand(score);
   const [showConfetti, setShowConfetti] = useState(true);
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -126,15 +127,20 @@ const ReadingPracticeScore = () => {
         readingNum: currentReadingNum,
       },
     });
-  };
-  const handleContinuePractice = () => {
+  };  const handleContinuePractice = () => {
     // Quay về trang level trước đó (sử dụng currentLevel)
     navigate(`/lessons/${currentLevel}`);
   };
 
-  const handleRetry = () => {
+  const handleRetake = () => {
+    setShowRetakeModal(false);
     // Làm lại bài này (sử dụng currentLevel và currentReadingNum)
     navigate(`/lessons/${currentLevel}/${currentReadingNum}`);
+  };
+
+  const handleRetry = () => {
+    // Hiển thị modal xác nhận
+    setShowRetakeModal(true);
   };
 
   // Đếm chính xác số câu hỏi của tất cả dạng
@@ -525,10 +531,21 @@ const ReadingPracticeScore = () => {
             }
           >
             <FaRocket size={22} />
-            <span>Tiếp tục ôn luyện</span>
-          </motion.button>
+            <span>Tiếp tục ôn luyện</span>          </motion.button>
         </motion.div>
       </motion.div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showRetakeModal}
+        onClose={() => setShowRetakeModal(false)}
+        onConfirm={handleRetake}
+        title="Xác nhận làm lại"
+        message={`Bạn có chắc chắn muốn làm lại bài Reading Level ${currentLevel} - ${currentReadingNum} không?`}
+        confirmText="Làm lại ngay"
+        cancelText="Hủy bỏ"
+        type="warning"
+      />
     </div>
   );
 };

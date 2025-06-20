@@ -18,6 +18,7 @@ import {
 } from "react-icons/fa";
 import { GiPartyPopper } from "react-icons/gi";
 import { Part, Group, Question } from "./reading";
+import ConfirmModal from "../../../components/ConfirmModal";
 
 // Band mapping - giữ nguyên
 const bandMapping = [
@@ -61,9 +62,9 @@ const ReadingScore = () => {
     questions = [],
     parts = [],
   } = state || {};
-
   const band = getBand(score);
   const [showConfetti, setShowConfetti] = useState(true);
+  const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -76,11 +77,16 @@ const ReadingScore = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 5500);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleRetake = () => {
+    setShowRetakeModal(false);
+    // Navigate back to the reading test
+    navigate(-1);
+  };
 
   const handleReview = () => {
     navigate("/review", {
@@ -435,10 +441,9 @@ const ReadingScore = () => {
             >
               <FaHome size={20} />
               <span>Home</span>
-            </motion.button>
-            <motion.button
+            </motion.button>            <motion.button
               whileHover={{ scale: 1.04 }}
-              onClick={() => navigate("/assessment")}
+              onClick={() => setShowRetakeModal(true)}
               style={{
                 ...gradBtnStyle,
                 backgroundPosition: "left center",
@@ -491,13 +496,24 @@ const ReadingScore = () => {
             }
             onMouseLeave={(e) =>
               (e.currentTarget.style.backgroundPosition = "left center")
-            }
-          >
+            }          >
             <FaRocket size={22} />
             <span>Bắt đầu ôn luyện</span>
           </motion.button>
         </motion.div>
       </motion.div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={showRetakeModal}
+        onClose={() => setShowRetakeModal(false)}
+        onConfirm={handleRetake}
+        title="Xác nhận làm lại"
+        message="Bạn có chắc chắn muốn làm lại bài Reading này không?"
+        confirmText="Làm lại ngay"
+        cancelText="Hủy bỏ"
+        type="warning"
+      />
     </div>
   );
 };
