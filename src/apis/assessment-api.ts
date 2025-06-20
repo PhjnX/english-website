@@ -38,10 +38,9 @@ export const getAssessmentById = async (id: number) => {
 };
 
 // ===== PART =====
-// Các hàm dưới đây không dùng nữa nếu chỉ lấy data từ /assessment
 export const createPart = async (assessmentId: number, data: any) => {
   const res = await axios.post(
-    `${BASE_URL}/assessments/${assessmentId}/parts`,
+    `${BASE_URL}/assessment/${assessmentId}/parts`,   // sửa "assessments" -> "assessment"
     data,
     headers()
   );
@@ -50,7 +49,7 @@ export const createPart = async (assessmentId: number, data: any) => {
 
 export const updatePart = async (partId: number, data: any) => {
   const res = await axios.put(
-    `${BASE_URL}/assessments/parts/${partId}`,
+    `${BASE_URL}/assessment/parts/${partId}`,  // sửa
     data,
     headers()
   );
@@ -59,17 +58,16 @@ export const updatePart = async (partId: number, data: any) => {
 
 export const deletePart = async (partId: number) => {
   const res = await axios.delete(
-    `${BASE_URL}/assessments/parts/${partId}`,
+    `${BASE_URL}/assessment/parts/${partId}`,  // sửa
     headers()
   );
   return res.data;
 };
 
 // ===== GROUP =====
-// Các hàm dưới đây không dùng nữa nếu chỉ lấy data từ /assessment
 export const createGroup = async (partId: number, data: any) => {
   const res = await axios.post(
-    `${BASE_URL}/assessments/parts/${partId}/groups`,
+    `${BASE_URL}/assessment/parts/${partId}/groups`,  // sửa
     data,
     headers()
   );
@@ -78,7 +76,7 @@ export const createGroup = async (partId: number, data: any) => {
 
 export const updateGroup = async (groupId: number, data: any) => {
   const res = await axios.put(
-    `${BASE_URL}/assessments/groups/${groupId}`,
+    `${BASE_URL}/assessment/groups/${groupId}`,  // sửa
     data,
     headers()
   );
@@ -87,17 +85,16 @@ export const updateGroup = async (groupId: number, data: any) => {
 
 export const deleteGroup = async (groupId: number) => {
   const res = await axios.delete(
-    `${BASE_URL}/assessments/groups/${groupId}`,
+    `${BASE_URL}/assessment/groups/${groupId}`,  // sửa
     headers()
   );
   return res.data;
 };
 
 // ===== QUESTION =====
-// Các hàm dưới đây không dùng nữa nếu chỉ lấy data từ /assessment
 export const createQuestion = async (groupId: number, data: any) => {
   const res = await axios.post(
-    `${BASE_URL}/assessments/groups/${groupId}/questions`,
+    `${BASE_URL}/assessment/groups/${groupId}/questions`,  // sửa
     data,
     headers()
   );
@@ -106,7 +103,7 @@ export const createQuestion = async (groupId: number, data: any) => {
 
 export const updateQuestion = async (questionId: number, data: any) => {
   const res = await axios.put(
-    `${BASE_URL}/assessments/questions/${questionId}`,
+    `${BASE_URL}/assessment/questions/${questionId}`,  // sửa
     data,
     headers()
   );
@@ -115,8 +112,9 @@ export const updateQuestion = async (questionId: number, data: any) => {
 
 export const deleteQuestion = async (questionId: number) => {
   const res = await axios.delete(
-    `${BASE_URL}/assessments/questions/${questionId}`,
+    `${BASE_URL}/assessment/questions/${questionId}`,  // sửa
     headers()
   );
   return res.data;
 };
+
